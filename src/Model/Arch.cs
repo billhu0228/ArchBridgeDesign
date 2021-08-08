@@ -34,8 +34,9 @@ namespace Model
             {
                 case SectionType.ColumnSection:
                     ColumnSection.Add(new CutSection(sectid, cc, Angle.FromRadians(angle)));
-                    return 1;
+                    return sectid;
                 case SectionType.InstallSection:
+                    InstallSection.Add(new CutSection(sectid, cc, Angle.FromRadians(angle)));
                     break;
                 case SectionType.WebSection:
                     break;

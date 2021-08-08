@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Arch.cs" />
     <Compile Include="ArchAxis.cs" />
     <Compile Include="CutSection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
