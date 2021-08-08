@@ -12,6 +12,7 @@ namespace Test
         static void Main(string[] args)
         {
             ArchAxis aa = new ArchAxis(100, 1.5, 500);
+            
             var f=aa.ArchLength;
         }
     }

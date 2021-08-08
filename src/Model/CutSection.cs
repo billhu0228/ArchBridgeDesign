@@ -12,21 +12,25 @@ namespace Model
     {
         public int ID;
         public Point2D Center,RefPoint;
-        
+        public Angle Angle0;
+        public Vector2D Direction;
+
         public CutSection(int id,Point2D cc,Point2D refpt)
         {
             ID = id;
             Center = cc;
             RefPoint = refpt;
+            Angle0= (RefPoint - Center).SignedAngleTo(Vector2D.XAxis);
+            Direction = Vector2D.XAxis.Rotate(Angle0);
+        }
+        public CutSection(int id, Point2D cc, Angle angle)
+        {
+            ID = id;
+            Center = cc;
+            Direction = Vector2D.XAxis.Rotate(angle);
+            RefPoint = cc + Direction;
         }
 
-        public Angle AngleFromHorizental
-        {
-            get
-            {
-                return (RefPoint - Center).SignedAngleTo(Vector2D.XAxis);
-            }
-        }
 
         public override string ToString()
         {

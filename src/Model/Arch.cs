@@ -1,0 +1,47 @@
+﻿using MathNet.Spatial.Euclidean;
+using MathNet.Spatial.Units;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Model
+{
+    enum SectionType
+    {
+        ColumnSection=1,
+        InstallSection=2,
+        WebSection=3,
+    }
+    public class Arch
+    {
+        public ArchAxis Axis;
+        public double H0, H1;
+        public List<CutSection> ColumnSection, InstallSection, WebSection;
+
+        public Arch(ArchAxis ax, double height0, double height1)
+        {
+            Axis = ax;
+            H0 = height0;
+            H1 = height1;
+        }
+
+        public int AddSection(int sectid,double location,double angle,SectionType ST)
+        {
+            Point2D cc = Axis.GetCenter(location);
+            switch (ST)
+            {
+                case SectionType.ColumnSection:
+                    ColumnSection.Add(new CutSection(sectid, cc, Angle.FromRadians(angle)));
+                    return 1;
+                case SectionType.InstallSection:
+                    break;
+                case SectionType.WebSection:
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
