@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Model
 {
-    enum SectionType
+    public enum SectionType
     {
         ColumnSection=1,
         InstallSection=2,
@@ -34,15 +34,17 @@ namespace Model
             {
                 case SectionType.ColumnSection:
                     ColumnSection.Add(new CutSection(sectid, cc, Angle.FromRadians(angle)));
-                    return sectid;
+                    break;
                 case SectionType.InstallSection:
                     InstallSection.Add(new CutSection(sectid, cc, Angle.FromRadians(angle)));
                     break;
                 case SectionType.WebSection:
+                    WebSection.Add(new CutSection(sectid, cc, Angle.FromRadians(angle)));
                     break;
                 default:
-                    break;
+                    throw new Exception();                   
             }
+            return sectid;
         }
     }
 }

@@ -54,6 +54,7 @@
     <Compile Include="ArchAxis.cs" />
     <Compile Include="CutSection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TubeSection.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

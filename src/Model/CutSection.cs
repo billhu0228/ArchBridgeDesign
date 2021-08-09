@@ -34,7 +34,7 @@ namespace Model
 
         public override string ToString()
         {
-            return string.Format("截面 x={0} , Ang={1}",Center.X,AngleFromHorizental.Degrees);
+            return string.Format("截面 x={0} , Ang={1}",Center.X,Angle0.Degrees);
         }
 
 
