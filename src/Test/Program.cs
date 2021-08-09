@@ -1,4 +1,5 @@
-﻿using Model;
+﻿using MathNet.Spatial.Euclidean;
+using Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +20,15 @@ namespace Test
             /// 
             ArchAxis theArchAxis = new ArchAxis(100, 1.5, 500);
             Arch m1 = new Arch(theArchAxis, 7, 14);
-            m1.AddSection(1, 0, Math.PI * 0.5, SectionType.InstallSection);
+            m1.AddSection(1, 0, 90, SectionType.InstallSection);
 
+
+            var s1 = new TubeSection(1.36, 0.035);
+            m1.AssignProperty(MemberType.UpperCoord, s1, -100, 100);
+            m1.AssignProperty(MemberType.LowerCoord, s1);
+
+            Point2D f1, f2, f3;
+            m1.Get3Point(0, 30,out f1, out f2, out f3);
 
             var f=theArchAxis.ArchLength;
         }
