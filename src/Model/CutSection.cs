@@ -29,6 +29,7 @@ namespace Model
             Center = cc;
             Direction = Vector2D.XAxis.Rotate(angle);
             RefPoint = cc + Direction;
+            Angle0 = angle;
         }
 
 
