@@ -20,7 +20,7 @@ namespace Model
 
         public override string ToString()
         {
-            return string.Format("{0:G}x{1:F0}", Diameter, Thickness);
+            return string.Format("{0:G}x{1:F0}", Diameter*1000, Thickness*1000);
         }
     }
 }

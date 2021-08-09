@@ -28,7 +28,7 @@ namespace Model
         {
             get
             {
-                return get_length(L1) * 2.0; 
+                return GetLength(L1) * 2.0; 
             }
         }
 
@@ -37,7 +37,7 @@ namespace Model
             return x0 / L1;
         }
 
-        double get_length(double x0)
+        public double GetLength(double x0)
         {
             double k0 = get_kesi(x0);
             if (Math.Abs(k0)<1)
