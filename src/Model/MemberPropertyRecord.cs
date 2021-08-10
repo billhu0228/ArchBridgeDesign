@@ -1,4 +1,6 @@
-﻿namespace Model
+﻿using System.Collections.Generic;
+
+namespace Model
 {
     public class MemberPropertyRecord
     {
@@ -24,6 +26,18 @@
             string wd = string.Format("{0},截面={1}，范围=（{2},{3}）", name3, Section.ToString(), RangeFrom, RangeTo);
             return wd;
 
+        }
+
+        public bool CheckProperty( double loc,MemberType member)
+        {
+            if (Member==member && RangeFrom<=loc && RangeTo>=loc)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
     }
