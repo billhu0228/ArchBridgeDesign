@@ -22,14 +22,69 @@ namespace Test
             ArchAxis theArchAxis = new ArchAxis(518/4.5, 2, 518);
             Arch m1 = new Arch(theArchAxis, 8.5, 17);
 
+            double x0 = -225;
+            for (int i = 0; i < 10; i++)
+            {
+                double xi = x0 + i * 50;
+                m1.AddDatum(0, xi, eDatumType.ColumnDatum, 90.0);
+                if (i==0)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        m1.AddDatum(0, xi - 11 * (j + 1), eDatumType.VerticalDatum, 90);
+                    }
 
+                }
+                if (i==4)
+                {
+                    for (int jj = 0; jj < 3; jj++)
+                    {
+                        m1.AddDatum(0,xi + 7.8 * (jj + 1), eDatumType.VerticalDatum, 90);
+                        m1.AddDatum(0,1.6 + 7.8 * (jj), eDatumType.VerticalDatum, 90);
+                    }            
+
+                }
+                else if (i==9)
+                {
+                    for (int j = 0; j < 2; j++)
+                    {
+                        m1.AddDatum(0, xi + 11 * (j + 1), eDatumType.VerticalDatum, 90);
+                    }
+
+                }
+                else
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        m1.AddDatum(0, xi + (j + 1) *10.0, eDatumType.VerticalDatum, 90);
+                    }
+                }
+            }
+
+            m1.GenerateMiddleDatum(); //生成中插平面
+
+            m1.AddDatum(0,-518*0.5,  eDatumType.NormalDatum);
+            m1.AddDatum(0,518*0.5,  eDatumType.NormalDatum);
 
 
             var s1 = new TubeSection(1.36, 0.035);
-            m1.AssignProperty(MemberType.UpperCoord, s1);
-            m1.AssignProperty(MemberType.LowerCoord, s1);
+            m1.AssignProperty(eMemberType.UpperCoord, s1);
+            m1.AssignProperty(eMemberType.LowerCoord, s1);
 
-            var ff=m1.get_diagnal_sectin(134.65, 141.85, 0.08, 0.9);
+            m1.AssignProperty(eMemberType.VerticalWeb, new TubeSection(0.9, 0.024));
+            m1.AssignProperty(eMemberType.InclineWeb, new TubeSection(0.7, 0.024),double.NegativeInfinity,0);
+            m1.AssignProperty(eMemberType.InclineWeb, new TubeSection(0.5, 0.024),0,double.PositiveInfinity);
+
+            m1.GenerateDiagonalDatum();
+
+            m1.WriteDiagonalDatum("../dg.lsp");
+
+            m1.WriteControlPoint("../1.csv");
+
+            
+
+
+            //var ff=m1.get_diagnal_sectin(134.65, 141.85, 0.08, 0.9);
 
 
             //m1.AddSection(1, 0, 90, SectionType.InstallSection);

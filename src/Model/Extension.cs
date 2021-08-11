@@ -55,5 +55,25 @@ namespace Model
         }
 
 
+        public static List<Point2D> Tangent(this Point2D pt,Circle2D cir)
+        {
+            var r = cir.Radius;
+            var po = cir.Center - pt;
+            var pob =Angle.FromRadians( Math.Acos(cir.Radius / po.Length));
+            var ob = (-po).Rotate(-pob).Normalize();
+            var oc = (-po).Rotate(pob).Normalize();
+            var res = new List<Point2D>() { cir.Center + ob * r, cir.Center + oc * r };
+            res.Sort((x, y) => x.Y.CompareTo(y.Y));
+            return res ;
+
+        }
+
+        internal static double Interplate(double x_1, double x_2, double y_1, double y_2, double x0)
+        {
+            double k = (y_2 - y_1) / (x_2 - x_1);
+            double c = y_2 - k * x_2;
+
+            return k * x0 + c;
+        }
     }
 }

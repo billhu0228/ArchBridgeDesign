@@ -52,7 +52,7 @@
   <ItemGroup>
     <Compile Include="Arch.cs" />
     <Compile Include="ArchAxis.cs" />
-    <Compile Include="CutSection.cs" />
+    <Compile Include="DatumPlane.cs" />
     <Compile Include="Extension.cs" />
     <Compile Include="MemberPropertyRecord.cs" />
     <Compile Include="Enums.cs" />
