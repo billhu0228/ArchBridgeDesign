@@ -1,4 +1,5 @@
 ﻿using MathNet.Numerics;
+using MathNet.Numerics.RootFinding;
 using MathNet.Spatial.Euclidean;
 using MathNet.Spatial.Units;
 using System;
@@ -120,5 +121,29 @@ namespace Model
             return L1 * Math.Sqrt(1 + eta * eta * Math.Sinh(ks * k) * Math.Sinh(ks * k));
         }
 
+        public bool isLeft(Vector2D pt)
+        {
+            return pt.Y > GetZ(pt.X);
+
+        }
+
+        /// <summary>
+        /// 与构造2D线相交
+        /// </summary>
+        /// <param name="cutLine"></param>
+        internal Point2D Intersect(Line2D cutLine)
+        {
+            if ((GetZ(-L1) - cutLine.GetY(-L1)) * (GetZ(L1) - cutLine.GetY(L1)) > 0)
+            {
+                throw new Exception();
+            }
+            else
+            {
+                Func<double, double> f = (x) => GetZ(x) - cutLine.GetY(x);
+                var xx= Bisection.FindRoot(f,-L1,L1, 1e-5);
+                var yy = GetZ(xx);
+                return new Point2D(xx, yy);
+            }
+        }
     }
 }

@@ -7,7 +7,7 @@ namespace Model
     /// <summary>
     /// 七种拱肋轴线定义
     /// </summary>
-    public enum CenterLineType
+    public enum eCenterLineType
     {
         [Description("上弦上表面")]
         UU = 11,
@@ -31,19 +31,22 @@ namespace Model
         LL = 22,
     }
 
-    public enum MemberType
+    public enum eMemberType
     {
+        None=0,
         [Description("上弦杆")]
         UpperCoord = 1,
         [Description("下弦杆")]
         LowerCoord = 2,
-        [Description("竖腹杆")]
+        [Description("普通竖腹杆")]        
         VerticalWeb = 3,
+        [Description("立柱竖腹杆")]
+        ColumnWeb =31,
         [Description("斜腹杆")]
         InclineWeb = 4,
     }
 
-    public static class EnumDemo
+    public static class EnumHelper
     {
         private static string GetName(Type t, object v)
         {
@@ -79,11 +82,29 @@ namespace Model
     }
 
 
-    public enum SectionType
+    public enum eDatumType
     {
-        ColumnSection = 1,
-        InstallSection = 2,
-        WebSection = 3,
+        None=0,
+        [Description("立柱控制面")]
+        ColumnDatum = 1,
+
+        [Description("竖向控制面")]
+        VerticalDatum = 2,
+
+        [Description("法向控制面")]
+        NormalDatum = 3,
+        
+        [Description("中点控制面")]
+        MiddleDatum = 4,
+
+        [Description("斜杆控制面")]
+        DiagonalDatum = 5,
+
+
+
+
+
+
     }
 
 }
