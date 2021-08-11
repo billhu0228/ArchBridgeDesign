@@ -11,7 +11,6 @@ namespace Model
     public static class Extension
     {
 
-
         /// <summary>
         /// 值域
         /// </summary>
@@ -54,6 +53,10 @@ namespace Model
             return new Line2D(NewSt, NewEd);
         }
 
+        public static Point2D MiddlePoint(this Line2D L)
+        {
+            return L.StartPoint + 0.5 * L.Direction * L.Length;
+        }
 
         public static List<Point2D> Tangent(this Point2D pt,Circle2D cir)
         {
@@ -68,12 +71,45 @@ namespace Model
 
         }
 
-        internal static double Interplate(double x_1, double x_2, double y_1, double y_2, double x0)
+        public static double Interplate(double x_1, double x_2, double y_1, double y_2, double x0)
         {
             double k = (y_2 - y_1) / (x_2 - x_1);
             double c = y_2 - k * x_2;
 
             return k * x0 + c;
         }
+
+
+        public static Point2D? Intersection(List<Point2D> polyline, Line2D other)
+        {
+            Line2D seg;
+            for (int i = 0; i < polyline.Count-1; i++)
+            {
+                seg = new Line2D(polyline[i], polyline[i+1]);
+                var pt=(Point2D)seg.IntersectWith(other);
+                if (pt != null)
+                {
+             
+                    if (pt.Equals(seg.StartPoint, 1e-4) || pt.Equals(seg.EndPoint, 1e-4))
+                    {
+                        return pt;
+                    }
+                    else
+                    {
+                        var d1 = seg.StartPoint.DistanceTo(pt);
+                        var d2 = seg.EndPoint.DistanceTo(pt);
+                        if (d1 < seg.Length && d2 < seg.Length)
+                        {
+                            return pt;
+                        }
+                    }
+                }
+            }
+            return null;
+        }
+
+
+        //public static Point2D Interse
+
     }
 }

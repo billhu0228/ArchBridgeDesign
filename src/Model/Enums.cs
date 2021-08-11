@@ -33,12 +33,15 @@ namespace Model
 
     public enum eMemberType
     {
+        None=0,
         [Description("上弦杆")]
         UpperCoord = 1,
         [Description("下弦杆")]
         LowerCoord = 2,
-        [Description("竖腹杆")]
+        [Description("普通竖腹杆")]        
         VerticalWeb = 3,
+        [Description("立柱竖腹杆")]
+        ColumnWeb =31,
         [Description("斜腹杆")]
         InclineWeb = 4,
     }
@@ -81,6 +84,7 @@ namespace Model
 
     public enum eDatumType
     {
+        None=0,
         [Description("立柱控制面")]
         ColumnDatum = 1,
 

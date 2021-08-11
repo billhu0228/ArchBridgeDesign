@@ -44,9 +44,20 @@ namespace Model
             }
         }
 
+        public string Lisp
+        {
+            get
+            {
+                string lsp = string.Format("(command-s \"._xline\" \"a\" \"{0:F12}\" \"{1:F12},{2:F12}\" \"\" \"\")", Angle0.Degrees, Center.X, Center.Y) ;
+                return lsp;
+            }
+        }
+
         public override string ToString()
         {
             return string.Format("控制面 x={0} , Ang={1} , 类别={2}",Center.X,Angle0.Degrees, EnumHelper.GetDescription(typeof(eDatumType),DatumType));
+
+
         }
 
 
