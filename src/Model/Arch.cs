@@ -21,9 +21,11 @@ namespace Model
         public delegate double get_z(double x0);
         List<Point2D> UpSkeleton, LowSkeleton;
         List<Node2D> NodeTable;
-        List<Member> MemberTable;
+        public List<Member> MemberTable;
 
         double HeightOrder;
+
+
 
         /// <summary>
         /// 基本拱模型
@@ -262,6 +264,58 @@ namespace Model
 
             UpSkeleton.Sort((x, y) => x.X.CompareTo(y.X));
             LowSkeleton.Sort((x, y) => x.X.CompareTo(y.X));
+        }
+
+        /// <summary>
+        /// 生成平行式桁架（大小井模式）
+        /// </summary>
+        /// <param name="numCol">立柱数量（偶数）</param>
+        /// <param name="distCol">立柱间距</param>
+        /// <param name="distVertical1">竖腹杆间距1：立柱间竖腹杆</param>
+        /// <param name="distVertical2">竖腹杆间距2：跨中竖杆间距</param>
+        /// <param name="distVertical3">竖腹杆间距3：首尾立柱外侧竖腹杆间距</param>
+        /// <param name="CellsSide">首尾立柱外侧竖腹杆数量</param>
+        public void GenerateTruss(int numCol, int distCol, 
+            double distVertical1, double distVertical2, double distVertical3,int CellsSide)
+        {
+            double x0 = (numCol-1)*distCol*-0.5;
+            for (int i = 0; i < numCol; i++)
+            {
+                double xi = x0 + i * distCol;
+                AddDatum(0, xi, eDatumType.ColumnDatum, 90.0);
+                int numBetweenCol = (int)Math.Round(distCol / distVertical1 - 1, MidpointRounding.AwayFromZero);
+                int numOfMid = (int)(distCol * 0.5 / distVertical2);
+                double rest = distCol - numOfMid * 2 * distVertical2;
+                if (i == numCol - 1)
+                {
+                    for (int j = 0; j < CellsSide; j++)
+                    {
+                        AddDatum(0, xi + distVertical3 * (j + 1), eDatumType.VerticalDatum, 90);
+                    }
+                }
+                else if (i == numCol/2-1)
+                {
+                    for (int jj = 0; jj < numOfMid; jj++)
+                    {
+                        AddDatum(0, xi + distVertical2 * (jj + 1), eDatumType.VerticalDatum, 90);
+                        AddDatum(0, rest*0.5 + distVertical2 * (jj), eDatumType.VerticalDatum, 90);
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < numBetweenCol; j++)
+                    {
+                        AddDatum(0, xi + (j + 1) * distVertical1, eDatumType.VerticalDatum, 90);
+                    }
+                }       
+                if (i == 0)
+                {
+                    for (int j = 0; j < CellsSide; j++)
+                    {
+                        AddDatum(0, xi - distVertical3 * (j + 1), eDatumType.VerticalDatum, 90);
+                    }
+                }
+            }
         }
 
         #endregion

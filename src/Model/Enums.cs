@@ -97,8 +97,11 @@ namespace Model
         [Description("中点控制面")]
         MiddleDatum = 4,
 
-        [Description("斜杆控制面")]
+        [Description("斜杆控制面")]        
         DiagonalDatum = 5,
+
+        [Description("无截面控制面板")]
+        ControlDatum =6,
 
 
 

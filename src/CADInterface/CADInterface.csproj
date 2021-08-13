@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{13DFBED3-D635-492E-9D1F-9E0C6D27AA24}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CADInterface</RootNamespace>
+    <AssemblyName>ArchBridge.CADInterface</AssemblyName>
+    <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>..\..\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="accoremgd">
+      <HintPath>..\AcadLibs\23.1\accoremgd.dll</HintPath>
+    </Reference>
+    <Reference Include="AcCui">
+      <HintPath>..\AcadLibs\23.1\AcCui.dll</HintPath>
+    </Reference>
+    <Reference Include="acdbmgd">
+      <HintPath>..\AcadLibs\23.1\acdbmgd.dll</HintPath>
+    </Reference>
+    <Reference Include="acdbmgdbrep">
+      <HintPath>..\AcadLibs\23.1\acdbmgdbrep.dll</HintPath>
+    </Reference>
+    <Reference Include="AcDx">
+      <HintPath>..\AcadLibs\23.1\AcDx.dll</HintPath>
+    </Reference>
+    <Reference Include="AcDxPublishUi">
+      <HintPath>..\AcadLibs\23.1\AcDxPublishUi.dll</HintPath>
+    </Reference>
+    <Reference Include="acmgd">
+      <HintPath>..\AcadLibs\23.1\acmgd.dll</HintPath>
+    </Reference>
+    <Reference Include="AcMNUParser">
+      <HintPath>..\AcadLibs\23.1\AcMNUParser.dll</HintPath>
+    </Reference>
+    <Reference Include="AcMr">
+      <HintPath>..\AcadLibs\23.1\AcMr.dll</HintPath>
+    </Reference>
+    <Reference Include="AcTcMgd">
+      <HintPath>..\AcadLibs\23.1\AcTcMgd.dll</HintPath>
+    </Reference>
+    <Reference Include="AcWindows">
+      <HintPath>..\AcadLibs\23.1\AcWindows.dll</HintPath>
+    </Reference>
+    <Reference Include="AdUIMgd">
+      <HintPath>..\AcadLibs\23.1\AdUIMgd.dll</HintPath>
+    </Reference>
+    <Reference Include="AdUiPalettes">
+      <HintPath>..\AcadLibs\23.1\AdUiPalettes.dll</HintPath>
+    </Reference>
+    <Reference Include="AdWindows">
+      <HintPath>..\AcadLibs\23.1\AdWindows.dll</HintPath>
+    </Reference>
+    <Reference Include="Autodesk.AutoCAD.Interop">
+      <HintPath>..\AcadLibs\23.1\Autodesk.AutoCAD.Interop.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Autodesk.AutoCAD.Interop.Common">
+      <HintPath>..\AcadLibs\23.1\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\MathNet.Numerics.5.0.0-alpha02\lib\net461\MathNet.Numerics.dll</HintPath>
+    </Reference>
+    <Reference Include="MathNet.Spatial, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\MathNet.Spatial.0.6.0\lib\net461\MathNet.Spatial.dll</HintPath>
+    </Reference>
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AcadExt.cs" />
+    <Compile Include="Commands.cs" />
+    <Compile Include="A3Config.cs" />
+    <Compile Include="Main.cs" />
+    <Compile Include="CommonTools.cs" />
+    <Compile Include="ModelExtension.cs" />
+    <Compile Include="Plotters\MulitlinePloter.cs" />
+    <Compile Include="Plotters\PolylinePloter.cs" />
+    <Compile Include="Plotters\TablePloter.cs" />
+    <Compile Include="Plotters\TextPloter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\Config.cs" />
+    <Compile Include="UI\RibbonButtonEX.cs" />
+    <Compile Include="UI\RibbonButtonInfos.cs" />
+    <Compile Include="UI\RibbonCommandHandler.cs" />
+    <Compile Include="UI\RibbonExts.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Model\Model.csproj">
+      <Project>{a99b69de-7742-4c47-8be3-c01a29d374f5}</Project>
+      <Name>Model</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
