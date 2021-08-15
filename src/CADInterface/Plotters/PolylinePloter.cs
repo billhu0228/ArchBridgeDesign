@@ -43,13 +43,13 @@ namespace CADInterface.Plotters
                 BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                 BlockTableRecord recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
 
-                line = new Polyline() { Closed = isClose, Layer = linetypeName };//定义不封闭的Polyline
+                line = new Polyline() { Closed = isClose, Layer = linetypeName ,Plinegen=true};//定义不封闭的Polyline
                 for (int i = 0; i < ptList.Count; i++)
                 {
                     line.AddVertexAt(i, ptList[i], 0, 0, 0);
                 }
                 //Color color = Color.FromColorIndex(ColorMethod.ByColor, num);
-
+                
                 //line.Color = Color.;
                 line.LineWeight = LineWeight.ByLayer;
 

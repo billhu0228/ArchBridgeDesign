@@ -16,6 +16,7 @@ namespace Model
     {
         public ArchAxis Axis;
         public double H0, H1;
+        public double W0, W1;
         public List<DatumPlane> MainDatum, SecondaryDatum, DiagonalDatum;
         protected List<MemberPropertyRecord> PropertyTable;
         public delegate double get_z(double x0);
@@ -31,14 +32,18 @@ namespace Model
         /// 基本拱模型
         /// </summary>
         /// <param name="ax"></param>
-        /// <param name="height0"></param>
-        /// <param name="height1"></param>
+        /// <param name="height0">跨中桁高</param>
+        /// <param name="height1">拱脚桁高</param>
+        /// <param name="width0">内侧桁架中距</param>
+        /// <param name="width1">外侧桁架中距</param>
         /// <param name="order"></param>
-        public Arch(ArchAxis ax, double height0, double height1, double order = 2)
+        public Arch(ArchAxis ax, double height0, double height1,double width0,double width1, double order = 2)
         {
             Axis = ax;
             H0 = height0;
             H1 = height1;
+            W0 = width0;
+            W1 = width1;
             MainDatum = new List<DatumPlane>();
             SecondaryDatum = new List<DatumPlane>();
             DiagonalDatum = new List<DatumPlane>();
@@ -46,6 +51,26 @@ namespace Model
             HeightOrder = order;
         }
 
+
+
+        #region 属性
+        public double MainTubeDiameter
+        {
+            get
+            {
+                return GetTubeProperty(0, eMemberType.UpperCoord).Section.Diameter;
+
+            }
+        }       
+        public double CrossBracingDiameter
+        {
+            get
+            {
+                return GetTubeProperty(0, eMemberType.CrossBraceing).Section.Diameter;
+
+            }
+        }
+        #endregion
 
 
         #region 基本建模方法
@@ -56,7 +81,7 @@ namespace Model
         /// <param name="sect"></param>
         /// <param name="from"></param>
         /// <param name="to"></param>
-        public void AssignProperty(eMemberType MT, TubeSection sect, double from = double.NegativeInfinity, double to = double.PositiveInfinity)
+        public void AssignProperty(eMemberType MT, Section sect, double from = double.NegativeInfinity, double to = double.PositiveInfinity)
         {
             int idx = PropertyTable.Count;
             PropertyTable.Add(new MemberPropertyRecord(idx, sect, MT, from, to));
@@ -189,6 +214,9 @@ namespace Model
         /// </summary>
         public void GenerateModel()
         {
+            MainDatum.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
+            SecondaryDatum.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
+
             MemberTable = new List<Member>();
 
 
@@ -227,11 +255,12 @@ namespace Model
                         mt = eMemberType.VerticalWeb;
                         break;
                     case eDatumType.MiddleDatum:
-                        mt = eMemberType.None;
-                        break;
+                        throw new Exception("不应该有这种。。。");
                     case eDatumType.DiagonalDatum:
                         mt = eMemberType.InclineWeb;
                         break;
+                    case eDatumType.ControlDatum:
+                        continue;
                     default:
                         break;
                 }
@@ -406,6 +435,10 @@ namespace Model
         #region 私有方法
         private MemberPropertyRecord GetTubeProperty(double x, eMemberType member)
         {
+            if (member == eMemberType.Virtual)
+            {
+
+            }
             var prop = PropertyTable.FindLast((pp) => pp.CheckProperty(x, member));
             return prop;
         }

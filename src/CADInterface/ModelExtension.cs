@@ -25,12 +25,26 @@ namespace CADInterface
 
         public static void Drawing(this Arch model, Database db, ref Extents2d ext)
         {
-            List<Point2d> ls;
+            List<Point2d> ls = new List<Point2d>() ;
 
-            Polyline UpPL=null, LowPL=null;
+            Polyline UpPL=null, LowPL=null, CenterLine=null;
+
+
+            double x0 = model.MainDatum[0].Center.X;
+            while (x0<0)
+            {
+                ls.Add(model.Axis.GetCenter(x0).ToAcadPoint2d());
+                ls.Add(model.Axis.GetCenter(-x0).ToAcadPoint2d());
+                x0 += 1;
+            }
+            ls.Add(model.Axis.GetCenter(x0).ToAcadPoint2d());
+            ls.Sort((x, y) => x.X.CompareTo(y.X));
+
+            PolylinePloter.AddPolylineByList(db, ref ext, ls, "中心线", false);
+
 
             for (int k = 0; k < 2; k++)
-            {
+            {                
                 eMemberType et = k == 0 ? eMemberType.LowerCoord : eMemberType.UpperCoord;
                 var kk1 = (from item in model.MemberTable where item.ElemType == et select item.Line.StartPoint.ToAcadPoint2d()).ToList();
                 var kk2 = (from item in model.MemberTable where item.ElemType == et select item.Line.EndPoint.ToAcadPoint2d()).ToList();
@@ -79,6 +93,50 @@ namespace CADInterface
 
         }
 
+
+
+        public static void DrawingPlan(this Arch model,Database db,Point2d cc,ref Extents2d ext)
+        {
+            Matrix2d mat = Matrix2d.Displacement(cc.GetAsVector());
+            List<List<Line>> FrameLine=new List<List<Line>>();
+
+            for (int i = 0; i < 4; i++)
+            {
+                double y0 =new double[]{ -0.5 * model.W0 - model.W1, -0.5 * model.W0, 0.5 * model.W0, 0.5 * model.W0+model.W1 }[i] ;
+
+
+                var p1 = i<2? new Point2d(model.Get3PointReal(model.MainDatum[0])[2].X, 0):
+                     new Point2d(model.Get3PointReal(model.MainDatum[0])[0].X, 0);
+                p1 = p1.TransformBy(mat);
+                var p2 = new Point2d(-p1.X, 0);
+                p2 = p2.TransformBy(mat);
+
+
+                var ret = MulitlinePloter.PlotTube(db, p1.Convert2D(0, y0), p2.Convert2D(0, y0), model.MainTubeDiameter);
+                FrameLine.Add(ret);
+            }
+
+            foreach (var item in model.MainDatum)
+            {
+                if (item.DatumType==eDatumType.ColumnDatum)
+                {
+                    var p0 = new Point2d(item.Center.X, 0);
+                    p0=p0.TransformBy(mat);
+
+                    MulitlinePloter.PlotTube(db,p0.Convert2D(0,-0.5*model.W0+0.5*model.MainTubeDiameter),
+                        p0.Convert2D(0, 0.5 * model.W0 - 0.5 * model.MainTubeDiameter),model.CrossBracingDiameter,null,null,0,"细线");
+                    MulitlinePloter.PlotTube(db, p0.Convert2D(0, -0.5 * model.W0-model.W1 + 0.5 * model.MainTubeDiameter),
+                        p0.Convert2D(0, -0.5 * model.W0  - 0.5 * model.MainTubeDiameter), model.CrossBracingDiameter, null, null, 0, "细线");
+
+                    MulitlinePloter.PlotTube(db, p0.Convert2D(0, +0.5 * model.W0 + model.W1 - 0.5 * model.MainTubeDiameter),
+                        p0.Convert2D(0, +0.5 * model.W0 + 0.5 * model.MainTubeDiameter), model.CrossBracingDiameter, null, null, 0, "细线");
+                }
+
+            }
+
+
+
+        }
 
     }
 }

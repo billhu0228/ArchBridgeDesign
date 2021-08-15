@@ -33,7 +33,6 @@ namespace Model
 
     public enum eMemberType
     {
-        None=0,
         [Description("上弦杆")]
         UpperCoord = 1,
         [Description("下弦杆")]
@@ -44,6 +43,19 @@ namespace Model
         ColumnWeb =31,
         [Description("斜腹杆")]
         InclineWeb = 4,
+
+        [Description("横撑")]
+        CrossBraceing =5,
+        [Description("横风撑")]        
+        WindBraceingV =6,
+        [Description("风撑平联")]
+        WindBraceingH =7,
+        [Description("斜撑")]
+        WebBracing =8,
+
+        [Description("虚拟截面")]
+        Virtual = 10,
+
     }
 
     public static class EnumHelper
