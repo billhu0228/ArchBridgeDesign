@@ -348,6 +348,10 @@ namespace CADInterface
         {
             return new Vector3d(theV2d.X + x, theV2d.Y + y, 0);
         }
+        public static Vector2d Convert2D(this Vector3d theV3d,double x=0,double y = 0)
+        {
+            return new Vector2d(theV3d.X + x, theV3d.Y + y);
+        }
         public static Point3d Convert3D(this Point2d theP2d, double x = 0, double y = 0)
         {
             return new Point3d(theP2d.X + x, theP2d.Y + y, 0);

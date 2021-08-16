@@ -34,6 +34,33 @@ namespace CADInterface.UI
                 return sysSetting;
             }
         }
+
+        //模型生成
+        private static RibbonButtonEX genModelBT;
+        public static RibbonButtonEX GenModelBT
+        {
+            get
+            {
+                genModelBT = new RibbonButtonEX("生成模型", RibbonItemSize.Large, Orientation.Vertical, "GenModel");
+                genModelBT.SetImg(Config.CurPath + "Images\\Note.PNG");//设置按钮图片
+                //添加提示对象
+                RibbonToolTip toolTip = new RibbonToolTip();
+                toolTip.Title = "生成模型";
+                toolTip.Content = "生成模型";
+                toolTip.Command = "GenModel";
+                toolTip.ExpandedContent = "";
+                string imgToolTipFileName = Config.CurPath + "Images\\Note.PNG";
+                Uri toolTipUri = new Uri(imgToolTipFileName);
+                BitmapImage toolTipBitmapImge = new BitmapImage(toolTipUri);
+                toolTip.ExpandedImage = toolTipBitmapImge;
+                genModelBT.ToolTip = toolTip;
+                //鼠标进入时的图片
+                genModelBT.ImgHoverFileName = Config.CurPath + "Images\\点击.PNG";
+                return genModelBT;
+            }
+        }
+
+
         //GA按钮
         private static RibbonButtonEX gaBtn;
         public static RibbonButtonEX GABtn

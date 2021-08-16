@@ -1,14 +1,210 @@
-﻿using Autodesk.AutoCAD.Colors;
+﻿using System;
+using System.Collections.Generic;
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using MathNet.Spatial.Units;
 
 namespace CADInterface.Plotters
 {
+    public enum ArrowDirection
+    {
+        East,//东方      右
+        West, //西方     左
+        North,// 北方   上
+        South, //南方    下
+    }
+
+    public enum eDirection
+    {
+        E_LEFT,
+        E_RIGHT,
+        E_TOP,
+        E_BOTTOM
+    }
+
+    public enum eArrow
+    {
+        E_ARROW_NULL,                   // 无箭头
+        E_ARROW_LEFT_ARROW,             // 左边箭头
+        E_ARROW_RIGHT_ARROW,            // 左边箭头
+        E_ARROW_DOUBLE_SIDE_ARROW,      // 双向箭头
+    }
+    public class DimStyleTool
+    {
+
+        /// <summary>
+        /// 判断样式是否存在
+        /// </summary>
+        /// <param name="DimStyleName"></param>
+        /// <returns></returns>
+        public static bool CheckDimStyleExists(string DimStyleName)
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+
+            using (Transaction tr = doc.TransactionManager.StartTransaction())
+            {
+                DimStyleTableRecord dstr = new DimStyleTableRecord();
+                DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead, true);
+                if (dst.Has(DimStyleName))
+                    return true;
+
+                return false;
+            }
+        }
+
+
+        /// <summary>
+        /// 设置当前标注样式
+        /// </summary>
+        /// <param name="DimStyleName"></param>
+        public static void SetDimStyleCurrent(string DimStyleName)
+        {
+            // Establish connections to the document and its database
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+
+            // Establish a transaction
+            using (Transaction tr = doc.TransactionManager.StartTransaction())
+            {
+                DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
+                ObjectId dimId = ObjectId.Null;
+
+                string message = string.Empty;
+                if (!dst.Has(DimStyleName))
+                {
+                    throw new Exception("无此样式");
+                }
+                else
+                    dimId = dst[DimStyleName];
+
+                DimStyleTableRecord dstr = (DimStyleTableRecord)tr.GetObject(dimId, OpenMode.ForRead);
+
+                /* NOTE:
+                 * If this code is used, and the updated style is current,
+                 * an override is created for that style.
+                 * This is not what I wanted.
+                 */
+                //if (dstr.ObjectId != db.Dimstyle)
+                //{
+                //    db.Dimstyle = dstr.ObjectId;
+                //    db.SetDimstyleData(dstr);
+                //}
+
+                /* Simply by running these two lines all the time, any overrides to updated dimstyles get 
+                 * cleared away as happens when you select the parent dimstyle in AutoCAD.
+                 */
+                db.Dimstyle = dstr.ObjectId;
+                db.SetDimstyleData(dstr);
+
+                tr.Commit();
+            }
+        }
+
+
+        /// <summary>
+        /// 获取样式id
+        /// </summary>
+        /// <param name="LineStyleName"></param>
+        /// <returns></returns>
+        public static ObjectId GetLinestyleID(string LineStyleName)
+        {
+            ObjectId result = ObjectId.Null;
+
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            Transaction tr = db.TransactionManager.StartTransaction();
+            using (tr)
+            {
+                LinetypeTable ltt = (LinetypeTable)tr.GetObject(db.LinetypeTableId, OpenMode.ForRead);
+                result = ltt[LineStyleName];
+                tr.Commit();
+            }
+
+            return result;
+        }
+        public static bool CheckTextStyle(string TextStyleName)
+        {
+            Document acDoc = Application.DocumentManager.MdiActiveDocument;
+            Database acDb = acDoc.Database;
+
+            // Ensure that the MR_ROMANS text style exists
+            using (Transaction AcTrans = Application.DocumentManager.MdiActiveDocument.TransactionManager.StartTransaction())
+            {
+                TextStyleTableRecord tstr = new TextStyleTableRecord();
+                TextStyleTable tst = (TextStyleTable)AcTrans.GetObject(acDb.TextStyleTableId, OpenMode.ForRead, true, true);
+
+                if (tst.Has(TextStyleName) == true)
+                    //if (tst.Has(tst[TextStyleName]) == true)
+                    return true;
+                return false;
+            }
+        }
+
+
+
+        public static bool CheckLinestyleExists(string LineStyleName)
+        {
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+
+            using (Transaction tr = doc.TransactionManager.StartTransaction())
+            {
+                //LinetypeTableRecord lttr = new LinetypeTableRecord();
+                LinetypeTable ltt = (LinetypeTable)tr.GetObject(db.LinetypeTableId, OpenMode.ForRead, true);
+                if (ltt.Has(LineStyleName))
+                    return true;
+
+                return false;
+            }
+        }
+        public static void LoadLinetypes(string LinFile, string LinType)
+        {
+            Document acDoc = Application.DocumentManager.MdiActiveDocument;
+            Database acCurDb = acDoc.Database;
+
+            using (Transaction acTrans = acCurDb.TransactionManager.StartTransaction())
+            {
+                // Open the Linetype table for read
+                LinetypeTable acLineTypTbl;
+                acLineTypTbl = acTrans.GetObject(acCurDb.LinetypeTableId,
+                    OpenMode.ForRead) as LinetypeTable;
+
+                if (acLineTypTbl.Has(LinType) == false)
+                {
+                    // Load the requested Linetype
+                    acCurDb.LoadLineTypeFile(LinType, LinFile);
+                }
+
+                // Save the changes and dispose of the transaction
+                acTrans.Commit();
+            }
+        }
+        public static ObjectId GetArrowObjectId(string newArrowName)
+        {
+            ObjectId result = ObjectId.Null;
+
+            Document doc = Application.DocumentManager.MdiActiveDocument;
+            Database db = doc.Database;
+            string oldArrowName = Application.GetSystemVariable("DIMBLK").ToString();
+            Application.SetSystemVariable("DIMBLK", newArrowName);
+            if (oldArrowName.Length != 0)
+                Application.SetSystemVariable("DIMBLK", oldArrowName);
+
+            Transaction tr = db.TransactionManager.StartTransaction();
+            using (tr)
+            {
+                BlockTable bt = (BlockTable)tr.GetObject(db.BlockTableId, OpenMode.ForRead);
+                result = bt[newArrowName];
+                tr.Commit();
+            }
+
+            return result;
+        }
+    }
+
     public class DimPloter
     {
 
@@ -21,7 +217,7 @@ namespace CADInterface.Plotters
         /// <param name="tr"></param>
         /// <param name="blockTbl"></param>
         /// <param name="s"></param>
-        public static void BiaoGao(Database db, ref Extents2d ext, double bgdata, Point3d refpt,  double s = 100)
+        public static void BiaoGao(Database db, ref Extents2d ext, double bgdata, Point3d refpt, double s = 100)
         {
             double factor = s / 100;
             using (Transaction tr = db.TransactionManager.StartTransaction())
@@ -112,7 +308,7 @@ namespace CADInterface.Plotters
         /// <param name="ang">转角，弧度</param>
         /// <returns></returns>
         public static RotatedDimension DimRotated(Database db, ref Extents2d ext, Point3d P1, Point3d P2, Point3d Pref
-            ,  double ang = 0,double scale=20,   string unit = "mm", string replaceText = "", string D = "",int pL = 1)
+            , double ang = 0, double scale = 20, string unit = "mm", string replaceText = "", string D = "", int pL = 1)
         {
 
             RotatedDimension D1;
@@ -126,15 +322,11 @@ namespace CADInterface.Plotters
 
                 string st = string.Format("1-{0:G}", scale);
                 bool isExist = DimStyleTool.CheckDimStyleExists(st);
-                if (!isExist)
-                {
-                    DimStyleTool.CreateDimStyle(scale);
-                }
                 //DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
                 var dimID = dst[st];
 
                 //ObjectId dimID = DimPloter.GetDimStyle(db, (int)scale);
-                D1 = new RotatedDimension(GeTools.DegreeToRadian(ang)/*ang*/, P1, P2, Pref, replaceText, dimID);
+                D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians/*ang*/, P1, P2, Pref, replaceText, dimID);
                 D1.Layer = "标注";
                 if (pL > 1)
                 {
@@ -183,7 +375,7 @@ namespace CADInterface.Plotters
 
         }
         public static void AddListDimRotated(Database db, ref Extents2d ext,
-            Point3d Pref, List<Point3d> npts, int scale, double ang = 0, int pN = 1,string unit="mm")
+            Point3d Pref, List<Point3d> npts, int scale, double ang = 0, int pN = 1, string unit = "mm")
         {
 
             RotatedDimension D1;
@@ -195,7 +387,7 @@ namespace CADInterface.Plotters
                     OpenMode.ForWrite) as BlockTableRecord;
 
                 DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
-                var dimID = dst[string .Format("1-{0:G}",scale)];
+                var dimID = dst[string.Format("1-{0:G}", scale)];
 
                 if (npts.Count > 1)
                 {
@@ -206,11 +398,11 @@ namespace CADInterface.Plotters
                             Point3d P1 = npts[i];
                             Point3d P2 = npts[i + 1];
                             //Point3d Pref = GeTools.MidPoint(P1, P2).Convert3D(3, 3);
-                            D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, "", dimID);
+                            D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, "", dimID);
                             D1.Layer = "标注";
-                            if(unit=="cm")
+                            if (unit == "cm")
                             {
-                                string replaceText = (Math.Round(D1.Measurement / 10,1)).ToString();
+                                string replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
                                 D1.DimensionText = replaceText;
                             }
                             else if (unit == "m")
@@ -222,32 +414,32 @@ namespace CADInterface.Plotters
                             tr.AddNewlyCreatedDBObject(D1, true);
                             Polyline line = new Polyline();
                             line.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                            line.AddVertexAt(0, Pref.Convert2D(-8* scale, -8 * scale), 0, 0, 0);
+                            line.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
                             line.AddVertexAt(1, P1.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
                             line.AddVertexAt(2, P2.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                            if (line.Bounds!=null)
-                            ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
+                            if (line.Bounds != null)
+                                ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
                         }
                     }
                     else
                     {
-                        if(npts.Count == 2)
+                        if (npts.Count == 2)
                         {
                             Point3d P1 = npts[0];
                             Point3d P2 = npts[1];
                             //Point3d Pref = GeTools.MidPoint(P1, P2).Convert3D(0, 3);
-                            D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, "", dimID);
+                            D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, "", dimID);
                             D1.Layer = "标注";
-                            string replaceText = (D1.Measurement/ pN)+ "×"+ pN;
+                            string replaceText = (D1.Measurement / pN) + "×" + pN;
                             D1.DimensionText = replaceText;
                             if (unit == "cm")
                             {
-                                replaceText = (D1.Measurement /pN) + "×" + pN/10;
+                                replaceText = (D1.Measurement / pN) + "×" + pN / 10;
                                 D1.DimensionText = replaceText;
                             }
                             else if (unit == "m")
                             {
-                                replaceText = (D1.Measurement / pN) + "×" + pN/1000;
+                                replaceText = (D1.Measurement / pN) + "×" + pN / 1000;
                                 D1.DimensionText = replaceText;
                             }
                             modelSpace.AppendEntity(D1);
@@ -269,257 +461,47 @@ namespace CADInterface.Plotters
             }
 
         }
+
+
+        public static void AddListDimAligned(Database db, ref Extents2d ext, List<Point3d> npts, int scale,double dist)
+        {
+            Polyline line = new Polyline() { Closed = false };//定义不封闭的Polyline
+            for (int i = 0; i < npts.Count; i++)
+            {
+                line.AddVertexAt(i, npts[i].Convert2D(), 0, 0, 0);
+            }
+
+            Point3d pt1, pt2, pt3 ;
+            for (int i = 0; i < npts.Count-1; i++)
+            {
+                pt1 = npts[i];
+                pt2 = npts[i + 1];
+                var vec = (pt2 - pt1).GetNormal();
+                pt3 =pt1+ vec.RotateBy(Angle.FromDegrees(90).Radians, Vector3d.ZAxis)*dist;
+                var dim = DimAli(db, ref ext, pt1, pt2, pt3, scale);
+            }
+
+
+
+        }
+
+
+
         /// <summary>
-        /// 
+        /// 承台双层标注
         /// </summary>
         /// <param name="db"></param>
         /// <param name="ext"></param>
-        /// <param name="Pref"></param>
-        /// <param name="npts"></param>
+        /// <param name="Pref">参考点坐标</param>
+        /// <param name="PrefMid">中点坐标</param>
+        /// <param name="npts">点集合</param>
         /// <param name="scale"></param>
         /// <param name="ang"></param>
         /// <param name="pL"></param>
-        public static void AddDoubleListDimRotated(Database db, ref Extents2d ext,
-          Point3d Pref, List<Point3d> npts, int scale, double ang = 0, int pL = 100,ArrowDirection dir=ArrowDirection.North,string unit="mm")
-        {
-
-            RotatedDimension D1;
-
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                BlockTableRecord modelSpace = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace],
-                    OpenMode.ForWrite) as BlockTableRecord;
-
-                DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
-                var dimID = dst[string.Format("1-{0:G}", scale)];
-                Point3d ptSt = new Point3d();
-                Point3d ptEnd = new Point3d();
-                if (npts.Count == 2)
-                {
-                    Point3d P1 = npts[0];
-                    Point3d P2 = npts[1];
-                    ptSt = P1;
-                    ptEnd = P2;
-                    D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, "", dimID);
-                    D1.Layer = "标注";
-                    if (unit == "cm")
-                    {
-                        string replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
-                        D1.DimensionText = replaceText;
-                    }
-                    else if (unit == "m")
-                    {
-                        string replaceText = (Math.Round(D1.Measurement / 1000, 3)).ToString();
-                        D1.DimensionText = replaceText;
-                    }
-                    modelSpace.AppendEntity(D1);
-                    tr.AddNewlyCreatedDBObject(D1, true);
-                    Polyline line = new Polyline();
-                    line.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                    line.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8* scale), 0, 0, 0);
-                    line.AddVertexAt(1, ptSt.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                    line.AddVertexAt(2, ptEnd.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                    if (line.Bounds != null)
-                        ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
-                }
-                else if (npts.Count>2&&npts.Count <=6)
-                {
-
-                    for (int i = 0; i < npts.Count - 1; i++)
-                    {
-                        Point3d P1 = npts[i];
-                        Point3d P2 = npts[i + 1];
-                        if(i==0)
-                        {
-                            ptSt = P1;
-                        }
-                        if (i == npts.Count - 2)
-                        {
-                            ptEnd = P2;
-                        }
-                        D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, "", dimID);
-                        D1.Layer = "标注";
-                        if (unit == "cm")
-                        {
-                            string replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
-                            D1.DimensionText = replaceText;
-                        }
-                        else if (unit == "m")
-                        {
-                            string replaceText = (Math.Round(D1.Measurement / 1000, 3)).ToString();
-                            D1.DimensionText = replaceText;
-                        }
-                        modelSpace.AppendEntity(D1);
-                        tr.AddNewlyCreatedDBObject(D1, true);
-                        Polyline line1 = new Polyline();
-                        line1.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                        line1.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8* scale), 0, 0, 0);
-                        line1.AddVertexAt(1, P1.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                        line1.AddVertexAt(2, P2.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                        if (line1.Bounds != null)
-                            ext = ext.Add(new Extents2d(line1.Bounds.Value.MinPoint.Convert2D(), line1.Bounds.Value.MaxPoint.Convert2D()));
-                    }
-                    D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), ptSt, ptEnd, Pref.Convert3D(5 * scale, 5 * scale), "", dimID);
-                    D1.Layer = "标注";
-                    if (unit == "cm")
-                    {
-                        string replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
-                        D1.DimensionText = replaceText;
-                    }
-                    else if (unit == "m")
-                    {
-                        string replaceText = (Math.Round(D1.Measurement / 1000, 3)).ToString();
-                        D1.DimensionText = replaceText;
-                    }
-                    modelSpace.AppendEntity(D1);
-                    Polyline line = new Polyline();
-                    line.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                    line.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                    line.AddVertexAt(1, ptSt.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                    line.AddVertexAt(2, ptEnd.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                    if (line.Bounds != null)
-                        ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
-                    tr.AddNewlyCreatedDBObject(D1, true);
-                }
-                else if (npts.Count>6)
-                {  
-                    for (int i = 0; i < npts.Count - 1; i++)
-                    {
-                        if (i<2||i> npts.Count - 2-2)
-                        {
-                            Point3d P1 = npts[i];
-                            Point3d P2 = npts[i + 1];
-                            if (i == 0)
-                            {
-                                ptSt = P1;
-                            }
-                            if (i == npts.Count - 2)
-                            {
-                                ptEnd = P2;
-                            }
-                            D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, "", dimID);
-                            D1.Layer = "标注";
-                            if (unit == "cm")
-                            {
-                                string replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
-                                D1.DimensionText = replaceText;
-                            }
-                            else if (unit == "m")
-                            {
-                                string replaceText = (Math.Round(D1.Measurement / 1000, 3)).ToString();
-                                D1.DimensionText = replaceText;
-                            }
-                            modelSpace.AppendEntity(D1);
-                            tr.AddNewlyCreatedDBObject(D1, true);
-                            Polyline line1 = new Polyline();
-                            line1.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                            line1.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                            line1.AddVertexAt(1, P1.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                            line1.AddVertexAt(2, P2.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                            if (line1.Bounds != null)
-                                ext = ext.Add(new Extents2d(line1.Bounds.Value.MinPoint.Convert2D(), line1.Bounds.Value.MaxPoint.Convert2D()));
-                        }
-                        else if(i==2)
-                        {
-                            Point3d P1 = npts[2];
-                            Point3d P2 = npts[npts.Count-1 - 2];                            
-                            D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, "", dimID);
-                            D1.Layer = "标注";
-                            if (unit == "cm")
-                            {
-                                string replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
-                                D1.DimensionText = replaceText;
-                            }
-                            else if (unit == "m")
-                            {
-                                string replaceText = (Math.Round(D1.Measurement / 1000, 3)).ToString();
-                                D1.DimensionText = replaceText;
-                            }
-                            if (pL > 1)
-                            {
-                                string replaceText =(D1.Measurement / pL) + "×" + pL;
-                                D1.DimensionText = replaceText;
-                                if (unit == "cm")
-                                {
-                                    replaceText =(D1.Measurement / pL) + "×" + pL/10;
-                                    D1.DimensionText = replaceText;
-                                }
-                                else if (unit == "m")
-                                {
-                                    replaceText = (D1.Measurement / pL) + "×" + pL/1000;
-                                    D1.DimensionText = replaceText;
-                                }
-                            }
-                            modelSpace.AppendEntity(D1);
-                            tr.AddNewlyCreatedDBObject(D1, true);
-                            Polyline line1 = new Polyline();
-                            line1.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                            line1.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                            line1.AddVertexAt(1, P1.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                            line1.AddVertexAt(2, P2.Convert2D(-8 * scale, -8* scale), 0, 0, 0);
-                            if (line1.Bounds != null)
-                                ext = ext.Add(new Extents2d(line1.Bounds.Value.MinPoint.Convert2D(), line1.Bounds.Value.MaxPoint.Convert2D()));
-                        }
-                    }
-                    double Offset = 5 * scale;
-                    switch(dir)
-                    {
-                        case ArrowDirection.North: //上
-                            Offset = 5 * scale;
-                            break;
-                        case ArrowDirection.South: // 下
-                            Offset = -5 * scale;
-                            break;
-                        case ArrowDirection.East:  // 右
-                            Offset = 5 * scale;
-                            break;
-                        case ArrowDirection.West:  //  左
-                            Offset = -5 * scale;
-                            break;
-                    }
-                    D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), ptSt, ptEnd, Pref.Convert3D(Offset, Offset), "", dimID);
-                    D1.Layer = "标注";
-                    if (unit == "cm")
-                    {
-                        string replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
-                        D1.DimensionText = replaceText;
-                    }
-                    else if (unit == "m")
-                    {
-                        string replaceText = (Math.Round(D1.Measurement / 1000, 3)).ToString();
-                        D1.DimensionText = replaceText;
-                    }
-                    modelSpace.AppendEntity(D1);
-                    Polyline line = new Polyline();
-                    line.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                    line.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8* scale), 0, 0, 0);
-                    line.AddVertexAt(1, ptSt.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                    line.AddVertexAt(2, ptEnd.Convert2D(-8* scale, -8* scale), 0, 0, 0);
-                    if (line.Bounds != null)
-                        ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
-                    tr.AddNewlyCreatedDBObject(D1, true);
-                }
-                tr.Commit();
-            }
-
-        }
-        
-       /// <summary>
-       /// 承台双层标注
-       /// </summary>
-       /// <param name="db"></param>
-       /// <param name="ext"></param>
-       /// <param name="Pref">参考点坐标</param>
-       /// <param name="PrefMid">中点坐标</param>
-       /// <param name="npts">点集合</param>
-       /// <param name="scale"></param>
-       /// <param name="ang"></param>
-       /// <param name="pL"></param>
-       /// <param name="firstDimNum">刚开始有多少个标注</param>
-       /// <param name="isLeft">是否左侧标注</param>
+        /// <param name="firstDimNum">刚开始有多少个标注</param>
+        /// <param name="isLeft">是否左侧标注</param>
         public static void AddDoubleListDivHalfDimRotated(Database db, ref Extents2d ext,
-         Point3d Pref, Point3d PrefMid, List<Point3d> npts, int scale, double ang = 0, int pL = 100,int firstDimNum=2,bool isLeft=true)
+         Point3d Pref, Point3d PrefMid, List<Point3d> npts, int scale, double ang = 0, int pL = 100, int firstDimNum = 2, bool isLeft = true)
         {
 
             RotatedDimension D1;
@@ -540,7 +522,7 @@ namespace CADInterface.Plotters
                     Point3d P2 = npts[1];
                     ptSt = P1;
                     ptEnd = P2;
-                    D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, "", dimID);
+                    D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, "", dimID);
                     D1.Layer = "标注";
                     modelSpace.AppendEntity(D1);
                     tr.AddNewlyCreatedDBObject(D1, true);
@@ -570,7 +552,7 @@ namespace CADInterface.Plotters
                         }
                         if (i < firstDimNum)  //开始有几个标注
                         {
-                            D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, "", dimID);
+                            D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, "", dimID);
                             D1.Layer = "标注";
                             modelSpace.AppendEntity(D1);
                             tr.AddNewlyCreatedDBObject(D1, true);
@@ -585,11 +567,11 @@ namespace CADInterface.Plotters
                         else
                         {
                             if (PrefMid.X != npts[npts.Count - 2].X)
-                            {                                                       
+                            {
                                 if (i == npts.Count - 2)
                                 {
 
-                                    D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, "", dimID);
+                                    D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, "", dimID);
                                     D1.Layer = "标注";
                                     modelSpace.AppendEntity(D1);
                                     tr.AddNewlyCreatedDBObject(D1, true);
@@ -606,7 +588,7 @@ namespace CADInterface.Plotters
                                     if (i == firstDimNum)
                                     {
                                         Point3d P = npts[npts.Count - 2];
-                                        D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P, Pref, "", dimID);
+                                        D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P, Pref, "", dimID);
                                         D1.Layer = "标注";
                                         if (pL > 1)
                                         {
@@ -630,7 +612,7 @@ namespace CADInterface.Plotters
                                 if (i == firstDimNum)
                                 {
                                     Point3d P = npts[npts.Count - 2];
-                                    D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P, Pref, "", dimID);
+                                    D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P, Pref, "", dimID);
                                     D1.Layer = "标注";
                                     if (pL > 1)
                                     {
@@ -650,7 +632,7 @@ namespace CADInterface.Plotters
                             }
                         }
                     }
-                    D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), ptSt, ptEnd, Pref.Convert3D(5 * scale, 5 * scale), "", dimID);
+                    D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, ptSt, ptEnd, Pref.Convert3D(5 * scale, 5 * scale), "", dimID);
                     D1.Layer = "标注";
                     D1.DimensionText = (D1.Measurement) * 2 + "/2";
                     modelSpace.AppendEntity(D1);
@@ -669,7 +651,7 @@ namespace CADInterface.Plotters
             }
 
         }
-  
+
         public static void DimAliList(Database db, ref Extents2d ext, List<Point3d> PL, ObjectId dimID, int pN = 1, string layerName = "标注")
         {
             AlignedDimension D1;
@@ -687,7 +669,7 @@ namespace CADInterface.Plotters
                         {
                             Point3d P1 = PL[i];
                             Point3d P2 = PL[i + 1];
-                            Point3d Pref = GeTools.MidPoint(P1, P2).Convert3D(3, 3);
+                            Point3d Pref = CommonTools.MidPoint(P1, P2).Convert3D(3, 3);
                             D1 = new AlignedDimension(P1, P2, Pref, "", dimID);
                             D1.Layer = "标注";
                             modelSpace.AppendEntity(D1);
@@ -702,7 +684,7 @@ namespace CADInterface.Plotters
                         {
                             Point3d P1 = PL[0];
                             Point3d P2 = PL[1];
-                            Point3d Pref = GeTools.MidPoint(P1, P2).Convert3D(0, 3);
+                            Point3d Pref = CommonTools.MidPoint(P1, P2).Convert3D(0, 3);
                             D1 = new AlignedDimension(P1, P2, Pref, "", dimID);
                             D1.Layer = "标注";
                             string replaceText = (D1.Measurement / pN) + "×" + pN;
@@ -734,10 +716,10 @@ namespace CADInterface.Plotters
         /// <param name="tstyle">样式</param>
         /// <param name="scale">比例</param>
         /// <returns></returns>
-        public static void RebarWire(Database db, ref Extents2d ext, Point2d point, string T1, string T2, int T3, 
-           double Rotation,string tstyle = "En", double scale = 100)
+        public static void RebarWire(Database db, ref Extents2d ext, Point2d point, string T1, string T2, int T3,
+           double Rotation, string tstyle = "En", double scale = 100)
         {
-            tstyle = Extensions.curFont;
+            tstyle = "仿宋";
             DBObjectCollection res = new DBObjectCollection();
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {
@@ -748,8 +730,8 @@ namespace CADInterface.Plotters
                 // 第一条线
                 Polyline Line = new Polyline() { Closed = false, Layer = "标注" };
                 Point2d point1 = point;
-                Point2d point2 = point.Convert2D(2*scale, 5 * scale);
-                Point2d point3 = point2.Convert2D(15*scale);
+                Point2d point2 = point.Convert2D(2 * scale, 5 * scale);
+                Point2d point3 = point2.Convert2D(15 * scale);
                 Line.AddVertexAt(0, point1, 0, 0, 0);
                 Line.AddVertexAt(1, point2, 0, 0, 0);
                 Line.AddVertexAt(2, point3, 0, 0, 0);
@@ -758,17 +740,17 @@ namespace CADInterface.Plotters
                 res.Add(Line);
 
                 // 圆内文字
-                DBObjectCollection res3 = CircularMark(db, ref ext, point3.Convert3D(),T3.ToString(), tstyle,scale);
+                DBObjectCollection res3 = CircularMark(db, ref ext, point3.Convert3D(), T3.ToString(), tstyle, scale);
 
                 // top 文字
                 Point2d pt = new Point2d(point2.X + 15 * scale / 2, point2.Y + scale);
-                DBObjectCollection res1 = TextPloter.PlotText(db,ref ext,TextPloter.eTxtLocation.E_TOP, pt, T1, scale,tstyle, GeTools.DegreeToRadian(0));
+                DBObjectCollection res1 = TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T1, scale, tstyle,0);
 
                 // bottom 文字
                 pt = new Point2d(point2.X + 15 * scale / 2, point2.Y - scale);
-                DBObjectCollection res2 = TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle, GeTools.DegreeToRadian(0));
+                DBObjectCollection res2 = TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle,0);
 
-                var TX1 = Matrix3d.Rotation(GeTools.DegreeToRadian(Rotation), Vector3d.ZAxis, point.Convert3D());
+                var TX1 = Matrix3d.Rotation(Angle.FromDegrees(Rotation).Radians, Vector3d.ZAxis, point.Convert3D());
                 foreach (DBObject item in res)
                 {
                     Entity pr = (Entity)item;
@@ -813,18 +795,18 @@ namespace CADInterface.Plotters
         /// <param name="scale"></param>
         /// <returns></returns>
         public static void CreateLeadWire(Database db, ref Extents2d ext, Point3d point, string T1, string T2, int T3,
-        string tstyle ="En", double scale = 100)
+        string tstyle = "En", double scale = 100)
         {
-            tstyle = Extensions.curFont;
+            tstyle = "仿宋";
             double cR = 2.5;
             DBText txt = new DBText();
-            Circle C2 = new Circle();  
+            Circle C2 = new Circle();
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {
-                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;                
+                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
                 BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                 BlockTableRecord recorder;
-               
+
                 recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
 
                 // 第一条线
@@ -841,11 +823,11 @@ namespace CADInterface.Plotters
 
                 txt.TextString = T3.ToString();
                 txt.Height = 2.5 * scale;
-                txt.Position = point3.Convert3D(cR*scale);
+                txt.Position = point3.Convert3D(cR * scale);
                 txt.HorizontalMode = TextHorizontalMode.TextCenter;
                 txt.VerticalMode = TextVerticalMode.TextVerticalMid;
                 txt.AlignmentPoint = point3.Convert3D(cR * scale);
-                txt.TextStyleId = st[Extensions.curFont];
+                txt.TextStyleId = st["仿宋"];
                 txt.Layer = "标注";
                 txt.WidthFactor = 0.8;
 
@@ -860,11 +842,11 @@ namespace CADInterface.Plotters
 
                 // top 文字
                 Point2d pt = new Point2d(point2.X + 15 * scale / 2, point2.Y);
-                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T1, scale, tstyle, GeTools.DegreeToRadian(0));
+                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T1, scale, tstyle, 0);
 
                 // bottom 文字
                 pt = new Point2d(point2.X + 15 * scale / 2, point2.Y);
-                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle, GeTools.DegreeToRadian(0));
+                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle,0);
                 tr.Commit();
             }
 
@@ -881,9 +863,9 @@ namespace CADInterface.Plotters
         /// <param name="tstyle"></param>
         /// <param name="scale"></param>
         public static void CreateLeadWireWithoutCircleMark(Database db, ref Extents2d ext, Point3d point, string T1, string T2,
-        string tstyle ="En", double scale = 100)
+        string tstyle = "En", double scale = 100)
         {
-            tstyle = Extensions.curFont;
+            tstyle = "仿宋";
             double cR = 2.5;
             DBText txt = new DBText();
             Circle C2 = new Circle();
@@ -897,15 +879,15 @@ namespace CADInterface.Plotters
 
                 // 第一条线
                 double width1 = 0;
-                MText txt1 = TextPloter.GetTextActualWidth(db, T1, scale,2.5, Extensions.curFont);
+                MText txt1 = TextPloter.GetTextActualWidth(db, T1, scale, 2.5, "仿宋");
                 width1 = txt1.ActualWidth;
                 double width2 = 0;
-                MText txt2 = TextPloter.GetTextActualWidth(db, T2, scale,2.5, Extensions.curFont);
+                MText txt2 = TextPloter.GetTextActualWidth(db, T2, scale, 2.5, "仿宋");
                 width2 = txt2.ActualWidth;
                 double lineWidth = width1 > width2 ? width1 : width2;
                 Polyline Line = new Polyline() { Closed = false, Layer = "标注" };
                 Point2d point1 = point.Convert2D();
-                Point2d point2 = point.Convert2D(lineWidth/6, lineWidth/2);
+                Point2d point2 = point.Convert2D(lineWidth / 6, lineWidth / 2);
                 Point2d point3 = point2.Convert2D(lineWidth);
                 Line.AddVertexAt(0, point1, 0, 0, 0);
                 Line.AddVertexAt(1, point2, 0, 0, 0);
@@ -916,11 +898,11 @@ namespace CADInterface.Plotters
 
                 // top 文字
                 Point2d pt = new Point2d(point2.X + lineWidth / 2, point2.Y);
-                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T1, scale, tstyle, GeTools.DegreeToRadian(0));
+                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T1, scale, tstyle,0);
 
                 // bottom 文字
                 pt = new Point2d(point2.X + lineWidth / 2, point2.Y);
-                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle, GeTools.DegreeToRadian(0));
+                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle, 0);
                 tr.Commit();
             }
 
@@ -971,7 +953,7 @@ namespace CADInterface.Plotters
                 }
             }
         }
-   
+
         /// <summary>
         ///   绘制左右标记符号
         /// </summary>
@@ -1032,32 +1014,32 @@ namespace CADInterface.Plotters
         /// <param name="replaceText"></param>
         /// <returns></returns>
         public static RotatedDimension AddRotDim(Database db, ref Extents2d ext, Point3d P1, Point3d P2, Point3d Pref
-            , double scale, double ang = 0,string unit="mm", string replaceText = "",string D="" )
+            , double scale, double ang = 0, string unit = "mm", string replaceText = "", string D = "")
         {
-      
-                ObjectId dimID = DimPloter.GetDimStyle(db, (int)scale);
-                RotatedDimension D1 = new RotatedDimension(GeTools.DegreeToRadian(ang), P1, P2, Pref, D + replaceText, dimID);
-                D1.Layer = "标注";
-                if (unit == "cm")
-                {
-                    replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
-                    D1.DimensionText = D + replaceText;
-                }
-                else if (unit == "m")
-                {
-                    replaceText = (Math.Round(D1.Measurement / 1000, 3)).ToString();
-                    D1.DimensionText = D + replaceText;
-                }
-                Polyline line = new Polyline();
-                line.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                line.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                line.AddVertexAt(1, P1.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                line.AddVertexAt(2, P2.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                if (line.Bounds != null)
-                    ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
-              
-                return D1;
-          
+
+            ObjectId dimID = DimPloter.GetDimStyle(db, (int)scale);
+            RotatedDimension D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, D + replaceText, dimID);
+            D1.Layer = "标注";
+            if (unit == "cm")
+            {
+                replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
+                D1.DimensionText = D + replaceText;
+            }
+            else if (unit == "m")
+            {
+                replaceText = (Math.Round(D1.Measurement / 1000, 3)).ToString();
+                D1.DimensionText = D + replaceText;
+            }
+            Polyline line = new Polyline();
+            line.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
+            line.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
+            line.AddVertexAt(1, P1.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
+            line.AddVertexAt(2, P2.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
+            if (line.Bounds != null)
+                ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
+
+            return D1;
+
         }
 
         /// <summary>
@@ -1066,7 +1048,7 @@ namespace CADInterface.Plotters
         /// <param name="db"></param>
         /// <param name="scale"></param>
         /// <returns></returns>
-        public static ObjectId GetDimStyle(Database db,  int scale)
+        public static ObjectId GetDimStyle(Database db, int scale)
         {
             Transaction tr = db.TransactionManager.StartTransaction();
             BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
@@ -1087,9 +1069,9 @@ namespace CADInterface.Plotters
         /// <param name="txt"></param>
         /// <param name="tstyle"></param>
         /// <param name="scale"></param>
-        public static DBObjectCollection CircularMark(Database db, ref Extents2d ext, Point3d point,string txt, string tstyle = "En", double scale = 100,double Rotation = 0)
+        public static DBObjectCollection CircularMark(Database db, ref Extents2d ext, Point3d point, string txt, string tstyle = "En", double scale = 100, double Rotation = 0)
         {
-            tstyle = Extensions.curFont;
+            tstyle = "仿宋";
             double cr = 2.5;
             DBObjectCollection res = new DBObjectCollection();
             using (Transaction tr = db.TransactionManager.StartTransaction())
@@ -1107,16 +1089,16 @@ namespace CADInterface.Plotters
                 cr = Mtext.Height;
                 Mtext.HorizontalMode = TextHorizontalMode.TextCenter;
                 Mtext.VerticalMode = TextVerticalMode.TextVerticalMid;
-                Mtext.AlignmentPoint = point.Convert3D(cr );
+                Mtext.AlignmentPoint = point.Convert3D(cr);
                 Mtext.Position = point.Convert3D(cr);
                 ext = ext.Add(new Extents2d(Mtext.Bounds.Value.MinPoint.Convert2D(), Mtext.Bounds.Value.MaxPoint.Convert2D()));
-                res.Add(Mtext);                
+                res.Add(Mtext);
 
                 recorder.AppendEntity((Entity)Mtext);
                 tr.AddNewlyCreatedDBObject(Mtext, true);
 
                 // 圆
-                Circle a = new Circle(point.Convert3D(cr ), Vector3d.ZAxis, cr );
+                Circle a = new Circle(point.Convert3D(cr), Vector3d.ZAxis, cr);
                 a.ColorIndex = 4;
                 ext = ext.Add(new Extents2d(a.Bounds.Value.MinPoint.Convert2D(), a.Bounds.Value.MaxPoint.Convert2D()));
                 res.Add(a);
@@ -1138,7 +1120,7 @@ namespace CADInterface.Plotters
         /// <param name="scale"></param>
         /// <param name="Rotation"></param>
         public static DBObjectCollection ArrowLine(Database db, ref Extents2d ext,
-             ArrowDirection eDir,Point3d StartpPint, double lineLength, double Rotation = 0,double scale=80)
+             ArrowDirection eDir, Point3d StartpPint, double lineLength, double Rotation = 0, double scale = 80)
         {
             DBObjectCollection res = new DBObjectCollection();
             using (Transaction tr = db.TransactionManager.StartTransaction())
@@ -1148,14 +1130,14 @@ namespace CADInterface.Plotters
                 BlockTableRecord recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
 
                 // 绘制箭头
-                Point2d pt1, pt2, pt3, pt4, pt5;              
+                Point2d pt1, pt2, pt3, pt4, pt5;
                 switch (eDir)
                 {
                     case ArrowDirection.North:  //上
                         {
                             // 直线
                             pt1 = StartpPint.Convert2D();
-                            pt2 = StartpPint.Convert2D(0,lineLength - 2 * scale);
+                            pt2 = StartpPint.Convert2D(0, lineLength - 2 * scale);
 
                             Polyline Line = new Polyline() { Closed = false, Layer = "粗线" };
                             Line.AddVertexAt(0, pt1, 0, 0, 0);
@@ -1164,9 +1146,9 @@ namespace CADInterface.Plotters
                             res.Add(Line);
 
                             // 箭头
-                            pt3 = pt2.Convert2D(0,2* scale);
+                            pt3 = pt2.Convert2D(0, 2 * scale);
                             pt4 = pt2.Convert2D(0.5 * scale, 2 * scale);
-                            pt5 = pt2.Convert2D(-0.5 * scale, 2* scale);
+                            pt5 = pt2.Convert2D(-0.5 * scale, 2 * scale);
 
                             Solid s1 = new Solid(pt3.Convert3D(), pt4.Convert3D(), pt5.Convert3D()) { Layer = "粗线" };
                             ext = ext.Add(new Extents2d(s1.Bounds.Value.MinPoint.Convert2D(), s1.Bounds.Value.MaxPoint.Convert2D()));
@@ -1192,8 +1174,8 @@ namespace CADInterface.Plotters
 
                             Solid s1 = new Solid(pt3.Convert3D(), pt4.Convert3D(), pt5.Convert3D()) { Layer = "粗线" };
                             ext = ext.Add(new Extents2d(s1.Bounds.Value.MinPoint.Convert2D(), s1.Bounds.Value.MaxPoint.Convert2D()));
-                            res.Add(s1);    
-                            
+                            res.Add(s1);
+
                             break;
                         }
                     case ArrowDirection.West:  // 左
@@ -1210,7 +1192,7 @@ namespace CADInterface.Plotters
 
                             // 箭头
                             pt3 = pt2.Convert2D(-2 * scale);
-                            pt4 = pt2.Convert2D(0,-0.5 * scale);
+                            pt4 = pt2.Convert2D(0, -0.5 * scale);
                             pt5 = pt2.Convert2D(0, 0.5 * scale);
 
                             Solid s1 = new Solid(pt3.Convert3D(), pt4.Convert3D(), pt5.Convert3D()) { Layer = "粗线" };
@@ -1264,7 +1246,7 @@ namespace CADInterface.Plotters
         /// <param name="scale"></param>
         /// <param name="Rotation"></param>
         /// <returns></returns>
-        public static DBObjectCollection ArrowLineCircularMark(Database db, ref Extents2d ext, Point3d StartpPint, double lineLength,string T, double scale = 100, double Rotation = 0)
+        public static DBObjectCollection ArrowLineCircularMark(Database db, ref Extents2d ext, Point3d StartpPint, double lineLength, string T, double scale = 100, double Rotation = 0)
         {
             DBObjectCollection res = new DBObjectCollection();
             using (Transaction tr = db.TransactionManager.StartTransaction())
@@ -1274,7 +1256,7 @@ namespace CADInterface.Plotters
                 BlockTableRecord recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
 
                 // 计算起始坐标
-                Point3d pt = StartpPint.Convert3D(lineLength * scale*Math.Abs(Math.Cos(45)),-lineLength * scale*Math.Abs(Math.Cos(45)));
+                Point3d pt = StartpPint.Convert3D(lineLength * scale * Math.Abs(Math.Cos(45)), -lineLength * scale * Math.Abs(Math.Cos(45)));
                 // 画箭头
                 //DBObjectCollection res1 = ArrowLine(db,ref ext, pt, lineLength,scale,135);
 
@@ -1289,7 +1271,7 @@ namespace CADInterface.Plotters
                 res.Add(Line);
 
                 // 绘制圆形标记
-                DBObjectCollection res2 = CircularMark(db, ref ext, pt.Convert3D(lineLength * scale),T,Extensions.curFont, scale);
+                DBObjectCollection res2 = CircularMark(db, ref ext, pt.Convert3D(lineLength * scale), T, "仿宋", scale);
 
                 //foreach (DBObject item in res1)
                 //{
@@ -1299,7 +1281,7 @@ namespace CADInterface.Plotters
                 {
                     res.Add(item);
                 }
-                var TX1 = Matrix3d.Rotation(GeTools.DegreeToRadian(Rotation), Vector3d.ZAxis, StartpPint);
+                var TX1 = Matrix3d.Rotation(Angle.FromDegrees(Rotation).Radians, Vector3d.ZAxis, StartpPint);
                 foreach (DBObject item in res)
                 {
                     Entity pr = (Entity)item;
@@ -1333,333 +1315,6 @@ namespace CADInterface.Plotters
 
 
 
-        /// <summary>
-        /// 直径标注
-        /// </summary>
-        /// <param name="db"></param>
-        /// <param name="ext"></param>
-        /// <param name="startPoint"></param>
-        /// <param name="arrow">箭头方向</param>
-        /// <param name="diameter">直径</param>
-        /// <param name="diameter">标记字符串</param>
-        /// <param name="scale">比例</param>
-        public static void CreateDiameterMark(Database db, ref Extents2d ext, Point3d startPoint,
-            eArrow arrow, double diameter, string T1, double scale, double rotation)
-        {
-            DBObjectCollection res = new DBObjectCollection();
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
-                BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                BlockTableRecord recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-
-                // 半径
-                double radius = diameter / 2;
-
-                Point2d pt1, pt2, pt3, pt4, pt5;
-                double offsetX = 0;
-                double offsetY = 0;
-                Polyline pl3 = new Polyline() { Closed = false, Layer = "标注", ColorIndex = 4 };
-                pl3.AddVertexAt(0, startPoint.Convert2D(), 0, 0, 0);
-                pl3.AddVertexAt(1, startPoint.Convert2D(radius * 2), 0, 0, 0);
-                ext = ext.Add(new Extents2d(pl3.Bounds.Value.MinPoint.Convert2D(), pl3.Bounds.Value.MaxPoint.Convert2D()));
-
-                // 左边箭头
-                double multi =scale;
-                pt3 = startPoint.Convert2D(2* multi, 0.5 * multi);
-                pt4 = startPoint.Convert2D(2 * multi, -0.5 * multi);
-
-                Solid s1 = new Solid(startPoint.Convert3D(), pt3.Convert3D(), pt4.Convert3D()) { Layer = "细线",ColorIndex=4 };
-                ext = ext.Add(new Extents2d(s1.Bounds.Value.MinPoint.Convert2D(), s1.Bounds.Value.MaxPoint.Convert2D()));
-
-                // 右边箭头
-                pt3 = startPoint.Convert2D(radius * 2 - 2* multi, 0.5 * multi);
-                pt4 = startPoint.Convert2D(radius * 2 - 2 * multi, -0.5 * multi);
-
-                Solid s2 = new Solid(startPoint.Convert3D(radius * 2), pt3.Convert3D(), pt4.Convert3D()) { Layer = "粗线" };
-                ext = ext.Add(new Extents2d(s2.Bounds.Value.MinPoint.Convert2D(), s2.Bounds.Value.MaxPoint.Convert2D()));
-
-                DBObjectCollection res2 = TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, startPoint.Convert2D(radius, 10),
-                    string.Format("D{0}", (int)(radius * 2*0.1)), scale, Extensions.curFont);
-                switch (arrow)
-                {
-                    case eArrow.E_ARROW_NULL:           // 无箭头
-                        {
-                            res.Add(pl3);
-                            break;
-                        }
-
-                    case eArrow.E_ARROW_LEFT_ARROW:     // 左侧箭头
-                        {
-                            res.Add(pl3);
-                            res.Add(s1);
-                            break;
-                        }
-                    case eArrow.E_ARROW_RIGHT_ARROW:    // 右侧箭头
-                        {
-                            res.Add(pl3);
-                            res.Add(s2);
-                            break;
-                        }
-                    case eArrow.E_ARROW_DOUBLE_SIDE_ARROW:  // 双侧箭头
-                        {
-                            res.Add(pl3);
-                            res.Add(s1);
-                            res.Add(s2);
-                            break;
-                        }
-                    default:
-                        break;
-                }
-                // 旋转
-                var TX1 = Matrix3d.Rotation(GeTools.DegreeToRadian(rotation), Vector3d.ZAxis, startPoint.Convert3D(radius));
-                foreach (DBObject item in res)
-                {
-                    Entity pr = (Entity)item;
-                    pr.TransformBy(TX1);
-                }
-                foreach (DBObject item in res2)
-                {
-                    Entity pr = (Entity)item;
-                    pr.TransformBy(TX1);
-                }
-                foreach (DBObject drawitem in res)
-                {
-                    recorder.AppendEntity((Entity)drawitem);
-                    tr.AddNewlyCreatedDBObject(drawitem, true);
-                }
-
-                tr.Commit();
-            }
-        }
-
-        /// <summary>
-        /// 钩线标记
-        /// </summary>
-        /// <param name="db"></param>
-        /// <param name="ext"></param>
-        /// <param name="startPoint"></param>
-        /// <param name="T1"></param>
-        /// <param name="lineLength"></param>
-        /// <param name="scale"></param>
-        public static void CreateHookLineMark(Database db, ref Extents2d ext, Point3d startPoint,
-            string T1, double lineLength, double scale, double rotation = 0)
-        {
-            DBObjectCollection res = new DBObjectCollection();
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
-                BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                BlockTableRecord recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-
-                // 线
-                double valueX =1*scale;
-                Point3d pt1 = startPoint.Convert3D(valueX, valueX);
-                Polyline pl1 = new Polyline() { Closed = false, Layer = "标注",ColorIndex=4 };
-                pl1.AddVertexAt(0, startPoint.Convert2D(lineLength), 0, 0, 0);
-                pl1.AddVertexAt(1, startPoint.Convert2D(), 0, 0, 0);
-                pl1.AddVertexAt(2, startPoint.Convert2D(valueX, valueX), 0, 0, 0);
-                ext = ext.Add(new Extents2d(pl1.Bounds.Value.MinPoint.Convert2D(), pl1.Bounds.Value.MaxPoint.Convert2D()));
-                res.Add(pl1);
-
-                // 圆形标记
-                DBObjectCollection res1 = DimPloter.CircularMark(db, ref ext, startPoint.Convert3D(lineLength), T1, Extensions.curFont, scale, GeTools.DegreeToRadian(360-rotation));
-
-                // 旋转
-                var TX1 = Matrix3d.Rotation(GeTools.DegreeToRadian(rotation), Vector3d.ZAxis, startPoint.Convert3D());
-                foreach (DBObject item in res)
-                {
-                    Entity pr = (Entity)item;
-                    pr.TransformBy(TX1);
-                }
-                foreach (DBObject item in res1)
-                {
-                    Entity pr = (Entity)item;
-                    pr.TransformBy(TX1);
-                }
-
-                foreach (DBObject drawitem in res)
-                {
-                    recorder.AppendEntity((Entity)drawitem);
-                    tr.AddNewlyCreatedDBObject(drawitem, true);
-                }
-
-                tr.Commit();
-            }
-        }
-
-        /// <summary>
-        /// 焊接面
-        /// </summary>
-        /// <param name="db"></param>
-        /// <param name="ext"></param>
-        /// <param name="center">圆心</param>
-        /// <param name="radius">原半径</param>
-        /// <param name="scale">比例</param>
-        /// <param name="replaceDim">替换焊接面的标注文字</param>
-        public static void CreateFaceWeld(Database db, ref Extents2d ext, Point3d center,
-            double radius, double scale, string replaceDim)
-        {
-            DBObjectCollection res = new DBObjectCollection();
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
-                BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                BlockTableRecord recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-
-                // 焊接面夹角
-                double angle = 10;
-
-                // 焊接面厚度
-                double thick = 20;
-                // 计算焊接面在圆上两点
-                Polyline pl1 = new Polyline() { Closed = false, Layer = "粗线" };
-                double offsetX = radius * Math.Sin(GeTools.DegreeToRadian(angle / 2));
-                double offsetY = radius * Math.Cos(GeTools.DegreeToRadian(angle / 2));
-                Point3d p1, p2, p3, p4;
-                p1 = center.Convert3D(-offsetX, -offsetY);
-                p2 = center.Convert3D(offsetX, -offsetY);
-                p3 = p1.Convert3D(0, thick);
-                p4 = p2.Convert3D(0, thick);
-
-                Solid sod1 = new Solid(p3, p1, center.Convert3D(0, -radius + thick), center.Convert3D(0, -radius));
-                ext = ext.Add(new Extents2d(sod1.Bounds.Value.MinPoint.Convert2D(), sod1.Bounds.Value.MaxPoint.Convert2D()));
-                res.Add(sod1);
-
-                Solid sod2 = new Solid(center.Convert3D(0, -radius), center.Convert3D(0, -radius + thick), p2, p4);
-                ext = ext.Add(new Extents2d(sod2.Bounds.Value.MinPoint.Convert2D(), sod2.Bounds.Value.MaxPoint.Convert2D()));
-                res.Add(sod2);
-
-                RotatedDimension dim = DimPloter.AddRotDim(db, ref ext, p1, p2, p1.Convert3D(0, -5 * scale), (int)scale, 0, "mm", replaceDim);
-                res.Add(dim);
-
-                foreach (DBObject drawitem in res)
-                {
-                    recorder.AppendEntity((Entity)drawitem);
-                    tr.AddNewlyCreatedDBObject(drawitem, true);
-                }
-                tr.Commit();
-                //ext = ext.Add(new Extents2d(dim.Bounds.Value.MinPoint.Convert2D(), dim.Bounds.Value.MaxPoint.Convert2D()));
-
-            }
-        }
-
-        public static void CreateLeadWireMark(Database db, ref Extents2d ext, Point3d point, string T,
-    string tstyle = "En", double scale = 100,bool isLeftText=false)
-        {
-            tstyle = Extensions.curFont;
-            double cR = 2.5;
-            DBText txt = new DBText();
-            Circle C2 = new Circle();
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
-                BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                BlockTableRecord recorder;
-
-                recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-
-                // 第一条线
-                double width1 = 0;
-                MText txt1 = TextPloter.GetTextActualWidth(db, T, scale, 2.5, Extensions.curFont);
-                width1 = txt1.ActualWidth;               
-                double lineWidth = width1;
-                Polyline Line = new Polyline() { Closed = false, Layer = "标注" };
-                if (isLeftText)
-                {
-                    Point2d point1 = point.Convert2D();
-                    Point2d point2 = point.Convert2D(-lineWidth / 6, lineWidth / 2);
-                    Point2d point3 = point2.Convert2D(-lineWidth);
-                    Line.AddVertexAt(0, point1, 0, 0, 0);
-                    Line.AddVertexAt(1, point2, 0, 0, 0);
-                    Line.AddVertexAt(2, point3, 0, 0, 0);
-                    recorder.AppendEntity(Line);
-                    tr.AddNewlyCreatedDBObject(Line, true);
-                    ext = ext.Add(new Extents2d(Line.Bounds.Value.MinPoint.Convert2D(), Line.Bounds.Value.MaxPoint.Convert2D()));
-
-                    // top 文字
-                    Point2d pt = new Point2d(point2.X - lineWidth / 2, point2.Y);
-                    TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T, scale, tstyle, GeTools.DegreeToRadian(0));
-                }
-                else
-                {
-                    Point2d point1 = point.Convert2D();
-                    Point2d point2 = point.Convert2D(lineWidth / 6, lineWidth / 2);
-                    Point2d point3 = point2.Convert2D(lineWidth);
-                    Line.AddVertexAt(0, point1, 0, 0, 0);
-                    Line.AddVertexAt(1, point2, 0, 0, 0);
-                    Line.AddVertexAt(2, point3, 0, 0, 0);
-                    recorder.AppendEntity(Line);
-                    tr.AddNewlyCreatedDBObject(Line, true);
-                    ext = ext.Add(new Extents2d(Line.Bounds.Value.MinPoint.Convert2D(), Line.Bounds.Value.MaxPoint.Convert2D()));
-
-                    // top 文字
-                    Point2d pt = new Point2d(point2.X + lineWidth / 2, point2.Y);
-                    TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T, scale, tstyle, GeTools.DegreeToRadian(0));
-                }
-                
-                tr.Commit();
-            }
-
-        }
-        public static void Create2TopLeadWireMark(Database db, ref Extents2d ext, Point3d point, string T,
-string tstyle = "En", double scale = 100, bool isLeftText = false)
-        {
-            tstyle = Extensions.curFont;
-            double cR = 2.5;
-            DBText txt = new DBText();
-            Circle C2 = new Circle();
-            using (Transaction tr = db.TransactionManager.StartTransaction())
-            {
-                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
-                BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-                BlockTableRecord recorder;
-
-                recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
-
-                // 第一条线
-                double width1 = 0;
-                MText txt1 = TextPloter.GetTextActualWidth(db, T, scale, 2.5, Extensions.curFont);
-                width1 = txt1.ActualWidth;
-                double lineWidth = width1;
-                Polyline Line = new Polyline() { Closed = false, Layer = "标注" };
-                if (isLeftText)
-                {
-                    Point2d point1 = point.Convert2D();
-                    Point2d point2 = point.Convert2D(lineWidth / 6, -lineWidth / 2);
-                    Point2d point3 = point2.Convert2D(lineWidth);
-                    Line.AddVertexAt(0, point1, 0, 0, 0);
-                    Line.AddVertexAt(1, point2, 0, 0, 0);
-                    Line.AddVertexAt(2, point3, 0, 0, 0);
-                    recorder.AppendEntity(Line);
-                    tr.AddNewlyCreatedDBObject(Line, true);
-                    ext = ext.Add(new Extents2d(Line.Bounds.Value.MinPoint.Convert2D(), Line.Bounds.Value.MaxPoint.Convert2D()));
-
-                    // top 文字
-                    Point2d pt = new Point2d(point2.X+ lineWidth / 2, point2.Y);
-                    TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T, scale, tstyle, GeTools.DegreeToRadian(0));
-                }
-                else
-                {
-                    Point2d point1 = point.Convert2D();
-                    Point2d point2 = point.Convert2D(-lineWidth / 6, -lineWidth / 2);
-                    Point2d point3 = point2.Convert2D(-lineWidth);
-                    Line.AddVertexAt(0, point1, 0, 0, 0);
-                    Line.AddVertexAt(1, point2, 0, 0, 0);
-                    Line.AddVertexAt(2, point3, 0, 0, 0);
-                    recorder.AppendEntity(Line);
-                    tr.AddNewlyCreatedDBObject(Line, true);
-                    ext = ext.Add(new Extents2d(Line.Bounds.Value.MinPoint.Convert2D(), Line.Bounds.Value.MaxPoint.Convert2D()));
-
-                    // top 文字
-                    Point2d pt = new Point2d(point2.X - lineWidth / 2, point2.Y);
-                    TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T, scale, tstyle, GeTools.DegreeToRadian(0));
-                }
-
-                tr.Commit();
-            }
-
-        }
 
 
         public static RotatedDimension DimDiameterRotated(Database db, ref Extents2d ext, Point3d P1, Point3d P2, Point3d Pref
@@ -1677,19 +1332,16 @@ string tstyle = "En", double scale = 100, bool isLeftText = false)
 
                 string st = string.Format("1-{0:G}", scale);
                 bool isExist = DimStyleTool.CheckDimStyleExists(st);
-                if (!isExist)
-                {
-                    DimStyleTool.CreateDimStyle(scale);
-                }
+
                 //DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
                 var dimID = dst[st];
 
                 //ObjectId dimID = DimPloter.GetDimStyle(db, (int)scale);
-                D1 = new RotatedDimension(GeTools.DegreeToRadian(0)/*ang*/, P1, P2, Pref, "", dimID);
+                D1 = new RotatedDimension(Angle.FromDegrees(0).Radians/*ang*/, P1, P2, Pref, "", dimID);
                 D1.Layer = "标注";
                 if (unit == "cm")
                 {
-                    D1.DimensionText = "D"+ (Math.Round(D1.Measurement / 10, 1)).ToString();
+                    D1.DimensionText = "D" + (Math.Round(D1.Measurement / 10, 1)).ToString();
                 }
                 else if (unit == "m")
                 {
@@ -1718,4 +1370,3 @@ string tstyle = "En", double scale = 100, bool isLeftText = false)
 
     }
 }
-

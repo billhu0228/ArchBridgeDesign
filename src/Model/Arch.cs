@@ -16,12 +16,13 @@ namespace Model
     {
         public ArchAxis Axis;
         public double H0, H1;
-        public double W0, W1;
+        public double WidthInside, WidthOutside;
         public List<DatumPlane> MainDatum, SecondaryDatum, DiagonalDatum;
         protected List<MemberPropertyRecord> PropertyTable;
         public delegate double get_z(double x0);
         List<Point2D> UpSkeleton, LowSkeleton;
         List<Node2D> NodeTable;
+        public List<Column> ColumnList;
         public List<Member> MemberTable;
 
         double HeightOrder;
@@ -42,9 +43,10 @@ namespace Model
             Axis = ax;
             H0 = height0;
             H1 = height1;
-            W0 = width0;
-            W1 = width1;
+            WidthInside = width0;
+            WidthOutside = width1;
             MainDatum = new List<DatumPlane>();
+            ColumnList = new List<Column>();
             SecondaryDatum = new List<DatumPlane>();
             DiagonalDatum = new List<DatumPlane>();
             PropertyTable = new List<MemberPropertyRecord>();
@@ -70,6 +72,23 @@ namespace Model
 
             }
         }
+
+        public Point2D[] LeftFoot
+        {
+            get
+            {
+                var ret = get_3pt(-1.0*Axis.L1).ToArray();
+                return ret;
+            }
+        }      
+        public Point2D[] MidPoints
+        {
+            get
+            {
+                var ret = get_3pt(0).ToArray();
+                return ret;
+            }
+        }
         #endregion
 
 
@@ -86,6 +105,8 @@ namespace Model
             int idx = PropertyTable.Count;
             PropertyTable.Add(new MemberPropertyRecord(idx, sect, MT, from, to));
         }
+
+
 
         /// <summary>
         /// 定义基准平面，无角度时为正交平面
@@ -118,6 +139,14 @@ namespace Model
         }
 
 
+        //            m1.AddColumn(0, 105.2, -225.0, 3, 3, 1, 1, 2.7);
+        public void AddColumn(int colid,double x0,double relativeH,double columnL,double stepL,int numStep,double offset,
+            double footW,double footL,double footMinH=0.5)
+        {
+            Column theCol = new Column(this, x0, relativeH, colid, columnL, stepL, numStep, offset, footW, footL, footMinH);
+            ColumnList.Add(theCol);
+            ColumnList.Sort(new Column());
+        }
 
         /// <summary>
         /// 生成中值基准面 

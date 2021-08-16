@@ -91,9 +91,11 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
     </Reference>
+    <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -104,16 +106,24 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AcadExt.cs" />
+    <Compile Include="API\MathNetAPI.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="A3Config.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="CommonTools.cs" />
-    <Compile Include="ModelExtension.cs" />
+    <Compile Include="API\ArchAPI.cs" />
+    <Compile Include="Plotters\DimPloter.cs" />
     <Compile Include="Plotters\MulitlinePloter.cs" />
     <Compile Include="Plotters\PolylinePloter.cs" />
     <Compile Include="Plotters\TablePloter.cs" />
     <Compile Include="Plotters\TextPloter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\ArchBridgeParametersDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\ArchBridgeParametersDialog.Designer.cs">
+      <DependentUpon>ArchBridgeParametersDialog.cs</DependentUpon>
+    </Compile>
     <Compile Include="UI\Config.cs" />
     <Compile Include="UI\RibbonButtonEX.cs" />
     <Compile Include="UI\RibbonButtonInfos.cs" />
@@ -129,6 +139,11 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="UI\ArchBridgeParametersDialog.resx">
+      <DependentUpon>ArchBridgeParametersDialog.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

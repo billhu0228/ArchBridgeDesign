@@ -55,6 +55,7 @@ namespace CADInterface
 
 
             panelDataSource0.Items.Add(RibbonButtonInfos.SYSSetting); //添加查询出图桥梁信息命令按钮
+            panelDataSource0.Items.Add(RibbonButtonInfos.GenModelBT); //添加查询出图桥梁信息命令按钮
             panelDataSource0.Items.Add(RibbonButtonInfos.GABtn); //添加配置绘制标准按钮 
             panelDataSource0.Items.Add(RibbonButtonInfos.GPBtn); //添加配置绘制标准按钮 
                        
