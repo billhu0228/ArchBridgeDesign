@@ -8,13 +8,18 @@ using System.Threading.Tasks;
 
 namespace Model
 {
-    public class DatumPlane
+    public class DatumPlane: IComparer<DatumPlane>
     {
         public int ID;
         public Point2D Center,RefPoint;
         public Angle Angle0;
         public Vector2D Direction;
         public eDatumType DatumType;
+
+        public DatumPlane()
+        {
+           
+        }
 
         public DatumPlane(int id,Point2D cc,Point2D refpt,eDatumType dt)
         {
@@ -61,6 +66,9 @@ namespace Model
         }
 
 
-
+        public int Compare(DatumPlane x, DatumPlane y)
+        {
+            return x.Center.X.CompareTo(y.Center.X);
+        }
     }
 }

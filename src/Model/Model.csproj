@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Model</RootNamespace>
-    <AssemblyName>Model</AssemblyName>
+    <AssemblyName>ArchBridge.Model</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="Arch.cs" />
     <Compile Include="ArchAxis.cs" />
+    <Compile Include="Column.cs" />
     <Compile Include="DatumPlane.cs" />
     <Compile Include="Extension.cs" />
     <Compile Include="MemberPropertyRecord.cs" />

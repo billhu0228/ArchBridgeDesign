@@ -23,10 +23,10 @@ namespace Model
     {
         public Line2D Line;
         public int ID;
-        public TubeSection Sect;
+        public Section Sect;
         public eMemberType ElemType;
 
-        public Member(int id, Line2D line, TubeSection sect, eMemberType et)
+        public Member(int id, Line2D line, Section sect, eMemberType et)
         {
             Line = line;
             ID = id;
@@ -34,7 +34,7 @@ namespace Model
             ElemType = et;
         }
 
-        public Member(int id, Point2D pSt,Point2D pEd, TubeSection sect, eMemberType et)
+        public Member(int id, Point2D pSt,Point2D pEd, Section sect, eMemberType et)
         {
             Line = new Line2D(pSt, pEd);
             ID = id;

@@ -16,34 +16,80 @@ namespace Model
     {
         public ArchAxis Axis;
         public double H0, H1;
+        public double WidthInside, WidthOutside;
         public List<DatumPlane> MainDatum, SecondaryDatum, DiagonalDatum;
         protected List<MemberPropertyRecord> PropertyTable;
         public delegate double get_z(double x0);
         List<Point2D> UpSkeleton, LowSkeleton;
         List<Node2D> NodeTable;
-        List<Member> MemberTable;
+        public List<Column> ColumnList;
+        public List<Member> MemberTable;
 
         double HeightOrder;
+
+
 
         /// <summary>
         /// 基本拱模型
         /// </summary>
         /// <param name="ax"></param>
-        /// <param name="height0"></param>
-        /// <param name="height1"></param>
+        /// <param name="height0">跨中桁高</param>
+        /// <param name="height1">拱脚桁高</param>
+        /// <param name="width0">内侧桁架中距</param>
+        /// <param name="width1">外侧桁架中距</param>
         /// <param name="order"></param>
-        public Arch(ArchAxis ax, double height0, double height1, double order = 2)
+        public Arch(ArchAxis ax, double height0, double height1,double width0,double width1, double order = 2)
         {
             Axis = ax;
             H0 = height0;
             H1 = height1;
+            WidthInside = width0;
+            WidthOutside = width1;
             MainDatum = new List<DatumPlane>();
+            ColumnList = new List<Column>();
             SecondaryDatum = new List<DatumPlane>();
             DiagonalDatum = new List<DatumPlane>();
             PropertyTable = new List<MemberPropertyRecord>();
             HeightOrder = order;
         }
 
+
+
+        #region 属性
+        public double MainTubeDiameter
+        {
+            get
+            {
+                return GetTubeProperty(0, eMemberType.UpperCoord).Section.Diameter;
+
+            }
+        }       
+        public double CrossBracingDiameter
+        {
+            get
+            {
+                return GetTubeProperty(0, eMemberType.CrossBraceing).Section.Diameter;
+
+            }
+        }
+
+        public Point2D[] LeftFoot
+        {
+            get
+            {
+                var ret = get_3pt(-1.0*Axis.L1).ToArray();
+                return ret;
+            }
+        }      
+        public Point2D[] MidPoints
+        {
+            get
+            {
+                var ret = get_3pt(0).ToArray();
+                return ret;
+            }
+        }
+        #endregion
 
 
         #region 基本建模方法
@@ -54,11 +100,13 @@ namespace Model
         /// <param name="sect"></param>
         /// <param name="from"></param>
         /// <param name="to"></param>
-        public void AssignProperty(eMemberType MT, TubeSection sect, double from = double.NegativeInfinity, double to = double.PositiveInfinity)
+        public void AssignProperty(eMemberType MT, Section sect, double from = double.NegativeInfinity, double to = double.PositiveInfinity)
         {
             int idx = PropertyTable.Count;
             PropertyTable.Add(new MemberPropertyRecord(idx, sect, MT, from, to));
         }
+
+
 
         /// <summary>
         /// 定义基准平面，无角度时为正交平面
@@ -91,6 +139,14 @@ namespace Model
         }
 
 
+        //            m1.AddColumn(0, 105.2, -225.0, 3, 3, 1, 1, 2.7);
+        public void AddColumn(int colid,double x0,double relativeH,double columnL,double stepL,int numStep,double offset,
+            double footW,double footL,double footMinH=0.5)
+        {
+            Column theCol = new Column(this, x0, relativeH, colid, columnL, stepL, numStep, offset, footW, footL, footMinH);
+            ColumnList.Add(theCol);
+            ColumnList.Sort(new Column());
+        }
 
         /// <summary>
         /// 生成中值基准面 
@@ -187,6 +243,9 @@ namespace Model
         /// </summary>
         public void GenerateModel()
         {
+            MainDatum.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
+            SecondaryDatum.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
+
             MemberTable = new List<Member>();
 
 
@@ -225,11 +284,12 @@ namespace Model
                         mt = eMemberType.VerticalWeb;
                         break;
                     case eDatumType.MiddleDatum:
-                        mt = eMemberType.None;
-                        break;
+                        throw new Exception("不应该有这种。。。");
                     case eDatumType.DiagonalDatum:
                         mt = eMemberType.InclineWeb;
                         break;
+                    case eDatumType.ControlDatum:
+                        continue;
                     default:
                         break;
                 }
@@ -262,6 +322,58 @@ namespace Model
 
             UpSkeleton.Sort((x, y) => x.X.CompareTo(y.X));
             LowSkeleton.Sort((x, y) => x.X.CompareTo(y.X));
+        }
+
+        /// <summary>
+        /// 生成平行式桁架（大小井模式）
+        /// </summary>
+        /// <param name="numCol">立柱数量（偶数）</param>
+        /// <param name="distCol">立柱间距</param>
+        /// <param name="distVertical1">竖腹杆间距1：立柱间竖腹杆</param>
+        /// <param name="distVertical2">竖腹杆间距2：跨中竖杆间距</param>
+        /// <param name="distVertical3">竖腹杆间距3：首尾立柱外侧竖腹杆间距</param>
+        /// <param name="CellsSide">首尾立柱外侧竖腹杆数量</param>
+        public void GenerateTruss(int numCol, int distCol, 
+            double distVertical1, double distVertical2, double distVertical3,int CellsSide)
+        {
+            double x0 = (numCol-1)*distCol*-0.5;
+            for (int i = 0; i < numCol; i++)
+            {
+                double xi = x0 + i * distCol;
+                AddDatum(0, xi, eDatumType.ColumnDatum, 90.0);
+                int numBetweenCol = (int)Math.Round(distCol / distVertical1 - 1, MidpointRounding.AwayFromZero);
+                int numOfMid = (int)(distCol * 0.5 / distVertical2);
+                double rest = distCol - numOfMid * 2 * distVertical2;
+                if (i == numCol - 1)
+                {
+                    for (int j = 0; j < CellsSide; j++)
+                    {
+                        AddDatum(0, xi + distVertical3 * (j + 1), eDatumType.VerticalDatum, 90);
+                    }
+                }
+                else if (i == numCol/2-1)
+                {
+                    for (int jj = 0; jj < numOfMid; jj++)
+                    {
+                        AddDatum(0, xi + distVertical2 * (jj + 1), eDatumType.VerticalDatum, 90);
+                        AddDatum(0, rest*0.5 + distVertical2 * (jj), eDatumType.VerticalDatum, 90);
+                    }
+                }
+                else
+                {
+                    for (int j = 0; j < numBetweenCol; j++)
+                    {
+                        AddDatum(0, xi + (j + 1) * distVertical1, eDatumType.VerticalDatum, 90);
+                    }
+                }       
+                if (i == 0)
+                {
+                    for (int j = 0; j < CellsSide; j++)
+                    {
+                        AddDatum(0, xi - distVertical3 * (j + 1), eDatumType.VerticalDatum, 90);
+                    }
+                }
+            }
         }
 
         #endregion
@@ -352,6 +464,10 @@ namespace Model
         #region 私有方法
         private MemberPropertyRecord GetTubeProperty(double x, eMemberType member)
         {
+            if (member == eMemberType.Virtual)
+            {
+
+            }
             var prop = PropertyTable.FindLast((pp) => pp.CheckProperty(x, member));
             return prop;
         }

@@ -8,9 +8,9 @@ namespace Model
         public eMemberType Member;
         public double RangeFrom;
         public double RangeTo;
-        public TubeSection Section;
+        public Section Section;
 
-        public MemberPropertyRecord(int index, TubeSection sect, eMemberType member, double rangeFrom, double rangeTo)
+        public MemberPropertyRecord(int index, Section sect, eMemberType member, double rangeFrom, double rangeTo)
         {
             this.index = index;
             Section = sect;
