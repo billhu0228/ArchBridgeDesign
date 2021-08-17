@@ -4,6 +4,28 @@ using System.Reflection;
 
 namespace Model
 {
+    public enum eDatumType
+    {
+        None = 0,
+        [Description("立柱控制面")]
+        ColumnDatum = 1,
+
+        [Description("竖向控制面")]
+        VerticalDatum = 2,
+
+        [Description("法向控制面")]
+        NormalDatum = 3,
+
+        [Description("中点控制面")]
+        MiddleDatum = 4,
+
+        [Description("斜杆控制面")]
+        DiagonalDatum = 5,
+
+        [Description("无截面控制面板")]
+        ControlDatum = 6,
+
+    }
     /// <summary>
     /// 七种拱肋轴线定义
     /// </summary>
@@ -100,32 +122,6 @@ namespace Model
     }
 
 
-    public enum eDatumType
-    {
-        None=0,
-        [Description("立柱控制面")]
-        ColumnDatum = 1,
 
-        [Description("竖向控制面")]
-        VerticalDatum = 2,
-
-        [Description("法向控制面")]
-        NormalDatum = 3,
-        
-        [Description("中点控制面")]
-        MiddleDatum = 4,
-
-        [Description("斜杆控制面")]        
-        DiagonalDatum = 5,
-
-        [Description("无截面控制面板")]
-        ControlDatum =6,
-
-
-
-
-
-
-    }
 
 }

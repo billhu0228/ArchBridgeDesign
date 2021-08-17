@@ -2,6 +2,9 @@
 
 namespace Model
 {
+    /// <summary>
+    /// 杆件属性记录
+    /// </summary>
     public class MemberPropertyRecord
     {
         public int index;

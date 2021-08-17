@@ -81,7 +81,6 @@ namespace CADInterface
             return vector.Angle;
         }
 
-
         /// <summary>
         /// 通过三角函数求终点坐标
         /// </summary>

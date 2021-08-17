@@ -18,7 +18,7 @@ namespace CADInterface.API
         /// <param name="db"></param>
         /// <
         /// <param name="ext"></param>
-        public static void DarwColumnSide(this Model.Column model, Database db,Point2d cc, ref Extents2d ext)
+        public static void DarwColumnSide(this Model.Column model, Database db,Point2d cc, ref Extents2d ext,double scale=0)
         {
             DBObjectCollection entyList = new DBObjectCollection();
 
@@ -28,14 +28,21 @@ namespace CADInterface.API
             Point2d pt0a = model.MainArch.Get7PointReal(model.X - 0.5 * model.L,90.0)[0].ToAcadPoint2d();
             Point2d pt0b = model.MainArch.Get7PointReal(model.X + 0.5 * model.L,90.0)[0].ToAcadPoint2d();
 
+            var Eda = new Point3d(pt0a.X, model.Z2, 0);
+            var Edb = new Point3d(pt0b.X, model.Z2, 0);
+
             Line cl = new Line(pt0.Convert3D(), new Point3d(model.X,model.Z2,0)) { Layer="中心线"} ;
             entyList.Add(cl);
-            cl = new Line(pt0a.Convert3D(), new Point3d(pt0a.X, model.Z2, 0)) { Layer = "中心线" };
+            cl = new Line(pt0a.Convert3D(), Eda) { Layer = "中心线" };
             entyList.Add(cl);
-            cl = new Line(pt0b.Convert3D(), new Point3d(pt0b.X, model.Z2, 0)) { Layer = "中心线" };
+            cl = new Line(pt0b.Convert3D(),Edb ) { Layer = "中心线" };
             entyList.Add(cl);
 
+            if (scale!=0)
+            {
+                DimPloter.DimRotated(db, ref ext, Eda, Edb, Eda.Convert3D(0, 2 * scale),0,scale);
 
+            }
             // 柱脚
             double xa = model.X + model.FootL * -0.5;
             double xb = model.X + model.FootL * +0.5;
@@ -58,7 +65,7 @@ namespace CADInterface.API
                 new Point3d(model.X + 0.5 * model.L + 0.5 * model.MainDiameter, model.Z2, 0))
             { Layer = "细线" });
             entyList.Add(new Line(
-                new Point3d(model.X - 0.5 * model.L + 0.5 * model.MainDiameter, model.Z2-model.CapHeight+model.InstallOffset, 0),
+                new Point3d(model.X - 0.5 * model.L + 0.5 * model.MainDiameter, model.Z2 - model.CapHeight + model.InstallOffset, 0),
                 new Point3d(model.X + 0.5 * model.L - 0.5 * model.MainDiameter, model.Z2 - model.CapHeight + model.InstallOffset, 0))
             { Layer = "细线" });
 

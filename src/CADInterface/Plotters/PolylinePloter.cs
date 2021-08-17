@@ -12,8 +12,6 @@ namespace CADInterface.Plotters
     public class PolylinePloter
     {
 
-
-
         public static void AddPolyline(Database db, ref Extents2d ext, Point2d sp, Point2d ep, double dx0, double dy0, double dx1, double dy1, string linetypeName, short num = 0)
         {
             using (Transaction tr = db.TransactionManager.StartTransaction())

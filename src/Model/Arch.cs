@@ -12,6 +12,9 @@ using System.IO;
 
 namespace Model
 {
+    /// <summary>
+    /// 主拱2.5D
+    /// </summary>
     public class Arch
     {
         public ArchAxis Axis;

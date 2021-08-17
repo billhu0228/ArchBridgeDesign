@@ -1,4 +1,4 @@
-﻿using System;
+﻿    using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace Model
 {
+    /// <summary>
+    /// 拱上立柱
+    /// </summary>
     public class Column : IComparer<Column>
     {
         public Arch MainArch;
@@ -74,7 +77,7 @@ namespace Model
         /// </summary>
         public void Generate()
         {
-            calculateParameters();
+            CalculateParameters();
 
 
         }
@@ -149,7 +152,7 @@ namespace Model
         #endregion
 
 
-        void calculateParameters()
+        public void CalculateParameters()
         {
             double x1 = X < 0 ? X + 0.5 * FootL : X - 0.5 * FootL;
 

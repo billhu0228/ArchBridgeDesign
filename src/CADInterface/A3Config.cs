@@ -135,13 +135,21 @@ namespace CADInterface
                 #endregion
 
                 DimStyleTable dst = (DimStyleTable)tr.GetObject(acCurDb.DimStyleTableId, OpenMode.ForWrite);//设置不同比例的对象属性
-                foreach (int thescale in new int[] {  1, 2,50, 75, 100, 125, 150, 200, 300 ,500,1000})
+                foreach (double thescale in new double[] { 0.25, 1, 2,50, 75, 100, 125, 150, 200, 300 ,500,1000})
                 {
-                    string scname = "1-" + thescale.ToString();
+                    string scname;
+                    if (thescale<1)
+                    {
+                        scname = Math.Round(1 / thescale, 0).ToString() + "-1";
+                    }
+                    else
+                    {
+                        scname = "1-" + thescale.ToString();
+                    }
                     DimStyleTableRecord dstr = new DimStyleTableRecord();
                     if (!dst.Has(scname))
                     {
-                        dstr.Name = "1-" + thescale.ToString();
+                        dstr.Name = scname ;
                         dstr.Dimscale = thescale;
                         dstr.Dimtxsty = st["仿宋"];
                         //dstr.Dimclrd = Color.FromColorIndex(ColorMethod.ByAci, 4);
@@ -179,13 +187,14 @@ namespace CADInterface
                         dstr.Dimtih = false;
                         dstr.Dimtoh = false;
                         dstr.Dimdsep = '.';
-                        if (thescale == 1)
+                        if (thescale < 1)
                         {
                             dstr.Dimlfac = 1000;
-                            dstr.Dimscale = 0.8;
                         }
                         else
+                        {
                             dstr.Dimlfac = 1;
+                        }
                         dst.Add(dstr);
                         tr.AddNewlyCreatedDBObject(dstr, true);
                     }
