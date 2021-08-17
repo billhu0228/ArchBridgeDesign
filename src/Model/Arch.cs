@@ -20,7 +20,7 @@ namespace Model
         public List<DatumPlane> MainDatum, SecondaryDatum, DiagonalDatum;
         protected List<MemberPropertyRecord> PropertyTable;
         public delegate double get_z(double x0);
-        List<Point2D> UpSkeleton, LowSkeleton;
+        public List<Point2D> UpSkeleton, LowSkeleton,UpUpSkeleton,UpLowSkeleton,LowUpSkeleton,LowLowSkeleton;
         List<Node2D> NodeTable;
         public List<Column> ColumnList;
         public List<Member> MemberTable;
@@ -139,11 +139,24 @@ namespace Model
         }
 
 
-        //            m1.AddColumn(0, 105.2, -225.0, 3, 3, 1, 1, 2.7);
-        public void AddColumn(int colid,double x0,double relativeH,double columnL,double stepL,int numStep,double offset,
+        /// <summary>
+        /// 增加墩柱
+        /// </summary>
+        /// <param name="colid"></param>
+        /// <param name="x0">位置</param>
+        /// <param name="relativeH">相对拱脚高差</param>
+        /// <param name="columnL">顺桥向柱间距</param>
+        /// <param name="capH">盖梁节段高</param>
+        /// <param name="stepL">步长</param>
+        /// <param name="numStep">节段步数</param>
+        /// <param name="offset">节段偏移绝对值</param>
+        /// <param name="footW">柱脚横桥向宽度</param>
+        /// <param name="footL">柱脚顺桥向长度</param>
+        /// <param name="footMinH">柱脚最小高度</param>
+        public void AddColumn(int colid,double x0,double relativeH,double columnL,double capH,double stepL,int numStep,double offset,
             double footW,double footL,double footMinH=0.5)
         {
-            Column theCol = new Column(this, x0, relativeH, colid, columnL, stepL, numStep, offset, footW, footL, footMinH);
+            Column theCol = new Column(this, x0, relativeH, colid, columnL,  capH,stepL, numStep, offset, footW, footL, footMinH);
             ColumnList.Add(theCol);
             ColumnList.Sort(new Column());
         }
@@ -216,32 +229,16 @@ namespace Model
                 {
                     continue;
                 }
-
-
                 var B = C_UP.Center.Tangent(C_DOWN)[0];
-
                 Line2D datumLine = (new Line2D(B, C_UP.Center)).Offset(Math.Sign(P1.Center.X) * 0.5 * dia);
-
-
                 DiagonalDatum.Add(new DatumPlane(0, Axis.Intersect(datumLine), Vector2D.XAxis.AngleTo(datumLine.Direction), eDatumType.DiagonalDatum));
-
-
-
             }
-
-
-
-
-
-
-
-
         }
 
         /// <summary>
         /// 生成拱圈模型
         /// </summary>
-        public void GenerateModel()
+        public void GenerateArch()
         {
             MainDatum.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
             SecondaryDatum.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
@@ -307,6 +304,12 @@ namespace Model
         {
             UpSkeleton = new List<Point2D>();
             LowSkeleton = new List<Point2D>();
+            UpUpSkeleton = new List<Point2D>();
+            UpLowSkeleton = new List<Point2D>();
+            LowUpSkeleton = new List<Point2D>();
+            LowLowSkeleton = new List<Point2D>();
+
+
             foreach (var item in MainDatum)
             {
                 var ff = Get3Point(item);
@@ -322,6 +325,24 @@ namespace Model
 
             UpSkeleton.Sort((x, y) => x.X.CompareTo(y.X));
             LowSkeleton.Sort((x, y) => x.X.CompareTo(y.X));
+
+            for (int i = 0; i < 2; i++)
+            {
+                var SKL = i == 0 ? UpSkeleton : LowSkeleton;               
+                for (int j = 0; j < 2; j++)
+                {
+                    if (i==0)
+                    {
+                        UpUpSkeleton = OffsetSkeleton(SKL, MainTubeDiameter * 0.5);
+                        UpLowSkeleton = OffsetSkeleton(SKL, MainTubeDiameter * -0.5);
+                    }
+                    else
+                    {
+                        LowUpSkeleton = OffsetSkeleton(SKL, MainTubeDiameter * 0.5);
+                        LowLowSkeleton = OffsetSkeleton(SKL, MainTubeDiameter * -0.5);
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -374,6 +395,18 @@ namespace Model
                     }
                 }
             }
+        }
+
+        /// <summary>
+        /// 生成立柱模型
+        /// </summary>
+        public void GenerateColumn()
+        {
+            foreach (var item in ColumnList)
+            {
+                item.Generate();
+            }
+
         }
 
         #endregion
@@ -462,7 +495,7 @@ namespace Model
         #endregion
 
         #region 私有方法
-        private MemberPropertyRecord GetTubeProperty(double x, eMemberType member)
+        public MemberPropertyRecord GetTubeProperty(double x, eMemberType member)
         {
             if (member == eMemberType.Virtual)
             {
@@ -752,6 +785,74 @@ namespace Model
             }
             return res;
         }
+
+        /// <summary>
+        /// 获取折线拱任意方向7个轴点
+        /// </summary>
+        /// <param name="x0"></param>
+        /// <param name="ang_deg"></param>
+        /// <returns></returns>
+        public List<Point2D> Get7PointReal(double x0, double ang_deg)
+        {
+            Point2D Upper,UU,UL, CC, Lower,LU,LL;
+            CC = Axis.GetCenter(x0);
+            Angle CutAngle = Angle.FromDegrees(ang_deg);
+            Vector2D TargetDir = Vector2D.XAxis.Rotate(CutAngle);
+            Line2D cutLine = new Line2D(CC, CC + TargetDir);
+
+
+            Upper = (Point2D)Extension.Intersection(UpSkeleton, cutLine);
+            UU = (Point2D)Extension.Intersection(UpUpSkeleton, cutLine);
+            UL = (Point2D)Extension.Intersection(UpLowSkeleton, cutLine);
+
+            Lower = (Point2D)Extension.Intersection(LowSkeleton, cutLine);
+            LU = (Point2D)Extension.Intersection(LowUpSkeleton, cutLine);
+            LL = (Point2D)Extension.Intersection(LowLowSkeleton, cutLine);
+
+            return new List<Point2D>() { UU, Upper, UL, CC, LU, Lower, LL };
+        }
+
+        /// <summary>
+        /// 骨架线偏移出管壁
+        /// </summary>
+        /// <param name="input"></param>
+        /// <param name="val"></param>
+        /// <returns></returns>
+        List<Point2D> OffsetSkeleton(List<Point2D> input,double val)
+        {
+            List<Point2D> ret = new List<Point2D>();
+            Vector2D dir;
+            double dist= val;
+            for (int i = 0; i < input.Count; i++)
+            {
+                if (i==0)
+                {
+                    dir = (input[i + 1] - input[i]).Normalize();
+                    dir= dir.Rotate(Angle.FromDegrees(90.0));
+                    dist = val;
+                }
+                else if (i!= input.Count-1)
+                {
+                    var dir1 = (input[i + 1] - input[i]).Normalize();
+                    var dir0 = (input[i] - input[i - 1]).Normalize();
+                    dir = (dir1 + dir0).Normalize();
+                    dir = dir.Rotate(Angle.FromDegrees(90.0));
+                    Angle m = dir1.SignedAngleTo(dir) - Angle.FromDegrees(90.0);
+                    dist = val / Math.Cos(m.Radians);
+
+                }
+                else
+                {
+                    dir= (input[i] - input[i-1]).Normalize();
+                    dir = dir.Rotate(Angle.FromDegrees(90.0));
+                    dist = val;
+                }
+                ret.Add(input[i] + dir * dist);
+            }
+            return ret;
+        }
+
+
         #endregion
 
     }

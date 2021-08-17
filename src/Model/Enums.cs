@@ -56,6 +56,12 @@ namespace Model
         [Description("虚拟截面")]
         Virtual = 10,
 
+        [Description("立柱主杆")]
+        ColumnMain=20,
+        [Description("立柱顺桥向横撑")]
+        ColumnCrossL = 21,
+        [Description("立柱横桥向横撑")]
+        ColumnCrossW = 22,
     }
 
     public static class EnumHelper

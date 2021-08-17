@@ -17,7 +17,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\bin\Debug\</OutputPath>
+    <OutputPath>..\..\bin\$(RootNamespace)_$(Platform)_$(Configuration)</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -106,6 +106,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AcadExt.cs" />
+    <Compile Include="API\ColumnAPI.cs" />
     <Compile Include="API\MathNetAPI.cs" />
     <Compile Include="Commands.cs" />
     <Compile Include="A3Config.cs" />
@@ -126,7 +127,7 @@
     </Compile>
     <Compile Include="UI\Config.cs" />
     <Compile Include="UI\RibbonButtonEX.cs" />
-    <Compile Include="UI\RibbonButtonInfos.cs" />
+    <Compile Include="UI\RibbonButtons.cs" />
     <Compile Include="UI\RibbonCommandHandler.cs" />
     <Compile Include="UI\RibbonExts.cs" />
   </ItemGroup>
@@ -146,4 +147,11 @@
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>XCOPY "$(SolutionDir)resource" "$(TargetDir)" /S /Y</PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
 </Project>

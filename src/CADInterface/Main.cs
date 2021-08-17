@@ -54,10 +54,10 @@ namespace CADInterface
             RibbonPanelSource panelDataSource0 = tab.AddPanel("拱桥设计"); //给选项卡添加面板   
 
 
-            panelDataSource0.Items.Add(RibbonButtonInfos.SYSSetting); //添加查询出图桥梁信息命令按钮
-            panelDataSource0.Items.Add(RibbonButtonInfos.GenModelBT); //添加查询出图桥梁信息命令按钮
-            panelDataSource0.Items.Add(RibbonButtonInfos.GABtn); //添加配置绘制标准按钮 
-            panelDataSource0.Items.Add(RibbonButtonInfos.GPBtn); //添加配置绘制标准按钮 
+            panelDataSource0.Items.Add(RibbonButtons.SYSSetting); //添加查询出图桥梁信息命令按钮
+            panelDataSource0.Items.Add(RibbonButtons.GenModelBT); //添加查询出图桥梁信息命令按钮
+            panelDataSource0.Items.Add(RibbonButtons.GABtn); //添加配置绘制标准按钮 
+            panelDataSource0.Items.Add(RibbonButtons.ColBtn); //添加配置绘制标准按钮 
                        
 
             //SysInfo.isCreated = true;
