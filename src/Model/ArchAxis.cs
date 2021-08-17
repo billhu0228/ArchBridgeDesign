@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace Model
 {
+    /// <summary>
+    /// 拱轴
+    /// </summary>
     public class ArchAxis
     {
         public readonly double f,m,L;

@@ -189,6 +189,7 @@ namespace CADInterface.Plotters
 
 
 
+
         public static List<Line> PlotTube(Database db, Point2d St, Point2d Ed, double Diameter,
            Curve CutCurveA = null, Curve CutCurveB = null, double Thickness = 0, string Ls = "粗线")
         {
@@ -238,6 +239,64 @@ namespace CADInterface.Plotters
             {
                 db.AddEntityToModeSpace(item);
             }
+            return Res;
+
+
+
+        }    
+        public static List<Line> CreatTube(Point2d St, Point2d Ed, double Diameter,
+           Curve CutCurveA = null, Curve CutCurveB = null, double Thickness = 0, string Ls = "粗线",bool haveCenter=true)
+        {
+            List<Line> LineSet = new List<Line>();
+            List<Line> Res = new List<Line>();
+            Line sideA, sideB, ccline, insideA, insideB;
+
+            ccline = new Line(St.Convert3D(), Ed.Convert3D());
+            sideA = (Line)ccline.GetOffsetCurves(-0.5 * Diameter)[0];
+            sideB = (Line)ccline.GetOffsetCurves(0.5 * Diameter)[0];
+
+            ccline.Layer = "中心线";
+            sideA.Layer = Ls;
+            sideB.Layer = Ls;
+            LineSet.Add(sideB);
+            LineSet.Add(ccline);
+            LineSet.Add(sideA);
+
+
+
+            if (Thickness != 0)
+            {
+                insideA = (Line)ccline.GetOffsetCurves(-0.5 * Diameter + Thickness)[0];
+                insideB = (Line)ccline.GetOffsetCurves(0.5 * Diameter - Thickness)[0];
+                insideA.Layer = "虚线";
+                insideB.Layer = "虚线";
+                LineSet.Add(insideA);
+                LineSet.Add(insideB);
+            }
+
+
+            foreach (var item in LineSet)
+            {
+                Line updateLine;
+                if (item.Layer != "中心线")
+                {
+                    updateLine = item.UpdateBoundary(CutCurveA, CutCurveB);
+                }
+                else
+                {
+                    if (haveCenter)
+                    {
+                        updateLine = item;
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                Res.Add(updateLine);
+
+            }
+
             return Res;
 
 

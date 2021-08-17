@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Model
 {
+    /// <summary>
+    /// 一些共用扩展
+    /// </summary>
     public static class Extension
     {
 
@@ -78,7 +81,6 @@ namespace Model
 
             return k * x0 + c;
         }
-
 
         public static Point2D? Intersection(List<Point2D> polyline, Line2D other)
         {

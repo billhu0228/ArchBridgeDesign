@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace CADInterface.API
 {
-
     public static class ArchAPI
     {
 
@@ -146,18 +145,6 @@ namespace CADInterface.API
                 }
             }
         }
-
-        /// <summary>
-        /// 绘制立柱
-        /// </summary>
-        /// <param name="model"></param>
-        /// <param name="db"></param>
-        /// <param name="ext"></param>
-        public static void DarwColumn(this Arch model, Database db, ref Extents2d ext)
-        {
-
-        }
-
 
         public static void DrawInstall(this Arch model, Database db, ref Extents2d ext)
         {

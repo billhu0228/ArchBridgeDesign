@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace Model
 {
+    /// <summary>
+    /// 基准面
+    /// </summary>
     public class DatumPlane: IComparer<DatumPlane>
     {
         public int ID;

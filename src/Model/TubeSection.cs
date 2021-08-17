@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 
 namespace Model
 {
+    /// <summary>
+    /// 截面
+    /// </summary>
     public abstract class Section
     {
         public double Diameter;
-
     }
 
     public class HSection : Section

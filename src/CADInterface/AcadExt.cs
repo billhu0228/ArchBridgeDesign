@@ -381,6 +381,10 @@ namespace CADInterface
             return new Extents2d(minX, minY, maxX, maxY);
         }
 
+        public static Extents2d Convert2D(this Extents3d ext)
+        {
+            return new Extents2d(ext.MinPoint.Convert2D(), ext.MaxPoint.Convert2D());
+        }
 
         /// <summary>
         /// 将图形对象添加到图形文件中
@@ -409,7 +413,15 @@ namespace CADInterface
             return entId;
         }
 
-
+        public static Polyline CreatFromList( List<Point2d> ptList)
+        {
+            Polyline line = new Polyline() { Closed = false };//定义不封闭的Polyline
+            for (int i = 0; i < ptList.Count; i++)
+            {
+                line.AddVertexAt(i, ptList[i], 0, 0, 0);
+            }
+            return line;
+        }
 
         public static Line UpdateBoundary(this Line theLine, Curve BD1, Curve BD2)
         {

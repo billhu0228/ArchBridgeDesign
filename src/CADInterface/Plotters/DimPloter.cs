@@ -208,6 +208,26 @@ namespace CADInterface.Plotters
     public class DimPloter
     {
 
+        public static string GetScaleName(double thescale)
+        {
+            string scname;
+            if (thescale < 1)
+            {
+                if (1%thescale!=0)
+                {
+                    throw new Exception("比例不可用");
+
+                }
+                scname = Math.Round(1 / thescale, 0).ToString() + "-1";
+            }
+            else
+            {
+                scname = "1-" + thescale.ToString();
+            }
+
+            return scname;
+        }
+
         /// <summary>
         /// 绘制标高符号
         /// </summary>
@@ -297,6 +317,7 @@ namespace CADInterface.Plotters
             return AD1;
         }
 
+
         /// <summary>
         /// 水平标注
         /// </summary>
@@ -308,7 +329,7 @@ namespace CADInterface.Plotters
         /// <param name="ang">转角，弧度</param>
         /// <returns></returns>
         public static RotatedDimension DimRotated(Database db, ref Extents2d ext, Point3d P1, Point3d P2, Point3d Pref
-            , double ang = 0, double scale = 20, string unit = "mm", string replaceText = "", string D = "", int pL = 1)
+            , double ang = 0, double scale = 20, string replaceText = "")
         {
 
             RotatedDimension D1;
@@ -320,45 +341,12 @@ namespace CADInterface.Plotters
                     OpenMode.ForWrite) as BlockTableRecord;
                 DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
 
-                string st = string.Format("1-{0:G}", scale);
-                bool isExist = DimStyleTool.CheckDimStyleExists(st);
-                //DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
+                string st = GetScaleName(scale);
+
                 var dimID = dst[st];
 
-                //ObjectId dimID = DimPloter.GetDimStyle(db, (int)scale);
-                D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians/*ang*/, P1, P2, Pref, replaceText, dimID);
-                D1.Layer = "标注";
-                if (pL > 1)
-                {
-                    replaceText = (D1.Measurement / pL) + "×" + pL;
-                    D1.DimensionText = replaceText;
-                    if (unit == "cm")
-                    {
-                        replaceText = (D1.Measurement / pL) + "×" + pL / 10;
-                        D1.DimensionText = replaceText;
-                    }
-                    else if (unit == "m")
-                    {
-                        replaceText = (D1.Measurement / pL) + "×" + pL / 1000;
-                        D1.DimensionText = replaceText;
-                    }
-                }
-                else
-                {
-                    if (string.IsNullOrWhiteSpace(replaceText))
-                    {
-                        if (unit == "cm")
-                        {
-                            replaceText = (Math.Round(D1.Measurement / 10, 1)).ToString();
-                            D1.DimensionText = D + replaceText;
-                        }
-                        else if (unit == "m")
-                        {
-                            replaceText = (Math.Round(D1.Measurement / 1000, 3)).ToString();
-                            D1.DimensionText = D + replaceText;
-                        }
-                    }
-                }
+                D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, replaceText, dimID);
+                D1.Layer = "标注";                
                 modelSpace.AppendEntity(D1);
                 tr.AddNewlyCreatedDBObject(D1, true);
                 Polyline line = new Polyline();
