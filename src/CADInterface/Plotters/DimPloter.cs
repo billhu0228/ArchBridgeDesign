@@ -5,6 +5,8 @@ using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using MathNet.Spatial.Units;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace CADInterface.Plotters
 {
@@ -208,6 +210,72 @@ namespace CADInterface.Plotters
     public class DimPloter
     {
 
+        public static MLeader CreatMLeader(Database db,ref Extents2d ext,Point2d anchor,Point2d textAnchor,string cont)
+        {
+            double scale = 0.25;
+            MLeader ret = new MLeader();
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            { 
+                DBDictionary mlstyles = (DBDictionary)tr.GetObject(db.MLeaderStyleDictionaryId, OpenMode.ForRead);
+                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
+                ret.MLeaderStyle = (ObjectId)mlstyles["ML"];
+
+                ret.MText = new MText()
+                {
+                    Contents = cont,
+                    Location = textAnchor.Convert3D(),
+                    TextStyleId = st["仿宋"],
+                    Height = 2.5 * scale,
+                    Layer = "标注",
+                    //LineSpaceDistance = 2.5 * scale * TextHelper.Factor,
+                    LineSpacingStyle= LineSpacingStyle.Exactly,
+                };
+                ret.MText.LineSpaceDistance = 0.875;
+                ret.TextHeight = 2.5 * scale;
+                int idx = ret.AddLeaderLine(anchor.Convert3D());
+            }         
+            return ret;
+        }
+
+        public static MLeader CreatMLeader(Database db, ref Extents2d ext, Point2d anchor, string cont,bool isLeft)
+        {
+            double scale = 0.25;
+            MLeader ret = new MLeader();
+
+            Point2d textAnchor;
+           double w = (from a in Regex.Split(cont, "\n") select a.Length).Max() * 2.5 * 0.7* scale*TextHelper.Factor;
+            if (isLeft)
+            {
+                textAnchor = anchor.Convert2D(-w - 2, 2);
+            }
+            else
+            {
+                textAnchor = anchor.Convert2D(2, 2);
+            }
+           
+
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            {
+                DBDictionary mlstyles = (DBDictionary)tr.GetObject(db.MLeaderStyleDictionaryId, OpenMode.ForRead);
+                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
+                ret.MLeaderStyle = (ObjectId)mlstyles["ML"];
+                ret.MText = new MText()
+                {
+                    Contents = cont,
+                    Location = textAnchor.Convert3D(),
+                    TextStyleId = st["仿宋"],
+                    Height = 2.5 * scale,
+                    Layer="标注",                   
+                    LineSpacingStyle = LineSpacingStyle.Exactly,
+                };
+                ret.TextHeight = 2.5 * scale;
+                ret.MText.LineSpaceDistance = 0.875;
+                ret.MText.LineSpacingFactor = 0.875;
+                int idx = ret.AddLeaderLine(anchor.Convert3D());
+            }
+            return ret;
+        }
+
         public static string GetScaleName(double thescale)
         {
             string scname;
@@ -318,6 +386,8 @@ namespace CADInterface.Plotters
         }
 
 
+
+
         /// <summary>
         /// 水平标注
         /// </summary>
@@ -346,7 +416,7 @@ namespace CADInterface.Plotters
                 var dimID = dst[st];
 
                 D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, replaceText, dimID);
-                D1.Layer = "标注";                
+                D1.Layer = "标注";
                 modelSpace.AppendEntity(D1);
                 tr.AddNewlyCreatedDBObject(D1, true);
                 Polyline line = new Polyline();
@@ -362,6 +432,56 @@ namespace CADInterface.Plotters
             return D1;
 
         }
+
+
+
+
+
+        /// <summary>
+        /// 水平标注
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="P1">起点</param>
+        /// <param name="P2">终点</param>
+        /// <param name="Pref">标注位置</param>
+        /// <param name="dimID">标注样式id</param>
+        /// <param name="ang">转角，弧度</param>
+        /// <returns></returns>
+        public static RotatedDimension CreatDimRotated(Database db, ref Extents2d ext, Point3d P1, Point3d P2, Point3d Pref
+            , double ang = 0, double scale = 20, string replaceText = "")
+        {
+
+            RotatedDimension D1;
+
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            {
+                BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                BlockTableRecord modelSpace = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace],
+                    OpenMode.ForWrite) as BlockTableRecord;
+                DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
+
+                string st = GetScaleName(scale);
+
+                var dimID = dst[st];
+
+                D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, replaceText, dimID);
+                D1.Layer = "标注";                
+                Polyline line = new Polyline();
+                line.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
+                line.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
+                line.AddVertexAt(1, P1.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
+                line.AddVertexAt(2, P2.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
+                if (line.Bounds != null)
+                    ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
+            }
+            return D1;
+
+        }
+
+
+
+
+
         public static void AddListDimRotated(Database db, ref Extents2d ext,
             Point3d Pref, List<Point3d> npts, int scale, double ang = 0, int pN = 1, string unit = "mm")
         {

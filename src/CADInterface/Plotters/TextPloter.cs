@@ -8,6 +8,11 @@ using System.Threading.Tasks;
 
 namespace CADInterface.Plotters
 {
+    public static class TextHelper
+    {
+        public static double Factor { get { return 1.4; } }
+    }
+
     public class TextPloter
     {
         public enum eTxtLocation

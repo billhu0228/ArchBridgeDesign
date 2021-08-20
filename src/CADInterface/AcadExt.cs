@@ -450,6 +450,17 @@ namespace CADInterface
                 {
                     Ed = res[0];
                 }
+                else if (res.Count==2)
+                {
+                    if (res[0].DistanceTo(St)<res[1].DistanceTo(St))
+                    {
+                        Ed = res[0];
+                    }
+                    else
+                    {
+                        Ed = res[1];
+                    }
+                }
             }
             Line ret= new Line(St, Ed);
             ret.Layer = theLine.Layer;

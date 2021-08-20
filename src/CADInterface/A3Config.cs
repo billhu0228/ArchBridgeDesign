@@ -134,6 +134,38 @@ namespace CADInterface
                 }
                 #endregion
 
+                #region 引线
+                foreach (double item in new double[] {1})
+                {
+                    string StName = string.Format( "ML");
+                    DBDictionary mlstyles = (DBDictionary)tr.GetObject(acCurDb.MLeaderStyleDictionaryId, OpenMode.ForRead);
+                    MLeaderStyle mldst;
+                    if (!mlstyles.Contains(StName))
+                    {
+                        mldst = new MLeaderStyle();
+                        mldst.TextHeight = 0.625;
+                        mldst.TextStyleId = st["仿宋"];
+                        mldst.ArrowSize = 0;
+                        mldst.TextAlignAlwaysLeft = true;
+                        mldst.ExtendLeaderToText = false;
+                        mldst.LandingGap = 0.2;
+                        mldst.EnableDogleg = false;
+                        mldst.TextAlignmentType = TextAlignmentType.LeftAlignment;
+                        mldst.TextAttachmentDirection = TextAttachmentDirection.AttachmentHorizontal;
+                        mldst.TextAngleType = TextAngleType.HorizontalAngle;
+                        mldst.Scale = item;
+                        //mldst.DoglegLength = 0.25;
+                        mldst.SetTextAttachmentType(TextAttachmentType.AttachmentBottomOfTopLine, LeaderDirectionType.LeftLeader);
+                        mldst.SetTextAttachmentType(TextAttachmentType.AttachmentBottomOfTopLine, LeaderDirectionType.RightLeader);
+
+                        ObjectId mLeaderStyle = mldst.PostMLeaderStyleToDb(acCurDb, StName);
+                        tr.AddNewlyCreatedDBObject(mldst, true);
+                    }
+                }
+                
+
+                #endregion
+
                 DimStyleTable dst = (DimStyleTable)tr.GetObject(acCurDb.DimStyleTableId, OpenMode.ForWrite);//设置不同比例的对象属性
                 foreach (double thescale in new double[] { 0.25, 1, 2,50, 75, 100, 125, 150, 200, 300 ,500,1000})
                 {
@@ -189,7 +221,7 @@ namespace CADInterface
                         dstr.Dimdsep = '.';
                         if (thescale < 1)
                         {
-                            dstr.Dimlfac = 1000;
+                            dstr.Dimlfac = 100;
                         }
                         else
                         {

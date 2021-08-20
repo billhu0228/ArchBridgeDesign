@@ -129,6 +129,10 @@ namespace CADInterface
         [CommandMethod("ColumnDraw")]
         public void ColumnDraw()
         {
+            if (theArchAxis==null)
+            {
+                return;
+            }
             Database db = HostApplicationServices.WorkingDatabase;
 
             ObjectId LayoutID = db.CreatLayout("S4-04 立柱一般构造", "block\\TK.dwg");
@@ -144,9 +148,10 @@ namespace CADInterface
             Model.Column theCol = archModel.ColumnList.Find(x => x.ID == 91);
             theCol.CalculateParameters();
             theCol.DarwColumnSide(db, new Point2d(-vX, -vY), ref theExt,0.25);
+            theCol.DrawColumnElev(db, new Point2d(-vX-25, -vY), ref theExt, 0.25);
             theCol = archModel.ColumnList.Find(x => x.ID == 92);
             theCol.CalculateParameters();
-            theCol.DarwColumnSide(db, new Point2d(-vX, -vY).Convert2D(12), ref theExt, 0.25);
+            theCol.DarwColumnSide(db, new Point2d(-vX, -vY).Convert2D(15), ref theExt, 0.25);
 
         }
 
