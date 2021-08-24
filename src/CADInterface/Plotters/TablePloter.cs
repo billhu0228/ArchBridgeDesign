@@ -1,5 +1,6 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -283,6 +284,79 @@ namespace CADInterface.Plotters
                 //return tb.Height;
             }
         }
+
+        public static DBObjectCollection CreatTable(Database db,Point2d midtop,ref System.Data.DataTable theTable)
+        {
+            DBObjectCollection ret = new DBObjectCollection();
+            Table tb = new Table();
+
+            double w = 12 * theTable.Columns.Count;
+            double h = 6.5 * (theTable.Rows.Count+1);
+
+            tb.SetSize(theTable.Rows.Count+1,theTable.Columns.Count);       // 设置几行几列
+            tb.Position = midtop.Convert3D(-w*0.5);
+
+
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            {
+                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
+                for (int i = 0; i < theTable.Columns.Count; ++i)
+                {
+                    if (theTable.Columns[i].Caption != "")
+                    {
+                        tb.Cells[0, i].TextString = theTable.Columns[i].Caption;
+                    }
+                    else
+                    {
+                        tb.Cells[0, i].TextString = theTable.Columns[i].ColumnName;
+                    }
+                    //获取i行j列数据
+                    tb.Cells[0, i].TextHeight = 2.5;
+                    tb.Cells[0, i].Alignment = CellAlignment.MiddleCenter;
+                    tb.Cells[0, i].Borders.Horizontal.Margin = 1;
+                    tb.Cells[0, i].TextStyleId = st["仿宋"];
+                }
+
+                for (int i = 0; i < theTable.Rows.Count; i++)
+                {
+                    for (int j = 0; j < theTable.Columns.Count; j++)
+                    {
+
+                        tb.Cells[i + 1, j].TextString = theTable.Rows[i][j].ToString();
+                        tb.Cells[i + 1, j].TextHeight = 2.5;
+                        tb.Cells[i + 1, j].Alignment = CellAlignment.MiddleCenter;
+                        tb.Cells[i + 1, j].Borders.Horizontal.Margin = 1;
+                        tb.Cells[i + 1, j].TextStyleId = st["仿宋"];
+                    }
+
+                }
+
+
+                tb.SetRowHeight(6.5);
+                tb.SetColumnWidth(12);
+                tb.GenerateLayout();
+                tb.Layer = "标注";
+                ret.Add(tb);
+
+                DBText title = new DBText()
+                {
+                    TextString = theTable.TableName,
+                    Height = 3.0,
+                    TextStyleId = st["仿宋"],
+                    Position = midtop.Convert3D(0, 3),
+                    HorizontalMode = TextHorizontalMode.TextMid,
+                    VerticalMode = TextVerticalMode.TextBase,
+                    AlignmentPoint = midtop.Convert3D(0, 3),
+                    WidthFactor = ((TextStyleTableRecord)tr.GetObject(st["仿宋"], OpenMode.ForRead)).XScale,
+                };
+                ret.Add(title);
+                ret.Add(PolylinePloter.CreatPloy4(midtop, w * 0.5, w * 0.5, h, "粗线"));
+
+            }
+
+            return ret;
+        }
+
         /// <summary>
         /// 材料数量明细表
         /// </summary>

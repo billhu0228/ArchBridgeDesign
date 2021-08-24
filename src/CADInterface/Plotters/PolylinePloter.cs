@@ -228,6 +228,29 @@ namespace CADInterface.Plotters
             }
         }
 
+
+        public static Polyline CreatPloy4(Point2d upcenter, double wl, double wr, double h, string layer = "细线")
+        {
+            Point2d ptop, pbot;
+            Point2d p11, p12, p13, p14;
+            ptop = upcenter;
+            pbot = upcenter.Convert2D(0, -h);
+            p11 = ptop.Convert2D(-wl);
+            p12 = pbot.Convert2D(-wl);
+            p13 = ptop.Convert2D(wr);
+            p14 = pbot.Convert2D(wr);
+            Polyline PL1 = new Polyline() { Closed = true, Layer = layer };
+            PL1.AddVertexAt(0, p12, 0, 0, 0);
+            PL1.AddVertexAt(1, pbot, 0, 0, 0);
+            PL1.AddVertexAt(2, p14, 0, 0, 0);
+
+            PL1.AddVertexAt(3, p13, 0, 0, 0);
+            PL1.AddVertexAt(4, ptop, 0, 0, 0);
+            PL1.AddVertexAt(5, p11, 0, 0, 0);
+            return PL1;
+
+        }
+
         public static void AddPoly8(Database db, ref Extents2d ext, out Polyline PL1, Point2d AnchorPoint, double Height, double Width,
     double F1x = 50, double F1y = 50, double F2x = 50, double F2y = 50, string layer = "细线")
         {

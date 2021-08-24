@@ -525,48 +525,55 @@ namespace CADInterface.Plotters
         }
 
 
-        public static void PlotTextWithLine(Database db, ref Extents2d ext, Point3d Point, string text, double _scale, double height = 2, string tstyle = "En", double Rotation = 0)
+        public static void PlotTextWithLine(Database db, ref Extents2d ext, Point3d cc, 
+            string text, double scale, double height, string tstyle = "En", double Rotation = 0)
         {
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {
                 TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
                 BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                 BlockTableRecord recorder;
+                TextStyleTableRecord str = tr.GetObject(st[tstyle], OpenMode.ForRead) as TextStyleTableRecord;
 
                 recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
 
-                MText Mtext = new MText();
-                Mtext.TextHeight = height * _scale;
-                Mtext.Contents = text;
-                Mtext.TextStyleId = st[tstyle];
-
-                // line
-                double width = (Mtext.ActualWidth * 4 / Mtext.ActualHeight) * _scale;
-                width = Mtext.ActualWidth;
-                Mtext.Location = Point.Convert3D(-width / 2, Mtext.TextHeight +  _scale);
-
-                DBText Title = new DBText()
+                DBText title = new DBText()
                 {
-                    Height = height * _scale,
-                    TextStyleId = st[tstyle],
+                    Layer = "标注",
+                    Height = height * scale,
                     TextString = text,
-                    WidthFactor = 0.8,
-                    Position = Point.Convert3D(-width / 2, _scale),
+                    TextStyleId = st[tstyle],
                     HorizontalMode = TextHorizontalMode.TextCenter,
                     VerticalMode = TextVerticalMode.TextBase,
-                    AlignmentPoint = Point.Convert3D(0,  _scale),
+                    Position = cc.Convert3D(0, 1 * scale),
+                    AlignmentPoint = cc.Convert3D(0, 1 * scale),
+                    WidthFactor = str.XScale,
                 };
 
-                Polyline line1 = new Polyline() { Closed = false, Layer = "细线" };//定义不封闭的Polyline 平面虚线
-                line1.AddVertexAt(0, Point.Convert2D(-width/2, 0), 0,0,0);
-                line1.AddVertexAt(1, Point.Convert2D(width/2, 0), 0, 0, 0);
-                line1.LineWeight = LineWeight.LineWeight020;
+                recorder.AppendEntity(title);
+                tr.AddNewlyCreatedDBObject(title, true);
+
+                // line
+                double width = title.GetWidth();
+               
+                Polyline line1 = new Polyline() { Closed = false, Layer = "标注" };
+                line1.AddVertexAt(0, cc.Convert2D(-width/2, 0.5*scale), 0,0,0);
+                line1.AddVertexAt(1, cc.Convert2D(width/2, 0.5*scale), 0, 0, 0);
+                line1.LineWeight = LineWeight.LineWeight030;
                 recorder.AppendEntity(line1);
                 tr.AddNewlyCreatedDBObject(line1, true);
 
-                recorder.AppendEntity(Title);
-                tr.AddNewlyCreatedDBObject(Title, true);
-                ext = ext.Add(new Extents2d(Title.Bounds.Value.MinPoint.Convert2D(), Title.Bounds.Value.MaxPoint.Convert2D()));
+                Polyline line2 = new Polyline() { Closed = false, Layer = "标注" };
+                line2.AddVertexAt(0, cc.Convert2D(-width / 2, 0), 0, 0, 0);
+                line2.AddVertexAt(1, cc.Convert2D(width / 2, 0), 0, 0, 0);
+                line2.LineWeight = LineWeight.LineWeight009;
+                recorder.AppendEntity(line2);
+                tr.AddNewlyCreatedDBObject(line2, true);
+
+                var h = title.GetHeight();
+                Point2d min = cc.Convert2D(width * -0.5);
+                Point2d max = cc.Convert2D(width * 0.5, h + 2 * scale);
+                ext = ext.Add(new Extents2d(min,max));
                 tr.Commit();
 
             }

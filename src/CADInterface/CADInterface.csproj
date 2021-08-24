@@ -31,14 +31,14 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="accoremgd">
-      <HintPath>..\AcadLibs\23.1\accoremgd.dll</HintPath>
+    <Reference Include="accoremgd, Version=22.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\accoremgd.dll</HintPath>
     </Reference>
-    <Reference Include="AcCui">
-      <HintPath>..\AcadLibs\23.1\AcCui.dll</HintPath>
+    <Reference Include="AcCui, Version=22.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\AcCui.dll</HintPath>
     </Reference>
-    <Reference Include="acdbmgd">
-      <HintPath>..\AcadLibs\23.1\acdbmgd.dll</HintPath>
+    <Reference Include="acdbmgd, Version=22.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\acdbmgd.dll</HintPath>
     </Reference>
     <Reference Include="acdbmgdbrep">
       <HintPath>..\AcadLibs\23.1\acdbmgdbrep.dll</HintPath>
@@ -49,8 +49,8 @@
     <Reference Include="AcDxPublishUi">
       <HintPath>..\AcadLibs\23.1\AcDxPublishUi.dll</HintPath>
     </Reference>
-    <Reference Include="acmgd">
-      <HintPath>..\AcadLibs\23.1\acmgd.dll</HintPath>
+    <Reference Include="acmgd, Version=22.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\acmgd.dll</HintPath>
     </Reference>
     <Reference Include="AcMNUParser">
       <HintPath>..\AcadLibs\23.1\AcMNUParser.dll</HintPath>
@@ -70,8 +70,8 @@
     <Reference Include="AdUiPalettes">
       <HintPath>..\AcadLibs\23.1\AdUiPalettes.dll</HintPath>
     </Reference>
-    <Reference Include="AdWindows">
-      <HintPath>..\AcadLibs\23.1\AdWindows.dll</HintPath>
+    <Reference Include="AdWindows, Version=2016.11.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\AdWindows.dll</HintPath>
     </Reference>
     <Reference Include="Autodesk.AutoCAD.Interop">
       <HintPath>..\AcadLibs\23.1\Autodesk.AutoCAD.Interop.dll</HintPath>
@@ -80,6 +80,9 @@
     <Reference Include="Autodesk.AutoCAD.Interop.Common">
       <HintPath>..\AcadLibs\23.1\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="HPDI.DrawingStandard, Version=1.0.0.3, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\HPDI.DrawingStandard.1.0.0.3\lib\net45\HPDI.DrawingStandard.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\MathNet.Numerics.5.0.0-alpha02\lib\net461\MathNet.Numerics.dll</HintPath>

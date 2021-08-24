@@ -188,8 +188,19 @@ namespace CADInterface.Plotters
 
 
 
-
-
+        
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="db"></param>
+        /// <param name="St"></param>
+        /// <param name="Ed"></param>
+        /// <param name="Diameter"></param>
+        /// <param name="CutCurveA"></param>
+        /// <param name="CutCurveB"></param>
+        /// <param name="Thickness"></param>
+        /// <param name="Ls"></param>
+        /// <returns>返回了3根线，顺序为边线，中线，边线</returns>
         public static List<Line> PlotTube(Database db, Point2d St, Point2d Ed, double Diameter,
            Curve CutCurveA = null, Curve CutCurveB = null, double Thickness = 0, string Ls = "粗线")
         {

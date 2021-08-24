@@ -210,7 +210,7 @@ namespace CADInterface.Plotters
     public class DimPloter
     {
 
-        public static MLeader CreatMLeader(Database db,ref Extents2d ext,Point2d anchor,Point2d textAnchor,string cont)
+        public static MLeader CreatMLeader(Database db,Point2d anchor,Point2d textAnchor,string cont)
         {
             double scale = 0.25;
             MLeader ret = new MLeader();
@@ -233,11 +233,12 @@ namespace CADInterface.Plotters
                 ret.MText.LineSpaceDistance = 0.875;
                 ret.TextHeight = 2.5 * scale;
                 int idx = ret.AddLeaderLine(anchor.Convert3D());
-            }         
+            }
+            ret.Layer = "标注";
             return ret;
         }
 
-        public static MLeader CreatMLeader(Database db, ref Extents2d ext, Point2d anchor, string cont,bool isLeft)
+        public static MLeader CreatMLeader(Database db, Point2d anchor, string cont,bool isLeft)
         {
             double scale = 0.25;
             MLeader ret = new MLeader();
@@ -273,6 +274,7 @@ namespace CADInterface.Plotters
                 ret.MText.LineSpacingFactor = 0.875;
                 int idx = ret.AddLeaderLine(anchor.Convert3D());
             }
+            ret.Layer = "标注";
             return ret;
         }
 
@@ -368,7 +370,7 @@ namespace CADInterface.Plotters
                 BlockTableRecord modelSpace = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace],
                     OpenMode.ForWrite) as BlockTableRecord;
                 DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
-                var dimID = dst[string.Format("1-{0:G}", scale)];
+                var dimID = dst[string.Format("M-CM-1-{0:G}", scale)];
                 AD1 = new AlignedDimension(P1, P2, Pref, "", dimID);
                 AD1.Layer = layerName;
                 modelSpace.AppendEntity(AD1);
@@ -447,8 +449,8 @@ namespace CADInterface.Plotters
         /// <param name="dimID">标注样式id</param>
         /// <param name="ang">转角，弧度</param>
         /// <returns></returns>
-        public static RotatedDimension CreatDimRotated(Database db, ref Extents2d ext, Point3d P1, Point3d P2, Point3d Pref
-            , double ang = 0, double scale = 20, string replaceText = "")
+        public static RotatedDimension CreatDimRotated(Database db,  Point3d P1, Point3d P2, Point3d Pref,
+             string dimstyleName, double ang = 0, string replaceText = "")
         {
 
             RotatedDimension D1;
@@ -460,19 +462,20 @@ namespace CADInterface.Plotters
                     OpenMode.ForWrite) as BlockTableRecord;
                 DimStyleTable dst = (DimStyleTable)tr.GetObject(db.DimStyleTableId, OpenMode.ForRead);
 
-                string st = GetScaleName(scale);
-
-                var dimID = dst[st];
-
+                var dimID = dst[dimstyleName];
+                double scale = ((DimStyleTableRecord)tr.GetObject(dimID, OpenMode.ForRead)).Dimscale;
                 D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, replaceText, dimID);
-                D1.Layer = "标注";                
-                Polyline line = new Polyline();
-                line.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                line.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                line.AddVertexAt(1, P1.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
-                line.AddVertexAt(2, P2.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
-                if (line.Bounds != null)
-                    ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
+                D1.Layer = "标注";
+
+
+
+                //Polyline line = new Polyline();
+                //line.AddVertexAt(0, Pref.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
+                //line.AddVertexAt(0, Pref.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
+                //line.AddVertexAt(1, P1.Convert2D(8 * scale, 8 * scale), 0, 0, 0);
+                //line.AddVertexAt(2, P2.Convert2D(-8 * scale, -8 * scale), 0, 0, 0);
+                //if (line.Bounds != null)
+                //    ext = ext.Add(new Extents2d(line.Bounds.Value.MinPoint.Convert2D(), line.Bounds.Value.MaxPoint.Convert2D()));
             }
             return D1;
 
