@@ -111,7 +111,7 @@ namespace CADInterface
                 {
                     if (theCol.X<0)
                     {
-                        theCol.DarwColumnSide(db, Point2d.Origin, ref theExt);
+                        theCol.DarwColumnSide(db, Point2d.Origin, out theExt);
                     }
                 }
             }
@@ -129,25 +129,93 @@ namespace CADInterface
         [CommandMethod("ColumnDraw")]
         public void ColumnDraw()
         {
+            if (theArchAxis==null)
+            {
+                return;
+            }
             Database db = HostApplicationServices.WorkingDatabase;
 
             ObjectId LayoutID = db.CreatLayout("S4-04 立柱一般构造", "block\\TK.dwg");
-            Extents2d theExt = new Extents2d();
-
-
             double vX = archModel.MainDatum.Find(x => x.DatumType == eDatumType.ColumnDatum).Center.X;
             double vY = archModel.Get3PointReal(vX, 90.0)[0].Y;
             double vH = archModel.Get3PointReal(vX, 90.0)[0].Y+51.8-3+archModel.Axis.f;
+
+
+            #region 立面
             archModel.AddColumn(91, vX, vH, 1.6, 2.8, 3, 3, 1, 1.0, 2.0+0.6+0.5);
             archModel.AddColumn(92, vX, vH, 2.0, 2.8, 3, 3, 1, 1.0, 2.0+0.6+0.5);
-
+            Extents2d theExt = new Extents2d();
+            Extents2d outExt;
             Model.Column theCol = archModel.ColumnList.Find(x => x.ID == 91);
             theCol.CalculateParameters();
-            theCol.DarwColumnSide(db, new Point2d(-vX, -vY), ref theExt,0.25);
-            theCol = archModel.ColumnList.Find(x => x.ID == 92);
-            theCol.CalculateParameters();
-            theCol.DarwColumnSide(db, new Point2d(-vX, -vY).Convert2D(12), ref theExt, 0.25);
+            theCol.DarwColumnSide(db, new Point2d(-vX, -vY), out outExt, 0.25);
+            TextPloter.PlotTextWithLine(db, ref outExt, new Point3d(0, 52, 0), "A-A", 0.25, 3, "仿宋");
+            theExt = theExt.Add(outExt);
+            theCol.DrawColumnElev(db, new Point2d(-vX-20, -vY), out outExt, 0.25);
+            TextPloter.PlotTextWithLine(db, ref outExt, new Point3d(- 20, 52,0), "立面", 0.25, 3, "仿宋");
+            theExt = theExt.Add(outExt);
+            Model.Column theCol92;
+            theCol92 = archModel.ColumnList.Find(x => x.ID == 92);
+            theCol92.CalculateParameters();
+            theCol92.DarwColumnSide(db, new Point2d(-vX, -vY).Convert2D(15), out outExt, 0.25);
+            TextPloter.PlotTextWithLine(db, ref outExt, new Point3d(15, 52, 0), "B-B", 0.25, 3, "仿宋");
+            theExt = theExt.Add(outExt);
+            #endregion
 
+            #region 断面图
+            var ScenterS = new Point2d(50, 30);
+            Extents2d theExtS = new Extents2d(ScenterS, ScenterS);
+            theCol.DrawSingleSection(db, ScenterS.Convert2D(-3), out outExt, 0.1);
+            TextPloter.PlotTextWithLine(db, ref outExt, ScenterS.Convert3D(-3,2), "C-C", 0.1, 3, "仿宋");
+            theExtS = theExtS.Add(outExt);
+            theCol92.DrawSingleSection(db, ScenterS.Convert2D(3), out outExt, 0.1);
+            TextPloter.PlotTextWithLine(db, ref outExt, ScenterS.Convert3D(3, 2), "D-D", 0.1, 3, "仿宋");
+            theExtS = theExtS.Add(outExt);
+            #endregion
+
+            #region 布图
+            double w1 = theExt.Width() / 0.25*1.1;
+            double w2 = 380 - w1;
+            Point2d minPt = new Point2d(30, 20);
+            Point2d maxPt = minPt.Convert2D(w1, 267);
+
+            Point2d minPt2 = maxPt.Convert2D(0, -40+14.2 - theExtS.Height() / 0.1);
+            Point2d maxPt2 = minPt2.Convert2D(w2, theExtS.Height() / 0.1);
+
+
+            db.CreatViewport(LayoutID, new Extents2d(minPt, maxPt), theExt, 0.25);
+            db.CreatViewport(LayoutID, new Extents2d(minPt2, maxPt2), theExtS, 0.1);
+            #endregion
+
+            #region 参数表
+
+            DBObjectCollection tables = TablePloter.CreatTable(db, minPt2.Convert2D(w2*0.5,-10),ref archModel.ColumnTable);
+
+            foreach (var item in tables)
+            {
+                Entity ent = (Entity)item;
+
+                db.AddEntityToPaperSpace(LayoutID,ent);
+
+            }
+
+
+            //TablePloter.DraTable(db, ref theExtS, new Point3d(), new List<string>() { "A", "B" }, 
+            //    2, ref kw, ref kw , "仿宋", 1, new Dictionary<int, List<string>>() { { 1, new List<string>() { "M", "N" } } });
+
+
+
+
+
+            #endregion
+
+
+
+
+
+
+            db.AddEntityToModeSpace(theExt.ConvertRec());
+            db.AddEntityToModeSpace(theExtS.ConvertRec());
         }
 
         [CommandMethod("LockDoc", CommandFlags.Session)]

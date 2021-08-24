@@ -1,12 +1,9 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
+﻿using Autodesk.AutoCAD.Colors;
+using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace CADInterface
 {
     /// <summary>
@@ -14,6 +11,165 @@ namespace CADInterface
     /// </summary>
     public static class AcadExt
     {
+
+        public static void AddDimStyle(this Database db,Unit plotunit, Unit paperunit,double scale, string tstyle)
+        {
+            Dictionary<Unit, double> UnitDic = new Dictionary<Unit, double>()
+            {
+                { Unit.Meter,1000 },
+                { Unit.Centimeter,10 },
+                { Unit.Millimeter,1 },
+            };      
+            Dictionary<Unit, string> UnitDicStr = new Dictionary<Unit, string>()
+            {
+                { Unit.Meter,"M" },
+                { Unit.Centimeter,"CM" },
+                { Unit.Millimeter,"MM" },
+            };
+            
+            double factor = UnitDic[plotunit]/UnitDic[paperunit];
+
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            {
+                DimStyleTable dst = tr.GetObject(db.DimStyleTableId, OpenMode.ForWrite) as DimStyleTable;
+                TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
+
+                string DimStyleName=string.Format("{0}-{1}-",UnitDicStr[plotunit],UnitDicStr[paperunit]);
+                if (scale < 1)
+                {
+                    DimStyleName += Math.Round(1 / scale, 0).ToString() + "-1";
+                }
+                else
+                {
+                    DimStyleName += "1-" + scale.ToString();
+                }
+                DimStyleTableRecord dstr = new DimStyleTableRecord();
+                if (!dst.Has(DimStyleName))
+                {
+                    dstr.Name = DimStyleName;
+                    dstr.Dimscale = scale;
+                    dstr.Dimtxsty = st[tstyle];
+                    dstr.Dimclrd = Color.FromColorIndex(ColorMethod.ByAci, 6);
+                    dstr.Dimclre = Color.FromColorIndex(ColorMethod.ByAci, 6);
+                    dstr.Dimdli = 5;
+                    dstr.Dimsah = true;
+                    dstr.Dimdle = 0;
+                    dstr.Dimexe = 1.0;
+                    dstr.Dimexo = 1.0;
+                    dstr.DimfxlenOn = true;
+                    dstr.Dimfxlen = 4;
+                    dstr.Dimtxt = 2.5;
+                    dstr.Dimasz = 1.5;
+                    dstr.Dimtix = true;
+                    dstr.Dimtmove = 1;
+                    dstr.Dimtad = 1;
+                    dstr.Dimgap = 0.8;
+                    dstr.Dimdec = 0;
+                    dstr.Dimtih = false;
+                    dstr.Dimtoh = false;
+                    dstr.Dimdsep = '.';
+                    dstr.Dimlfac = factor;          
+                    dst.Add(dstr);
+                    tr.AddNewlyCreatedDBObject(dstr, true);
+                }
+                else
+                {
+                    dstr = tr.GetObject(dst[DimStyleName], OpenMode.ForWrite) as DimStyleTableRecord;
+                    dstr.Dimscale = scale;
+                    dstr.Dimtxsty = st[tstyle];
+                    dstr.Dimclrd = Color.FromColorIndex(ColorMethod.ByAci, 6);
+                    dstr.Dimclre = Color.FromColorIndex(ColorMethod.ByAci, 6);
+                    dstr.Dimdli = 5;
+                    dstr.Dimsah = true;                 
+                    dstr.Dimdle = 0;
+                    dstr.Dimexe = 1.0;
+                    dstr.Dimexo = 1.0;
+                    dstr.DimfxlenOn = true;
+                    dstr.Dimfxlen = 4;
+                    dstr.Dimtxt = 2.5;
+                    dstr.Dimasz = 1.5;
+                    dstr.Dimtix = true;
+                    dstr.Dimtmove = 1;
+                    dstr.Dimtad = 1;
+                    dstr.Dimgap = 0.8;
+                    dstr.Dimdec = 0;
+                    dstr.Dimtih = false;
+                    dstr.Dimtoh = false;
+                    dstr.Dimdsep = '.';
+                    dstr.Dimlfac = factor;
+                }
+
+                tr.Commit();
+            }
+        }
+
+
+        /// <summary>
+        /// 获得Line中点Point3D.
+        /// </summary>
+        /// <param name="aline">目标线.</param>       
+
+        public static Point3d GetMidPoint3d(this Line aline, double xx = 0, double yy = 0)
+        {
+            double x = 0.5 * (aline.StartPoint.X + aline.EndPoint.X);
+            double y = 0.5 * (aline.StartPoint.Y + aline.EndPoint.Y);
+            return new Point3d(x + xx, y + yy, 0);
+        }
+
+        public static Point2d GetXPoint2d(this Line aline, double part = 0.5, double xx = 0, double yy = 0)
+        {
+            double x = aline.StartPoint.X + part * (aline.EndPoint.X - aline.StartPoint.X);
+            double y = aline.StartPoint.Y + part * (aline.EndPoint.Y - aline.StartPoint.Y);
+            return new Point2d(x + xx, y + yy);
+        }
+        /// <summary>
+        /// 获得中点
+        /// </summary>
+        /// <param name="aline"></param>
+        /// <param name="xx"></param>
+        /// <param name="yy"></param>
+        /// <returns></returns>
+        public static Point2d GetMidPoint2d(this Line aline, double xx = 0, double yy = 0)
+        {
+            double x = 0.5 * (aline.StartPoint.X + aline.EndPoint.X);
+            double y = 0.5 * (aline.StartPoint.Y + aline.EndPoint.Y);
+            return new Point2d(x + xx, y + yy);
+        }
+
+        /// <summary>
+        /// 设置视口的尺寸，位置和比例
+        /// </summary>
+        public static void SetSizeAndLoc(this Viewport vp, double w, double h, Point2d cc, double scale)
+        {
+            vp.Width = w;
+            vp.Height = h;
+            vp.CenterPoint = cc.Convert3D();
+            vp.CustomScale = 1.0 / scale;
+            vp.Locked = true;
+            vp.ViewDirection = new Vector3d(0, 0, 1);
+        }
+        public static void CreatViewport(this Database db ,ObjectId LayoutId,
+            Extents2d PaperExt,Extents2d SpaceExt,double scale)
+        {
+            double w = PaperExt.MaxPoint.X - PaperExt.MinPoint.X;
+            double h = PaperExt.MaxPoint.Y - PaperExt.MinPoint.Y;
+            Point2d vpCenter = PaperExt.Center();
+            Viewport vpA = new Viewport();
+            vpA.Layer = "Defpoints";
+            vpA.SetSizeAndLoc(w, h, vpCenter, scale);
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            {
+                Layout lay = (Layout)tr.GetObject(LayoutId, OpenMode.ForWrite);
+                UcsTable ut = tr.GetObject(db.UcsTableId, OpenMode.ForWrite) as UcsTable;
+                var btr = (BlockTableRecord)tr.GetObject(lay.BlockTableRecordId, OpenMode.ForWrite);
+                btr.AppendEntity(vpA);
+                tr.AddNewlyCreatedDBObject(vpA, true);
+                vpA.ViewCenter = SpaceExt.Center();
+                vpA.On = true;                
+                tr.Commit();
+            }
+        }
+
         public static bool XrefAttachAndInsert(this Database db, string path, ObjectId paperSpaceId, Point3d pos, string name = null)
         {
             var ret = false;
@@ -381,6 +537,40 @@ namespace CADInterface
             return new Extents2d(minX, minY, maxX, maxY);
         }
 
+        public static Polyline ConvertRec(this Extents2d ori)
+        {
+            Polyline ret = new Polyline() { Closed=true};
+
+            double w = ori.MaxPoint.X - ori.MinPoint.X;
+            double b = ori.MaxPoint.Y - ori.MinPoint.Y;
+
+            ret.AddVertexAt(0, ori.MinPoint, 0, 0, 0);
+            ret.AddVertexAt(1, ori.MinPoint.Convert2D(0,b), 0, 0, 0);
+            ret.AddVertexAt(2, ori.MaxPoint, 0, 0, 0);
+            ret.AddVertexAt(3, ori.MaxPoint.Convert2D(0,-b), 0, 0, 0);
+
+            return ret;
+        }
+
+        public static double Width(this Extents2d ext)
+        {
+            return ext.MaxPoint.X - ext.MinPoint.X;
+        }
+        public static double Height(this Extents2d ext)
+        {
+            return ext.MaxPoint.Y - ext.MinPoint.Y;
+        }
+
+        public static Point2d Center(this Extents2d ext)
+        {
+            return ext.MinPoint + (ext.MaxPoint - ext.MinPoint) * 0.5;
+        }
+
+        public static Point2d UpCenter(this Extents2d ext)
+        {
+            return ext.Center().Convert2D(0, 0.5 * ext.Height());
+        }
+
         public static Extents2d Convert2D(this Extents3d ext)
         {
             return new Extents2d(ext.MinPoint.Convert2D(), ext.MaxPoint.Convert2D());
@@ -413,6 +603,33 @@ namespace CADInterface
             return entId;
         }
 
+
+        /// <summary>
+        /// 将图形对象添加到图形文件中
+        /// </summary>
+        /// <param name="db">图形数据库</param>
+        /// <param name="ent">图形对象</param>
+        /// <returns>图形的ObjectId</returns>
+        public static ObjectId AddEntityToPaperSpace(this Database db,ObjectId layout, Entity ent)
+        {
+            // 声明ObjectId 用于返回
+            ObjectId entId = ObjectId.Null;
+            // 开启事务处理
+            using (Transaction trans = db.TransactionManager.StartTransaction())
+            {
+                Layout lay = (Layout)trans.GetObject(layout, OpenMode.ForWrite);
+                var btr = (BlockTableRecord)trans.GetObject(lay.BlockTableRecordId, OpenMode.ForWrite);
+                // 添加图形到块表记录
+                entId = btr.AppendEntity(ent);
+                // 更新数据信息
+                trans.AddNewlyCreatedDBObject(ent, true);
+                // 提交事务
+                trans.Commit();
+            }
+            return entId;
+        }
+
+
         public static Polyline CreatFromList( List<Point2d> ptList)
         {
             Polyline line = new Polyline() { Closed = false };//定义不封闭的Polyline
@@ -437,6 +654,17 @@ namespace CADInterface
                 {
                     St = res[0];
                 }
+                else if (res.Count == 2)
+                {
+                    if (res[0].DistanceTo(Ed) < res[1].DistanceTo(Ed))
+                    {
+                        St = res[0];
+                    }
+                    else
+                    {
+                        St = res[1];
+                    }
+                }
             }
 
             if (BD2 != null)
@@ -450,11 +678,57 @@ namespace CADInterface
                 {
                     Ed = res[0];
                 }
+                else if (res.Count==2)
+                {
+                    if (res[0].DistanceTo(St)<res[1].DistanceTo(St))
+                    {
+                        Ed = res[0];
+                    }
+                    else
+                    {
+                        Ed = res[1];
+                    }
+                }
             }
             Line ret= new Line(St, Ed);
             ret.Layer = theLine.Layer;
             return ret;
         }
 
+
+        public static double GetWidth(this DBText dbtext)
+        {
+            if (string.IsNullOrEmpty(dbtext.TextString)) return 0;
+            double a = Math.Abs(dbtext.GeometricExtents.MaxPoint.Y - dbtext.GeometricExtents.MinPoint.Y);
+            double b = Math.Abs(dbtext.GeometricExtents.MaxPoint.X - dbtext.GeometricExtents.MinPoint.X);
+            double angle = new Vector2d(Math.Abs(Math.Cos(dbtext.Rotation)), Math.Abs(Math.Sin(dbtext.Rotation))).GetAngleTo(Vector2d.XAxis);
+            double[] t = new double[9]
+            {
+                 Math.Sin(angle),Math.Cos(angle),0,
+                 Math.Cos(angle),Math.Sin(angle),0,
+                 0,0,1
+            };
+            Matrix2d mat = new Matrix2d(t);
+            Vector2d vec = mat.Inverse() * new Vector2d(a, b);
+            return Math.Abs(vec.X);
+        }
+        public static double GetHeight(this DBText dbtext)
+        {
+            if (string.IsNullOrEmpty(dbtext.TextString)) return 0;
+            double a = Math.Abs(dbtext.GeometricExtents.MaxPoint.Y - dbtext.GeometricExtents.MinPoint.Y);
+            double b = Math.Abs(dbtext.GeometricExtents.MaxPoint.X - dbtext.GeometricExtents.MinPoint.X);
+            double angle = new Vector2d(Math.Abs(Math.Cos(dbtext.Rotation)), Math.Abs(Math.Sin(dbtext.Rotation))).GetAngleTo(Vector2d.XAxis);
+            double[] t = new double[9]
+            {
+                 Math.Sin(angle),Math.Cos(angle),0,
+                 Math.Cos(angle),Math.Sin(angle),0,
+                 0,0,1
+            };
+            Matrix2d mat = new Matrix2d(t);
+            Vector2d vec = mat.Inverse() * new Vector2d(a, b);
+            return Math.Abs(vec.Y);
+        }
+
+       
     }
 }

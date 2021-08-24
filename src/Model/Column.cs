@@ -181,9 +181,9 @@ namespace Model
                     b = b + BeamStep;
                     k = k - 1;
                 }
-                m = k + n * InstallSteps + 1;
+                m =  n * InstallSteps ;
             }
-            double tryH = m * BeamStep + (CapHeight - InstallOffset) + b;
+            double tryH = m * BeamStep + (CapHeight - InstallOffset) + a+InstallOffset;
 
             if (Math.Abs(tryH - h)>1e-6)
             {

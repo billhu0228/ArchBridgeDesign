@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using System.Data;
 
 namespace Model
 {
@@ -27,7 +28,8 @@ namespace Model
         List<Node2D> NodeTable;
         public List<Column> ColumnList;
         public List<Member> MemberTable;
-
+        public double ElevationOfTop;
+        public DataTable ColumnTable;
         double HeightOrder;
 
 
@@ -41,7 +43,7 @@ namespace Model
         /// <param name="width0">内侧桁架中距</param>
         /// <param name="width1">外侧桁架中距</param>
         /// <param name="order"></param>
-        public Arch(ArchAxis ax, double height0, double height1,double width0,double width1, double order = 2)
+        public Arch(ArchAxis ax, double height0, double height1,double width0,double width1, double order = 2,double elevationOfTop=0)
         {
             Axis = ax;
             H0 = height0;
@@ -54,6 +56,8 @@ namespace Model
             DiagonalDatum = new List<DatumPlane>();
             PropertyTable = new List<MemberPropertyRecord>();
             HeightOrder = order;
+            ElevationOfTop = elevationOfTop;
+
         }
 
 
@@ -405,9 +409,95 @@ namespace Model
         /// </summary>
         public void GenerateColumn()
         {
+            #region 立柱参数表
+            ColumnTable = new DataTable("拱上立柱参数及标高表");
+
+            DataColumn column;
+
+
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "Name";
+            column.Caption = "立柱编号";
+            column.Unique = false;
+            ColumnTable.Columns.Add(column);
+
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "H(m)";
+            ColumnTable.Columns.Add(column);
+
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "A(m)";
+            ColumnTable.Columns.Add(column);
+
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "B(m)";
+            ColumnTable.Columns.Add(column);
+
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "C(m)";
+            ColumnTable.Columns.Add(column);
+
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "N";
+            ColumnTable.Columns.Add(column);
+
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "M";
+            ColumnTable.Columns.Add(column);
+
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "K";
+            ColumnTable.Columns.Add(column);
+
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "H0";
+            ColumnTable.Columns.Add(column);  
+            
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "H1";
+            ColumnTable.Columns.Add(column); 
+            
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.String");
+            column.ColumnName = "H2";
+            ColumnTable.Columns.Add(column);
+
+            // Make the ID column the primary key column.
+            //DataColumn[] PrimaryKeyColumns = new DataColumn[1];
+            //PrimaryKeyColumns[0] = ColumnTable.Columns["Name"];
+            //ColumnTable.PrimaryKey = PrimaryKeyColumns;
+
+            #endregion
+
+            DataRow row;
             foreach (var item in ColumnList)
             {
                 item.Generate();
+                row = ColumnTable.NewRow();
+                row["name"] = "LZ-"+item.ID.ToString().PadLeft(2,'0');
+                row["H(m)"] = item.H.ToString("F3");
+                row["A(m)"] = item.A.ToString("F3");
+                row["B(m)"] = item.B.ToString("F3");
+                row["C(m)"] = item.C.ToString("F3");
+                row["N"] = item.N.ToString();
+                row["M"] = item.M.ToString();
+                row["K"] = item.K.ToString();
+                row["H0"] = (ElevationOfTop + item.Z0).ToString("F3");
+                row["H1"] = (ElevationOfTop + item.Z1).ToString("F3");
+                row["H2"] = (ElevationOfTop + item.Z2).ToString("F3");
+
+                ColumnTable.Rows.Add(row);
+
             }
 
         }

@@ -30,7 +30,7 @@ namespace Test
             #region 基本建模步骤
             // 1. 设置拱系
             ArchAxis theArchAxis = new ArchAxis(518 / f, m, 518);
-            Arch archModel = new Arch(theArchAxis, 8, 15, 12, 4);
+            Arch archModel = new Arch(theArchAxis, 8, 15, 12, 4,2,1260);
             // 2. 生成桁架
             archModel.GenerateTruss(10, 50, 10, 7.8, 11, 2);
             archModel.GenerateMiddleDatum(); //生成中插平面
