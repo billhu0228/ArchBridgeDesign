@@ -622,7 +622,7 @@ namespace Model
         /// </summary>
         /// <param name="x0"></param>
         /// <returns></returns>
-        List<Point2D> get_3pt_real(double x0)
+        public List<Point2D> get_3pt_real(double x0)
         {
             double y0 = Axis.GetZ(x0);
             var xlist1 = (from a in MainDatum select a.Center.X).ToList();

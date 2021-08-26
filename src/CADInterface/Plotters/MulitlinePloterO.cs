@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace CADInterface.Plotters
 {
-    public class MulitlinePloter
+    public class MulitlinePloterO
     {
 
         /// <summary>

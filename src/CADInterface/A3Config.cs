@@ -115,12 +115,30 @@ namespace CADInterface
             {
                 TextStyleTable st = tr.GetObject(acCurDb.TextStyleTableId, OpenMode.ForWrite) as TextStyleTable;
                 #region 字体设置
+                if (!st.Has("H仿宋"))//字体设置
+                {
+                    TextStyleTableRecord str = new TextStyleTableRecord()
+                    {
+                        Name = "H仿宋",
+                        Font = new Autodesk.AutoCAD.GraphicsInterface.FontDescriptor("仿宋_GB2312", false, false, 134, 48),
+                        XScale = 0.70,
+                    };
+                    st.Add(str);
+                    tr.AddNewlyCreatedDBObject(str, true);
+                }
+                else
+                {
+                    TextStyleTableRecord str = tr.GetObject(st["H仿宋"], OpenMode.ForWrite) as TextStyleTableRecord;
+                    str.Font = new Autodesk.AutoCAD.GraphicsInterface.FontDescriptor("仿宋_GB2312", false, false, 134, 48);
+                    str.XScale = 0.70;
+               
+                }
                 if (!st.Has("仿宋"))//字体设置
                 {
                     TextStyleTableRecord str = new TextStyleTableRecord()
                     {
                         Name = "仿宋",
-                        Font = new Autodesk.AutoCAD.GraphicsInterface.FontDescriptor("仿宋", false, false, 0, 0),
+                        Font = new Autodesk.AutoCAD.GraphicsInterface.FontDescriptor("仿宋_GB2312", false, false, 134, 48),
                         XScale = 0.70,
                     };
                     st.Add(str);
@@ -129,9 +147,9 @@ namespace CADInterface
                 else
                 {
                     TextStyleTableRecord str = tr.GetObject(st["仿宋"], OpenMode.ForWrite) as TextStyleTableRecord;
-                    str.Font = new Autodesk.AutoCAD.GraphicsInterface.FontDescriptor("仿宋", false, false, 0, 0);
+                    str.Font = new Autodesk.AutoCAD.GraphicsInterface.FontDescriptor("仿宋_GB2312", false, false, 134, 48);
                     str.XScale = 0.70;
-               
+
                 }
                 #endregion
 
@@ -171,112 +189,7 @@ namespace CADInterface
                 foreach (double thescale in new double[] {0.1, 0.25, 1,  100})
                 {
                     acCurDb.AddDimStyle(Unit.Meter, Unit.Centimeter, thescale, "仿宋");
-
-                    //string scname;
-                    //if (thescale<1)
-                    //{
-                    //    scname = Math.Round(1 / thescale, 0).ToString() + "-1";
-                    //}
-                    //else
-                    //{
-                    //    scname = "1-" + thescale.ToString();
-                    //}
-                    //DimStyleTableRecord dstr = new DimStyleTableRecord();
-                    //if (!dst.Has(scname))
-                    //{
-                    //    dstr.Name = scname ;
-                    //    dstr.Dimscale = thescale;
-                    //    dstr.Dimtxsty = st["仿宋"];
-                    //    //dstr.Dimclrd = Color.FromColorIndex(ColorMethod.ByAci, 4);
-                    //    //dstr.Dimclre = Color.FromColorIndex(ColorMethod.ByAci, 4);
-                    //    //dstr.Dimclrt = Color.FromColorIndex(ColorMethod.ByAci, 7);
-                    //    dstr.Dimclrd = Color.FromColorIndex(ColorMethod.ByAci, 6);
-                    //    dstr.Dimclre = Color.FromColorIndex(ColorMethod.ByAci, 6);
-                    //    dstr.Dimdli = 5;
-                    //    dstr.Dimsah = true;
-                    //    //if (thescale == 2)
-                    //    //{
-                    //    //    dstr.Dimblk = DimStyleTool.GetArrowObjectId("_NONE");
-                    //    //    dstr.Dimblk1 = DimStyleTool.GetArrowObjectId("_NONE");
-                    //    //    dstr.Dimblk2 = DimStyleTool.GetArrowObjectId("_NONE");
-                    //    //}
-                    //    //else
-                    //    //{
-                    //    //    dstr.Dimblk = DimStyleTool.GetArrowObjectId("_OBLIQUE");
-                    //    //    dstr.Dimblk1 = DimStyleTool.GetArrowObjectId("_OBLIQUE");
-                    //    //    dstr.Dimblk2 = DimStyleTool.GetArrowObjectId("_OBLIQUE");
-                    //    //}
-
-                    //    dstr.Dimdle = 0;
-                    //    dstr.Dimexe = 1.0;
-                    //    dstr.Dimexo = 1.0;
-                    //    dstr.DimfxlenOn = true;
-                    //    dstr.Dimfxlen = 4;
-                    //    dstr.Dimtxt = 2.5;
-                    //    dstr.Dimasz = 1.5;
-                    //    dstr.Dimtix = true;
-                    //    dstr.Dimtmove = 1;
-                    //    dstr.Dimtad = 1;
-                    //    dstr.Dimgap = 0.8;
-                    //    dstr.Dimdec = 0;
-                    //    dstr.Dimtih = false;
-                    //    dstr.Dimtoh = false;
-                    //    dstr.Dimdsep = '.';
-                    //    if (thescale < 1)
-                    //    {
-                    //        dstr.Dimlfac = 100;
-                    //    }
-                    //    else
-                    //    {
-                    //        dstr.Dimlfac = 1;
-                    //    }
-                    //    dst.Add(dstr);
-                    //    tr.AddNewlyCreatedDBObject(dstr, true);
-                    //}
-                    //else
-                    //{
-                    //    dstr = tr.GetObject(dst[scname], OpenMode.ForWrite) as DimStyleTableRecord;
-                    //    dstr.Name = "1-" + thescale.ToString();
-                    //    dstr.Dimscale = thescale;
-                    //    dstr.Dimtxsty = st["仿宋"];
-                    //    dstr.Dimclrd = Color.FromColorIndex(ColorMethod.ByAci, 6);
-                    //    dstr.Dimclre = Color.FromColorIndex(ColorMethod.ByAci, 6);
-                    //    dstr.Dimdli = 5;
-                    //    dstr.Dimsah = true;
-                    //    //if (thescale == 2)
-                    //    //{
-                    //    //    dstr.Dimblk = DimStyleTool.GetArrowObjectId("_NONE");
-                    //    //    dstr.Dimblk1 = DimStyleTool.GetArrowObjectId("_NONE");
-                    //    //    dstr.Dimblk2 = DimStyleTool.GetArrowObjectId("_NONE");
-                    //    //}
-                    //    //else
-                    //    //{
-                    //    //    dstr.Dimblk = DimStyleTool.GetArrowObjectId("_OBLIQUE");
-                    //    //    dstr.Dimblk1 = DimStyleTool.GetArrowObjectId("_OBLIQUE");
-                    //    //    dstr.Dimblk2 = DimStyleTool.GetArrowObjectId("_OBLIQUE");
-                    //    //}
-
-                    //    dstr.Dimdle = 0;
-                    //    dstr.Dimexe = 1.0;
-                    //    dstr.Dimexo = 1.0;
-                    //    dstr.DimfxlenOn = true;
-                    //    dstr.Dimfxlen = 4;
-                    //    dstr.Dimtxt = 2.5;
-                    //    dstr.Dimasz = 1.5;
-                    //    dstr.Dimtix = true;
-                    //    dstr.Dimtmove = 1;
-                    //    dstr.Dimtad = 1;
-                    //    dstr.Dimgap = 0.8;
-                    //    dstr.Dimdec = 0;
-                    //    dstr.Dimtih = false;
-                    //    dstr.Dimtoh = false;
-                    //    dstr.Dimdsep = '.';
-                    //    if (thescale == 1)
-                    //        dstr.Dimlfac = 1000;
-                    //    else
-                    //        dstr.Dimlfac = 1;
-                    //    //dst.Add(dstr);
-                    //}                   
+        
                 }
 
                 #region 自定义块

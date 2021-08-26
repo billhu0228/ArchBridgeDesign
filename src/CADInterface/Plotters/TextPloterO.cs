@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 
 namespace CADInterface.Plotters
 {
-    public static class TextHelper
+    public static class TextHelperO
     {
         public static double Factor { get { return 1.4; } }
     }
 
-    public class TextPloter
+    public class TextPloterO
     {
         public enum eTxtLocation
         {
@@ -533,7 +533,7 @@ namespace CADInterface.Plotters
                 TextStyleTable st = tr.GetObject(db.TextStyleTableId, OpenMode.ForRead) as TextStyleTable;
                 BlockTable blockTbl = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
                 BlockTableRecord recorder;
-                TextStyleTableRecord str = tr.GetObject(st[tstyle], OpenMode.ForRead) as TextStyleTableRecord;
+                //TextStyleTableRecord str = tr.GetObject(st[tstyle], OpenMode.ForRead) as TextStyleTableRecord;
 
                 recorder = tr.GetObject(blockTbl[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
 
@@ -547,7 +547,7 @@ namespace CADInterface.Plotters
                     VerticalMode = TextVerticalMode.TextBase,
                     Position = cc.Convert3D(0, 1 * scale),
                     AlignmentPoint = cc.Convert3D(0, 1 * scale),
-                    WidthFactor = str.XScale,
+                    WidthFactor = ((TextStyleTableRecord)tr.GetObject(st[tstyle], OpenMode.ForRead)).XScale,
                 };
 
                 recorder.AppendEntity(title);

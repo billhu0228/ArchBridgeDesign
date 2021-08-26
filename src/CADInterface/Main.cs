@@ -21,6 +21,8 @@ namespace CADInterface
     {
         public void Initialize()
         { 
+
+
             //AddRibbon();//添加ribbon菜单的函数  
             AddRibbon();//添加ribbon菜单的函数 
             AddMenu();
