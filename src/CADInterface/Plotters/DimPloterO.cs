@@ -207,7 +207,7 @@ namespace CADInterface.Plotters
         }
     }
 
-    public class DimPloter
+    public class DimPloterO
     {
 
         public static MLeader CreatMLeader(Database db,Point2d anchor,Point2d textAnchor,string cont)
@@ -244,7 +244,7 @@ namespace CADInterface.Plotters
             MLeader ret = new MLeader();
 
             Point2d textAnchor;
-           double w = (from a in Regex.Split(cont, "\n") select a.Length).Max() * 2.5 * 0.7* scale*TextHelper.Factor;
+           double w = (from a in Regex.Split(cont, "\n") select a.Length).Max() * 2.5 * 0.7* scale*TextHelperO.Factor;
             if (isLeft)
             {
                 textAnchor = anchor.Convert2D(-w - 2, 2);
@@ -591,9 +591,6 @@ namespace CADInterface.Plotters
                 pt3 =pt1+ vec.RotateBy(Angle.FromDegrees(90).Radians, Vector3d.ZAxis)*dist;
                 var dim = DimAli(db, ref ext, pt1, pt2, pt3, scale);
             }
-
-
-
         }
 
 
@@ -855,11 +852,11 @@ namespace CADInterface.Plotters
 
                 // top 文字
                 Point2d pt = new Point2d(point2.X + 15 * scale / 2, point2.Y + scale);
-                DBObjectCollection res1 = TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T1, scale, tstyle,0);
+                DBObjectCollection res1 = TextPloterO.PlotText(db, ref ext, TextPloterO.eTxtLocation.E_TOP, pt, T1, scale, tstyle,0);
 
                 // bottom 文字
                 pt = new Point2d(point2.X + 15 * scale / 2, point2.Y - scale);
-                DBObjectCollection res2 = TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle,0);
+                DBObjectCollection res2 = TextPloterO.PlotText(db, ref ext, TextPloterO.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle,0);
 
                 var TX1 = Matrix3d.Rotation(Angle.FromDegrees(Rotation).Radians, Vector3d.ZAxis, point.Convert3D());
                 foreach (DBObject item in res)
@@ -953,11 +950,11 @@ namespace CADInterface.Plotters
 
                 // top 文字
                 Point2d pt = new Point2d(point2.X + 15 * scale / 2, point2.Y);
-                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T1, scale, tstyle, 0);
+                TextPloterO.PlotText(db, ref ext, TextPloterO.eTxtLocation.E_TOP, pt, T1, scale, tstyle, 0);
 
                 // bottom 文字
                 pt = new Point2d(point2.X + 15 * scale / 2, point2.Y);
-                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle,0);
+                TextPloterO.PlotText(db, ref ext, TextPloterO.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle,0);
                 tr.Commit();
             }
 
@@ -990,10 +987,10 @@ namespace CADInterface.Plotters
 
                 // 第一条线
                 double width1 = 0;
-                MText txt1 = TextPloter.GetTextActualWidth(db, T1, scale, 2.5, "仿宋");
+                MText txt1 = TextPloterO.GetTextActualWidth(db, T1, scale, 2.5, "仿宋");
                 width1 = txt1.ActualWidth;
                 double width2 = 0;
-                MText txt2 = TextPloter.GetTextActualWidth(db, T2, scale, 2.5, "仿宋");
+                MText txt2 = TextPloterO.GetTextActualWidth(db, T2, scale, 2.5, "仿宋");
                 width2 = txt2.ActualWidth;
                 double lineWidth = width1 > width2 ? width1 : width2;
                 Polyline Line = new Polyline() { Closed = false, Layer = "标注" };
@@ -1009,11 +1006,11 @@ namespace CADInterface.Plotters
 
                 // top 文字
                 Point2d pt = new Point2d(point2.X + lineWidth / 2, point2.Y);
-                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_TOP, pt, T1, scale, tstyle,0);
+                TextPloterO.PlotText(db, ref ext, TextPloterO.eTxtLocation.E_TOP, pt, T1, scale, tstyle,0);
 
                 // bottom 文字
                 pt = new Point2d(point2.X + lineWidth / 2, point2.Y);
-                TextPloter.PlotText(db, ref ext, TextPloter.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle, 0);
+                TextPloterO.PlotText(db, ref ext, TextPloterO.eTxtLocation.E_BOTTOM, pt, T2, scale, tstyle, 0);
                 tr.Commit();
             }
 
@@ -1128,7 +1125,7 @@ namespace CADInterface.Plotters
             , double scale, double ang = 0, string unit = "mm", string replaceText = "", string D = "")
         {
 
-            ObjectId dimID = DimPloter.GetDimStyle(db, (int)scale);
+            ObjectId dimID = DimPloterO.GetDimStyle(db, (int)scale);
             RotatedDimension D1 = new RotatedDimension(Angle.FromDegrees(ang).Radians, P1, P2, Pref, D + replaceText, dimID);
             D1.Layer = "标注";
             if (unit == "cm")
@@ -1407,7 +1404,7 @@ namespace CADInterface.Plotters
         public static LineAngularDimension2 DimAng(Database db, Line L1, Line L2, Point3d Pref, double scale)
         {
             LineAngularDimension2 AD1;
-            ObjectId dimID = DimPloter.GetDimStyle(db, (int)scale);
+            ObjectId dimID = DimPloterO.GetDimStyle(db, (int)scale);
 
             using (Transaction tr = db.TransactionManager.StartTransaction())
             {

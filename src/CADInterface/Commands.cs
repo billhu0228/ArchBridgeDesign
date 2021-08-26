@@ -11,6 +11,7 @@ using CADInterface.Plotters;
 using CADInterface.UI;
 using CADInterface.API;
 using Autodesk.AutoCAD.ApplicationServices;
+using HS = HPDI.DrawingStandard;
 
 [assembly: CommandClass(typeof(CADInterface.Commands))]
 namespace CADInterface
@@ -24,31 +25,45 @@ namespace CADInterface
         [CommandMethod("init")]
         public void InitDrawingSetting()
         {
+
+            //HS.InitConfig.InitBlock();
+    
             A3Config.IniConfig();
+            HS.InitConfig.InitLayer();
+            //HS.InitConfig.InitTextStyle("H仿宋","仿宋_GB2312",0.7);
+            HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Centimeter, 0.25, "H仿宋");
+            HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Centimeter, 0.1, "H仿宋");
+            HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Centimeter, 1, "H仿宋");
         }
 
         [CommandMethod("GenModel")]
         public void GenerateModel()
         {
             // properDia.ShowDialog();
+            double L = 518.0;          
 
             #region 基本步骤
             // 1. 设置拱系
-            theArchAxis = new ArchAxis(518 / 5.0, 1.55, 518);
-            archModel = new Arch(theArchAxis, 8.5, 17, 12, 4);
+            theArchAxis = new ArchAxis(L / 4.5, 2.2, 518);
+            archModel = new Arch(theArchAxis,7.0, 16.5, 12, 4);
             // 2. 生成桁架
-            archModel.GenerateTruss(10, 50, 10, 7.8, 11, 2);
+            archModel.GenerateTruss(10, 49, 7, 6, 7, 2);
             archModel.GenerateMiddleDatum(); //生成中插平面
             // 补充
-            archModel.AddDatum(0, -518 * 0.5, eDatumType.ControlDatum);
-            archModel.AddDatum(0, 518 * 0.5, eDatumType.ControlDatum);
+            archModel.AddDatum(0, -L * 0.5, eDatumType.ControlDatum);
+            archModel.AddDatum(0, L * 0.5, eDatumType.ControlDatum);
 
-            archModel.AddDatum(0, -252.2, eDatumType.NormalDatum);
-            archModel.AddDatum(0, 252.2, eDatumType.NormalDatum);
+            foreach (var dxx in new double[] {7,14,20 })
+            {
 
-            var dx = 1.0 / Math.Cos(archModel.Axis.GetAngle(-518 * 0.5).Radians);
-            archModel.AddDatum(0, -518 * 0.5 - dx, eDatumType.ControlDatum);
-            archModel.AddDatum(0, +518 * 0.5 + dx, eDatumType.ControlDatum);
+                archModel.AddDatum(0, -0.5 * L + dxx, eDatumType.NormalDatum);
+                archModel.AddDatum(0, 0.5 * L - dxx, eDatumType.NormalDatum);
+            }
+
+
+            var dx = 1.0 / Math.Cos(archModel.Axis.GetAngle(-L * 0.5).Radians);
+            archModel.AddDatum(0, -L * 0.5 - dx, eDatumType.ControlDatum);
+            archModel.AddDatum(0, +L * 0.5 + dx, eDatumType.ControlDatum);
 
 
             // 3. 配置截面
@@ -97,33 +112,19 @@ namespace CADInterface
             Database db = HostApplicationServices.WorkingDatabase;
 
             ObjectId LayoutID = db.CreatLayout("S4-03 主拱圈一般构造","block\\TK.dwg");
-            Extents2d theExt = new Extents2d();
+            Extents2d ext1, ext2, ext3;
 
-            archModel.DrawingLeftElevation(db,ref theExt);
+            archModel.DrawingLeftElevation(out ext1);
 
             // 绘制拼接区及标注
-            archModel.DrawInstall(db, ref theExt);
+            archModel.DrawInstall(out ext2);
             // 绘制立柱
 
-            foreach (var theCol in archModel.ColumnList)
-            {
-                if (theCol.ID==0)
-                {
-                    if (theCol.X<0)
-                    {
-                        theCol.DarwColumnSide(db, Point2d.Origin, out theExt);
-                    }
-                }
-            }
 
-            // 绘制立柱
-
-            //archModel.dr(db, ref theExt);
-
-            //archModel.DrawingPlan(db, new Point2d(0, -200), ref theExt);
+            archModel.DrawingPlan(new Point2d(0, -200), out ext3);
 
             // 绘制边界参考
-            //db.AddEntityToModeSpace(new Line(theExt.MinPoint.Convert3D(), theExt.MaxPoint.Convert3D()));
+            db.AddEntityToModeSpace(ext1.ConvertRec());
         }
 
         [CommandMethod("ColumnDraw")]
@@ -148,17 +149,17 @@ namespace CADInterface
             Extents2d outExt;
             Model.Column theCol = archModel.ColumnList.Find(x => x.ID == 91);
             theCol.CalculateParameters();
-            theCol.DarwColumnSide(db, new Point2d(-vX, -vY), out outExt, 0.25);
-            TextPloter.PlotTextWithLine(db, ref outExt, new Point3d(0, 52, 0), "A-A", 0.25, 3, "仿宋");
+            theCol.DarwColumnSide( new Point2d(-vX, -vY), out outExt, 0.25);
+            TextPloterO.PlotTextWithLine(db, ref outExt, new Point3d(0, 52, 0), "A-A", 0.25, 3, "仿宋");
             theExt = theExt.Add(outExt);
             theCol.DrawColumnElev(db, new Point2d(-vX-20, -vY), out outExt, 0.25);
-            TextPloter.PlotTextWithLine(db, ref outExt, new Point3d(- 20, 52,0), "立面", 0.25, 3, "仿宋");
+            TextPloterO.PlotTextWithLine(db, ref outExt, new Point3d(- 20, 52,0), "立面", 0.25, 3, "仿宋");
             theExt = theExt.Add(outExt);
             Model.Column theCol92;
             theCol92 = archModel.ColumnList.Find(x => x.ID == 92);
             theCol92.CalculateParameters();
-            theCol92.DarwColumnSide(db, new Point2d(-vX, -vY).Convert2D(15), out outExt, 0.25);
-            TextPloter.PlotTextWithLine(db, ref outExt, new Point3d(15, 52, 0), "B-B", 0.25, 3, "仿宋");
+            theCol92.DarwColumnSide( new Point2d(-vX, -vY).Convert2D(15), out outExt, 0.25);
+            TextPloterO.PlotTextWithLine(db, ref outExt, new Point3d(15, 52, 0), "B-B", 0.25, 3, "仿宋");
             theExt = theExt.Add(outExt);
             #endregion
 
@@ -166,10 +167,10 @@ namespace CADInterface
             var ScenterS = new Point2d(50, 30);
             Extents2d theExtS = new Extents2d(ScenterS, ScenterS);
             theCol.DrawSingleSection(db, ScenterS.Convert2D(-3), out outExt, 0.1);
-            TextPloter.PlotTextWithLine(db, ref outExt, ScenterS.Convert3D(-3,2), "C-C", 0.1, 3, "仿宋");
+            TextPloterO.PlotTextWithLine(db, ref outExt, ScenterS.Convert3D(-3,2), "C-C", 0.1, 3, "仿宋");
             theExtS = theExtS.Add(outExt);
             theCol92.DrawSingleSection(db, ScenterS.Convert2D(3), out outExt, 0.1);
-            TextPloter.PlotTextWithLine(db, ref outExt, ScenterS.Convert3D(3, 2), "D-D", 0.1, 3, "仿宋");
+            TextPloterO.PlotTextWithLine(db, ref outExt, ScenterS.Convert3D(3, 2), "D-D", 0.1, 3, "仿宋");
             theExtS = theExtS.Add(outExt);
             #endregion
 
@@ -189,7 +190,7 @@ namespace CADInterface
 
             #region 参数表
 
-            DBObjectCollection tables = TablePloter.CreatTable(db, minPt2.Convert2D(w2*0.5,-10),ref archModel.ColumnTable);
+            DBObjectCollection tables = TablePloterO.CreatTable(db, minPt2.Convert2D(w2*0.5,-10),ref archModel.ColumnTable);
 
             foreach (var item in tables)
             {

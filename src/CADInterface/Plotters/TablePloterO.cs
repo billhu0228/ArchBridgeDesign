@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace CADInterface.Plotters
 {
 
-    public class TablePloter
+    public class TablePloterO
     {
         /// <summary>
         /// 承台钢筋明细表格
