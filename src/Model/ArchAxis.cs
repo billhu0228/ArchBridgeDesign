@@ -134,7 +134,7 @@ namespace Model
         /// 与构造2D线相交
         /// </summary>
         /// <param name="cutLine"></param>
-        internal Point2D Intersect(Line2D cutLine)
+        public Point2D Intersect(Line2D cutLine)
         {
             if ((GetZ(-L1) - cutLine.GetY(-L1)) * (GetZ(L1) - cutLine.GetY(L1)) > 0)
             {

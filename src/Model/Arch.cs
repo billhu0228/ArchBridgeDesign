@@ -27,6 +27,7 @@ namespace Model
         public List<Point2D> UpSkeleton, LowSkeleton,UpUpSkeleton,UpLowSkeleton,LowUpSkeleton,LowLowSkeleton;
         List<Node2D> NodeTable;
         public List<Column> ColumnList;
+        public List<RCColumn> RCColumnList;
         public List<Member> MemberTable;
         public double ElevationOfTop;
         public DataTable ColumnTable;
@@ -52,6 +53,7 @@ namespace Model
             WidthOutside = width1;
             MainDatum = new List<DatumPlane>();
             ColumnList = new List<Column>();
+            RCColumnList = new List<RCColumn>();
             SecondaryDatum = new List<DatumPlane>();
             DiagonalDatum = new List<DatumPlane>();
             PropertyTable = new List<MemberPropertyRecord>();
@@ -63,6 +65,13 @@ namespace Model
 
 
         #region 属性
+        public double WebTubeDiameter
+        {
+            get
+            {
+                return GetTubeProperty(0, eMemberType.InclineWeb).Section.Diameter;
+            }
+        }
         public double MainTubeDiameter
         {
             get
@@ -77,6 +86,14 @@ namespace Model
             {
                 return GetTubeProperty(0, eMemberType.CrossBraceing).Section.Diameter;
 
+            }
+        }
+
+        public double Width
+        {
+            get
+            {
+                return 2 * WidthOutside + WidthInside;
             }
         }
 
@@ -113,8 +130,6 @@ namespace Model
             PropertyTable.Add(new MemberPropertyRecord(idx, sect, MT, from, to));
         }
 
-
-
         /// <summary>
         /// 定义基准平面，无角度时为正交平面
         /// </summary>
@@ -145,6 +160,32 @@ namespace Model
             return;
         }
 
+        public DatumPlane GetDatum(double x, eDatumType theType, double tor = 1e-5)
+        {
+            Point2D pt = new Point2D(x, Axis.GetZ(x));
+            foreach (var item in MainDatum)
+            {
+                if (item.Center.DistanceTo(pt)<=tor)
+                {
+                    if (item.DatumType== theType)
+                    {
+                        return item;
+                    }
+
+                }
+            }
+            foreach (var item in SecondaryDatum)
+            {
+                if (item.Center.DistanceTo(pt) <= tor)
+                {
+                    if (item.DatumType == theType)
+                    {
+                        return item;
+                    }
+                }
+            }
+            return null;
+        }
 
         /// <summary>
         /// 增加墩柱
@@ -167,6 +208,22 @@ namespace Model
             ColumnList.Add(theCol);
             ColumnList.Sort(new Column());
         }
+
+        /// <summary>
+        /// 增加交界墩
+        /// </summary>
+        /// <param name="colid"></param>
+        /// <param name="x0"></param>
+        /// <param name="colInst"></param>
+        public void AddColumn(int colid, double x0, RCColumn colInst)
+        {
+            colInst.X = x0;
+            colInst.MainArch = this;
+            colInst.ID = colid;
+            RCColumnList.Add(colInst);
+            RCColumnList.Sort(new RCColumn());
+        }
+
 
         /// <summary>
         /// 生成中值基准面 
@@ -424,7 +481,7 @@ namespace Model
 
             column = new DataColumn();
             column.DataType = Type.GetType("System.String");
-            column.ColumnName = "H(m)";
+            column.ColumnName = "L(m)";
             ColumnTable.Columns.Add(column);
 
             column = new DataColumn();
@@ -485,7 +542,7 @@ namespace Model
                 item.Generate();
                 row = ColumnTable.NewRow();
                 row["name"] = "LZ-"+item.ID.ToString().PadLeft(2,'0');
-                row["H(m)"] = item.H.ToString("F3");
+                row["L(m)"] = item.H.ToString("F3");
                 row["A(m)"] = item.A.ToString("F3");
                 row["B(m)"] = item.B.ToString("F3");
                 row["C(m)"] = item.C.ToString("F3");
@@ -499,6 +556,46 @@ namespace Model
                 ColumnTable.Rows.Add(row);
 
             }
+
+        }
+
+        public void AddTriWeb(double centerX, DatumPlane targetDatum,double offset)
+        {
+            double DiaNormal = GetTubeProperty(targetDatum.Center.X, eMemberType.VerticalWeb).Section.Diameter;
+            var sect = GetTubeProperty((centerX + targetDatum.Center.X) * 0.5, eMemberType.InclineWebS).Section;
+            double dia = sect.Diameter;
+            Point2D O = Axis.GetCenter(centerX);
+            int direct = targetDatum.Center.X > centerX ? 1 : -1;
+            Line2D bd = targetDatum.Line.Offset(direct * DiaNormal*0.5);
+
+            Point2D A = Get7PointReal(bd.Datum(ref Axis))[2];
+            Point2D B = Get7PointReal(bd.Datum(ref Axis))[4];
+
+
+            Circle2D CA = new Circle2D(A, offset);
+            var inter=UpLowSkeleton.Intersection(CA);
+            inter.Sort((x, y) => x.X.CompareTo(y.X));
+            Point2D A1 = direct == 1 ? inter[0] : inter[1];
+
+            Circle2D CB = new Circle2D(B, offset);
+            inter=LowUpSkeleton.Intersection(CB);
+            inter.Sort((x, y) => x.X.CompareTo(y.X));
+            Point2D B1 = direct == 1 ? inter[0] : inter[1];
+
+            var A2 = O.Tangent(new Circle2D(A1,dia*0.5))[1];
+            var B2 = O.Tangent(new Circle2D(B1,dia*0.5))[0];
+
+            var A3 = Get3PointReal(O.X, Vector2D.XAxis.AngleTo(A2 - O).Degrees)[0];
+            double deg = Vector2D.XAxis.AngleTo(B2 - O).Degrees;
+            if (deg<0)
+            {
+                deg = 180 + deg;
+
+            }
+            var B3 = Get3PointReal(O.X, deg)[2];
+            MemberTable.Add(new Member(0, new Line2D(O, A3), sect, eMemberType.InclineWebS));
+            MemberTable.Add(new Member(0, new Line2D(O, B3), sect, eMemberType.InclineWebS));
+
 
         }
 
@@ -824,9 +921,27 @@ namespace Model
             Vector2D TargetDir = Vector2D.XAxis.Rotate(CutAngle);
             Line2D cutLine = new Line2D(CC, CC + TargetDir);
 
+            var pu= Extension.Intersection(UpSkeleton, cutLine);
+            var pb= Extension.Intersection(LowSkeleton, cutLine);
 
-            Upper = (Point2D)Extension.Intersection(UpSkeleton, cutLine);
-            Lower = (Point2D)Extension.Intersection(LowSkeleton, cutLine);
+            if (pu!=null)
+            {
+                Upper = (Point2D)pu;
+            }
+            else
+            {
+                Upper = Get3Point(cutLine.Datum(ref Axis))[0];
+            }
+            
+            if (pb!=null)
+            {
+                Lower = (Point2D)pb;
+            }
+            else
+            {
+                Lower = Get3Point(cutLine.Datum(ref Axis))[2];
+            }     
+            
 
             return new List<Point2D>() { Upper, CC, Lower };
         }
@@ -904,6 +1019,17 @@ namespace Model
 
             return new List<Point2D>() { UU, Upper, UL, CC, LU, Lower, LL };
         }
+
+        /// <summary>
+        /// 获取折线拱任意方向7轴点
+        /// </summary>
+        /// <param name="cutPlane"></param>
+        /// <returns></returns>
+        public List<Point2D> Get7PointReal(DatumPlane cutPlane)
+        {
+            return Get7PointReal(cutPlane.Center.X, cutPlane.Angle0.Degrees);
+        }
+
 
         /// <summary>
         /// 骨架线偏移出管壁

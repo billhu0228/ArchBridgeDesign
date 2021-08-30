@@ -22,9 +22,11 @@ namespace Model
         [Description("斜杆控制面")]
         DiagonalDatum = 5,
 
-        [Description("无截面控制面板")]
+        [Description("无截面控制面")]
         ControlDatum = 6,
 
+        [Description("一般控制面")]
+        GeneralDatum =9,
     }
     /// <summary>
     /// 七种拱肋轴线定义
@@ -65,6 +67,8 @@ namespace Model
         ColumnWeb =31,
         [Description("斜腹杆")]
         InclineWeb = 4,
+        [Description("半斜腹杆")]
+        InclineWebS = 41,
 
         [Description("横撑")]
         CrossBraceing =5,

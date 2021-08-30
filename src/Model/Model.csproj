@@ -60,6 +60,7 @@
     <Compile Include="Enums.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RCColumn.cs" />
     <Compile Include="TubeSection.cs" />
   </ItemGroup>
   <ItemGroup>
