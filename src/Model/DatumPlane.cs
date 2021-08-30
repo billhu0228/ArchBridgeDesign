@@ -29,7 +29,8 @@ namespace Model
             ID = id;
             Center = cc;
             RefPoint = refpt;
-            Angle0= (RefPoint - Center).SignedAngleTo(Vector2D.XAxis);
+            // Angle0= (RefPoint - Center).SignedAngleTo(Vector2D.XAxis);
+            Angle0=(Vector2D.XAxis).SignedAngleTo(RefPoint - Center);
             Direction = Vector2D.XAxis.Rotate(Angle0);
             DatumType = dt;
         }

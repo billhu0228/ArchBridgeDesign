@@ -30,6 +30,7 @@ namespace CADInterface.API
             Point3d ft = new Point3d(-0.5 * theArch.Axis.L, -theArch.Axis.f, 0);
             Point3d cc = Point3d.Origin;
             Point2d pref = new Point2d(0, 25);
+            Point3d jjd = new Point3d(theArch.RCColumnList[0].X, theArch.RCColumnList[0].H0,0);
             double LengthArch = theArch.Axis.L;
             double FArch = theArch.Axis.f;
             #endregion
@@ -108,9 +109,32 @@ namespace CADInterface.API
                     {
                         continue;
                     }
-                    var web = MLPloter.AddTube(item.Line.StartPoint.ToAcadPoint2d(), item.Line.EndPoint.ToAcadPoint2d(), item.Sect.Diameter, 0, "H细线", LowPL, UpPL);
-                    //MulitlinePloterO.PlotTube(db, item.Line.StartPoint.ToAcadPoint2d(), item.Line.EndPoint.ToAcadPoint2d(), item.Sect.Diameter, LowPL, UpPL,0, "细线") ;
-                    Extensions.Add(obj, web);
+                    if (item.ElemType==eMemberType.InclineWebS)
+                    {
+                        double xc = item.Line.StartPoint.X;
+                        var cuts=theArch.get_3pt_real(xc);
+
+                        Line bd1 = new Line(cuts[0].ToAcadPoint(), cuts[2].ToAcadPoint());
+                        bd1=(Line) bd1.Offset(theArch.WebTubeDiameter * 0.5)[0];
+
+                        var bd2 = LowPL;
+                        if (item.Line.EndPoint.Y > theArch.Axis.GetZ(item.Line.EndPoint.X))
+                        {
+                            bd2 = UpPL;
+                        }
+
+
+                        var web = MLPloter.AddTube(item.Line.StartPoint.ToAcadPoint2d(), item.Line.EndPoint.ToAcadPoint2d(), item.Sect.Diameter, 0, "H细线", bd1, bd2);
+
+                        Extensions.Add(obj, web);
+                    }
+                    else
+                    {
+                        var web = MLPloter.AddTube(item.Line.StartPoint.ToAcadPoint2d(), item.Line.EndPoint.ToAcadPoint2d(), item.Sect.Diameter, 0, "H细线", LowPL, UpPL);
+                       
+                        Extensions.Add(obj, web);
+                    }
+                    
                 }
             }
             #endregion
@@ -141,7 +165,7 @@ namespace CADInterface.API
                 if (i==0)
                 {
                     obj.Add(DimPloter.DimRot(pA.C3D(), pB.C3D(), pref.C3D(), 0, 1, "", Unit.Meter, Unit.Centimeter));
-                    pA = new Point2d(-0.5*LengthArch, theColA.Z2);
+                    pA = new Point2d(theArch.RCColumnList[0].X, theColA.Z2);
                     pB = new Point2d(theColA.X, theColA.Z2);
                     obj.Add(DimPloter.DimRot(pA.C3D(), pB.C3D(), pref.C3D(), 0, 1, "", Unit.Meter, Unit.Centimeter));
                 }
@@ -154,16 +178,32 @@ namespace CADInterface.API
                 {
                     obj.Add(DimPloter.DimRot(pA.C3D(), pB.C3D(), pref.C3D(), 0, 1, "", Unit.Meter, Unit.Centimeter));
                 }
-
-
             }
-            // obj.Add(DimPloter.DimRot(pA.C3D(), pB.C3D(), pref.C3D(), 0, 1, "", Unit.Meter, Unit.Centimeter));
+            string rep = string.Format("{0}/2", jjd.X * -2);
+
+            obj.Add(DimPloter.DimRot(jjd,cc, pref.C3D(0,5), 0, 1, rep, Unit.Meter, Unit.Centimeter));
 
 
             #endregion
 
             #region 拱脚和交界墩
+            RCColumn colRC = theArch.RCColumnList[0];
+            colRC.DrawRCColumnSide(new Vector2d(), out colExt);
+            extList.Add(colExt);
+
+            Database db = HostApplicationServices.WorkingDatabase;
+            BlockPloter.CopyBlockFromFile(db, "block\\BlockDef.dwg", "L拱脚立面");
+
+
+            obj.Add(TextPloter.AddDBText(jjd.C3D(0,colRC.H2-colRC.H0+2), "交界墩", 1, 2.5, "H仿宋", 0, TextHorizontalMode.TextCenter));
+            ids.Add(BlockPloter.InsertBlockReference(ft.C3D(), 1, "L拱脚立面", null, null));
+
             #endregion
+
+
+
+
+
             #region 壁厚表
             #endregion
             #region 断面块
@@ -173,15 +213,22 @@ namespace CADInterface.API
             obj.Add(TextPloter.AddTitle(pref.C2D(-LengthArch * 0.25,15), "1/2拱圈立面",""));
             #endregion
 
-            ids = Ploter.WriteDatabase(obj);
-            Extents2d extArch = Ploter.GetExtendds(ids);
+            #region 输出
+            var newids = Ploter.WriteDatabase(obj);
+
+            foreach (ObjectId item in newids)
+            {
+                ids.Add(item);
+            }
+
+            Extents2d extArch = Ploter.GetExtends(ids);
 
             foreach (var item in extList)
             {
                 extArch = extArch.Add(item);
             }
             ext = extArch;
-
+            #endregion
         }
 
         /// <summary>
@@ -248,9 +295,10 @@ namespace CADInterface.API
             }
         }
 
-        public static void DrawInstall(this Arch model,out Extents2d ext)
+        public static void DrawInstall(this Arch model,Point2d cc,out Extents2d ext,bool isElev=true)
         {
             DBObjectCollection obj = new DBObjectCollection();
+            ObjectIdCollection ids = new ObjectIdCollection();
 
             var vd = from dt in model.MainDatum
                      where dt.DatumType == eDatumType.ColumnDatum || dt.DatumType == eDatumType.VerticalDatum
@@ -270,12 +318,20 @@ namespace CADInterface.API
                 DatumPlane install= model.SecondaryDatum.Find(x => x.Center.X > theDat.Center.X);
 
                 var pts= (from p in  model.Get3PointReal(install) select p.ToAcadPoint2d()).ToList();
-                pts.Add(pts[0].Convert2D(0, 2));
-                pts.Add( pts[2].Convert2D(0, -2));
+                if (isElev)
+                {
+                    pts.Add(pts[0].C2D(0, 2));
+                    pts.Add(pts[2].C2D(0, -2));
+                }
+                else
+                {
+                    pts = new List<Point2d>() { new Point2d(pts[0].X, 0).C2D(0, 0.5*model.Width+2), new Point2d(pts[2].X, 0).C2D(0,-0.5*model.Width -2) };
+
+                }
+
                 pts.Sort((x, y) => x.Y.CompareTo(y.Y));
 
                 var PL=(Polyline)PLPloter.AddPolylineByPointList(pts, "H虚线", false)[0];
-                //PolylinePloter.AddPolylineByList(db, ref ext, pts, "虚线", false);
                 obj.Add(PL);
 
                 ptForDim.Add(pts[1].Convert3D());
@@ -295,68 +351,326 @@ namespace CADInterface.API
             }
 
 
-            var ids = Ploter.WriteDatabase(obj);
-            ext = Ploter.GetExtendds(ids);
+            #region 输出
+
+            foreach (var item in obj)
+            {
+                Entity et = (Entity)item;
+                et.TransformBy(Matrix3d.Displacement(cc.GetAsVector().C3D()));
+            }
+
+            var idsnew = Ploter.WriteDatabase(obj);
+
+            foreach (ObjectId item in idsnew)
+            {
+                ids.Add(item);
+            }
+            ext = Ploter.GetExtends(ids);
+
+            #endregion
 
         }
 
-        public static void DrawingPlan(this Arch model,Point2d cc,out Extents2d ext)
+        public static void DrawingPlan(this Arch theArch,Point2d cc,out Extents2d ext)
         {
+            Database db = HostApplicationServices.WorkingDatabase;
             #region 总体
             DBObjectCollection obj = new DBObjectCollection();
             ObjectIdCollection ids = new ObjectIdCollection();
-
-            Point3d ft = new Point3d(-0.5 * theArch.Axis.L, -theArch.Axis.f, 0);
-            Point3d cc = Point3d.Origin;
-            Point2d pref = new Point2d(0, 25);
-            double LengthArch = theArch.Axis.L;
-            double FArch = theArch.Axis.f;
+            double L = theArch.Axis.L;
+            //Point3d ft = new Point3d(-0.5 * theArch.Axis.L, -theArch.Axis.f, 0);
+            //Point3d cc = Point3d.Origin;
+            //Point2d pref = new Point2d(0, 25);
+            //double LengthArch = theArch.Axis.L;
+            //double FArch = theArch.Axis.f;
             #endregion
 
+            #region 轴线
+
+            
+            obj.Add(new Line(Point3d.Origin.C3D(0, theArch.WidthInside), Point3d.Origin.C3D(0, -theArch.WidthInside)) {Layer="H中心线" });
+            obj.Add(new Line(Point3d.Origin, Point3d.Origin.C3D(-theArch.RCColumnList[1].X-16)) {Layer="H中心线" });
+
+            #endregion
 
             #region 拱肋
-            #endregion
 
-            #region 风撑
-            #endregion
+            Point2d PT1 = new Point2d(theArch.get_3pt_real(-0.5 * L)[0].X, theArch.WidthInside * 0.5 + theArch.WidthOutside);
+            Point2d PT2 = PT1.C2D(0, -theArch.WidthOutside);
+            Point2d PB1 = new Point2d(theArch.get_3pt_real(-0.5 * L)[2].X, -theArch.WidthInside * 0.5 - theArch.WidthOutside);
+            Point2d PB2 = PB1.C2D(0, +theArch.WidthOutside);
 
-            Matrix2d mat = Matrix2d.Displacement(cc.GetAsVector());
-            List<List<Line>> FrameLine=new List<List<Line>>();
-
-            for (int i = 0; i < 4; i++)
+            List<DBObjectCollection> archRib = new List<DBObjectCollection>();
+            foreach (var item in new Point2d[] { PT1, PT2, PB1, PB2 })
             {
-                double y0 =new double[]{ -0.5 * model.WidthInside - model.WidthOutside, -0.5 * model.WidthInside, 0.5 * model.WidthInside, 0.5 * model.WidthInside+model.WidthOutside }[i] ;
-
-
-                var p1 = i<2? new Point2d(model.Get3PointReal(model.MainDatum[0])[2].X, 0):
-                     new Point2d(model.Get3PointReal(model.MainDatum[0])[0].X, 0);
-                p1 = p1.TransformBy(mat);
-                var p2 = new Point2d(-p1.X, 0);
-                p2 = p2.TransformBy(mat);
-
-
-                var ret = MulitlinePloterO.PlotTube(db, p1.Convert2D(0, y0), p2.Convert2D(0, y0), model.MainTubeDiameter);
-                FrameLine.Add(ret);
+                var lines = MLPloter.AddTube(item, item.C2D(-item.X), theArch.MainTubeDiameter, 0, "粗线");
+                archRib.Add(lines);
+                obj.Add(lines);
             }
 
-            foreach (var item in model.MainDatum)
+            BlockPloter.CopyBlockFromFile(db, "block\\BlockDef.dwg", "L拱脚平面");
+            Point2d ft = new Point2d(-0.5 * L, 0);
+            ids.Add(BlockPloter.InsertBlockReference((ft + cc.GetAsVector()).C3D(),1, "L拱脚平面", null, null));
+
+            obj.Add(DimPloter.DimRot(Point3d.Origin.C3D(0, -0.5 * theArch.Width), Point3d.Origin.C3D(0, -0.5 * theArch.WidthInside), Point3d.Origin.C3D(5),
+                90, 1, "", Unit.Meter, Unit.Centimeter));
+            obj.Add(DimPloter.DimRot(Point3d.Origin.C3D(0, -0.5 * theArch.WidthInside), Point3d.Origin.C3D(0, 0.5 * theArch.WidthInside), Point3d.Origin.C3D(5),
+                90, 1, "", Unit.Meter, Unit.Centimeter));            
+            obj.Add(DimPloter.DimRot(Point3d.Origin.C3D(0, 0.5 * theArch.WidthInside), Point3d.Origin.C3D(0, 0.5 * theArch.Width), Point3d.Origin.C3D(5),
+                90, 1, "", Unit.Meter, Unit.Centimeter));            
+            obj.Add(DimPloter.DimRot(Point3d.Origin.C3D(0, -0.5 * theArch.Width), Point3d.Origin.C3D(0, 0.5 * theArch.Width), Point3d.Origin.C3D(10),
+                90, 1, "", Unit.Meter, Unit.Centimeter));
+
+            #endregion
+
+            #region 下风撑
+            List<DatumPlane> carry = new List<DatumPlane>();
+            foreach (var item in theArch.MainDatum)
             {
-                if (item.DatumType==eDatumType.ColumnDatum)
+                if (item.DatumType == eDatumType.ColumnDatum || item.DatumType == eDatumType.VerticalDatum || item.DatumType == eDatumType.NormalDatum)
                 {
-                    var p0 = new Point2d(item.Center.X, 0);
-                    p0=p0.TransformBy(mat);
+                    if (item.Center.X > 0)
+                    {
+                        continue;
+                    }
+                    if (item.Center.X==-240)
+                    {
+                        continue;
+                    }
+                    carry.Add(item);
+                }
+            }
+            carry.Sort(new DatumPlane());
+            carry.Reverse();
+            DBObjectCollection beforeBar = new DBObjectCollection();
+            for (int i = 0; i < carry.Count; i++)
+            {
 
-                    MulitlinePloterO.PlotTube(db,p0.Convert2D(0,-0.5*model.WidthInside+0.5*model.MainTubeDiameter),
-                        p0.Convert2D(0, 0.5 * model.WidthInside - 0.5 * model.MainTubeDiameter),model.CrossBracingDiameter,null,null,0,"细线");
-                    MulitlinePloterO.PlotTube(db, p0.Convert2D(0, -0.5 * model.WidthInside-model.WidthOutside + 0.5 * model.MainTubeDiameter),
-                        p0.Convert2D(0, -0.5 * model.WidthInside  - 0.5 * model.MainTubeDiameter), model.CrossBracingDiameter, null, null, 0, "细线");
+                var item = carry[i];
 
-                    MulitlinePloterO.PlotTube(db, p0.Convert2D(0, +0.5 * model.WidthInside + model.WidthOutside - 0.5 * model.MainTubeDiameter),
-                        p0.Convert2D(0, +0.5 * model.WidthInside + 0.5 * model.MainTubeDiameter), model.CrossBracingDiameter, null, null, 0, "细线");
+                double xi = item.Center.X;
+                if (item.DatumType == eDatumType.NormalDatum)
+                {
+                    xi = theArch.Get3PointReal(item)[2].X;
+                }
+                var p0 = new Point2d(xi, 0);
+
+                var curBar = MLPloter.AddTube(p0.Convert2D(0, -0.5 * theArch.WidthInside + 0.5 * theArch.MainTubeDiameter),
+                    p0.Convert2D(0,0), theArch.CrossBracingDiameter, 0, "H细线", null, null);
+                obj.Add(curBar);
+
+                if (i != 0)
+                {
+                    if (i % 2 == 0)
+                    {
+                        var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[2].X, 0), new Point2d(theArch.Get3PointReal(carry[i])[2].X, -0.5 * theArch.WidthInside),
+                            theArch.GetTubeProperty(item.Center.X, eMemberType.WebBracing).Section.Diameter, 0, "H细线", (Curve)beforeBar[0], (Curve)archRib[3][0]);
+                        obj.Add(dd);
+                    }
+                    else
+                    {
+                        var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[2].X, -0.5 * theArch.WidthInside), new Point2d(theArch.Get3PointReal(carry[i])[2].X, 0),
+                            theArch.GetTubeProperty(item.Center.X, eMemberType.WebBracing).Section.Diameter, 0, "H细线", (Curve)archRib[3][0], (Curve)curBar[2]);
+                        obj.Add(dd);
+                    }
+
+                }
+
+                //下平面
+                obj.Add(MLPloter.AddTube(p0.Convert2D(0, -0.5 * theArch.WidthInside - theArch.WidthOutside + 0.5 * theArch.MainTubeDiameter),
+                    p0.Convert2D(0, -0.5 * theArch.WidthInside - 0.5 * theArch.MainTubeDiameter), theArch.CrossBracingDiameter, 0, "细线", null, null));
+                beforeBar.Clear();
+                foreach (DBObject kk in curBar)
+                {
+                    beforeBar.Add(kk);
                 }
 
             }
 
+            #endregion
+
+            #region 上风撑
+            carry = new List<DatumPlane>();
+            foreach (var item in theArch.MainDatum)
+            {
+                if (item.DatumType == eDatumType.ColumnDatum || item.DatumType == eDatumType.VerticalDatum || item.DatumType==eDatumType.NormalDatum)
+                {
+                    if (item.Center.X > 0)
+                    {
+                        continue;
+                    }
+                    carry.Add(item);
+                }
+            }
+            carry.Sort(new DatumPlane());
+            carry.Reverse();
+            beforeBar = new DBObjectCollection();
+            for (int i = 0; i < carry.Count; i++)
+            {
+
+                var item = carry[i];
+
+                double xi = item.Center.X;
+                if (item.DatumType == eDatumType.NormalDatum)
+                {
+                    xi= theArch.Get3PointReal(item)[0].X;
+                }
+                var  p0 = new Point2d(xi, 0);
+
+                var curBar = MLPloter.AddTube(p0.Convert2D(0, 0),
+                    p0.Convert2D(0, 0.5 * theArch.WidthInside - 0.5 * theArch.MainTubeDiameter), theArch.CrossBracingDiameter, 0, "H细线", null, null);
+                obj.Add(curBar);
+
+                if (i != 0)
+                {
+                    if (i % 2 == 0)
+                    {
+                        var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i-1])[0].X, 0), new Point2d(theArch.Get3PointReal(carry[i])[0].X, 0.5 * theArch.WidthInside),
+                            theArch.GetTubeProperty(item.Center.X, eMemberType.WebBracing).Section.Diameter, 0, "H细线", (Curve)beforeBar[0], (Curve)archRib[1][2]);
+                        obj.Add(dd);
+                    }
+                    else
+                    {
+                        var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[0].X, 0.5 * theArch.WidthInside), new Point2d(theArch.Get3PointReal(carry[i])[0].X, 0),
+                            theArch.GetTubeProperty(item.Center.X, eMemberType.WebBracing).Section.Diameter, 0, "H细线", (Curve)archRib[1][2], (Curve)curBar[2]);
+                        obj.Add(dd);
+                    }
+
+                }                
+                //上平面
+                obj.Add(MLPloter.AddTube(p0.Convert2D(0, +0.5 * theArch.WidthInside + theArch.WidthOutside - 0.5 * theArch.MainTubeDiameter),
+                    p0.Convert2D(0, +0.5 * theArch.WidthInside + 0.5 * theArch.MainTubeDiameter), theArch.CrossBracingDiameter, 0, "细线", null, null));
+                beforeBar.Clear();
+                foreach (DBObject kk in curBar)
+                {
+                    beforeBar.Add(kk);
+                }
+
+            }
+            #endregion
+
+
+            #region 安装阶段
+
+
+            var vd = from dt in theArch.MainDatum
+                     where dt.DatumType == eDatumType.ColumnDatum || dt.DatumType == eDatumType.VerticalDatum
+                     select dt;
+            var datumList = vd.ToList();
+            datumList.Sort(new DatumPlane());
+
+
+            List<Point3d> ptForDim = new List<Point3d>();
+            for (int i = 0; i < datumList.Count; i++)
+            {
+                var theDat = datumList[i];
+                if (i % 2 != 0 || theDat.Center.X > 0)
+                {
+                    continue;
+                }
+                DatumPlane install = theArch.SecondaryDatum.Find(x => x.Center.X > theDat.Center.X);
+
+                var pts = new List<Point2d>() {
+                    new Point2d(install.Center.X, 0).C2D(0, 0.5 * theArch.Width + 2),
+                    new Point2d(install.Center.X, 0),
+                    new Point2d(install.Center.X, 0).C2D(0, -0.5 * theArch.Width - 2) };
+
+                var PL = (Polyline)PLPloter.AddPolylineByPointList(pts, "H虚线", false)[0];
+                obj.Add(PL);
+
+                ptForDim.Add(pts[1].Convert3D());
+            }
+
+            ptForDim.Add(new Point3d( theArch.LeftFoot[1].X,0,0));
+            ptForDim.Sort((x, y) => x.X.CompareTo(y.X));
+
+            for (int i = 0; i < ptForDim.Count - 1; i++)
+            {
+                string rep = string.Format("<>\\X节段{0}", i + 1);
+                var pt1 = ptForDim[i];
+                var pt2 = ptForDim[i + 1];
+                obj.Add( DimPloter.DimRot(pt1, pt2, pt2.C3D(0,- 0.5*theArch.Width-10),0, 1, rep, Unit.Meter, Unit.Centimeter));
+            }
+
+            #endregion
+
+
+            #region 立柱
+
+            foreach (Model.Column item in theArch.ColumnList)
+            {
+                Extents2d exi;
+                if (item.X<0)
+                {
+                    item.DrawColumnPlan(cc, out exi, true);
+                }            
+            }
+
+            foreach (var item in theArch.RCColumnList)
+            {
+                Extents2d exi;
+                if (item.X<0)
+                {
+                    item.DrawPlan(cc, out exi);
+
+                }
+
+            }
+
+            #endregion
+
+            #region 总体标注
+            ptForDim = new List<Point3d>();
+
+            foreach (var item in theArch.ColumnList)
+            {
+                if (item.X<0)
+                {
+                    ptForDim.Add(new Point3d(item.X, theArch.Width * 0.5, 0));
+                }
+            }
+            foreach (var item in theArch.RCColumnList)
+            {
+                if (item.X < 0)
+                {
+                    ptForDim.Add(new Point3d(item.X, theArch.Width * 0.5, 0));
+                }
+            }
+            ptForDim.Add(new Point3d(0, theArch.Width * 0.5, 0));
+            ptForDim.Sort((x, y) => x.X.CompareTo(y.X)) ;
+            for (int i = 0; i < ptForDim.Count - 1; i++)
+            {
+                string rep = "";
+                var pt1 = ptForDim[i];
+                var pt2 = ptForDim[i + 1];
+                obj.Add(DimPloter.DimRot(pt1, pt2, pt2.C3D(0, 0.5 * theArch.Width + 3), 0, 1, rep, Unit.Meter, Unit.Centimeter));
+            }
+
+            obj.Add(TextPloter.AddTitle(Point2d.Origin.C2D(-0.25 * L, 0.5 * theArch.Width + 20), "1/4拱圈顶平面", ""));
+            obj.Add(TextPloter.AddTitle(Point2d.Origin.C2D(-0.25 * L, -0.5 * theArch.Width - 24), "1/4拱圈底平面", ""));
+
+
+
+            #endregion
+
+
+            #region 输出
+
+            foreach (var item in obj)
+            {
+                Entity et = (Entity)item;
+                et.TransformBy(Matrix3d.Displacement(cc.GetAsVector().C3D()));
+            }
+
+            var idsnew = Ploter.WriteDatabase(obj);
+
+            foreach (ObjectId item in idsnew)
+            {
+                ids.Add(item);
+            }
+            ext = Ploter.GetExtends(ids);
+
+            #endregion
 
 
         }

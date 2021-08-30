@@ -10,8 +10,64 @@ using HPDI.DrawingStandard;
 
 namespace CADInterface.API
 {
+
+  
     public static class ColumnAPI
     {
+        public static void DrawRCColumnSide(this RCColumn col,Vector2d moveVector,out Extents2d ext,double scale=0)
+        {
+            #region 总体
+            DBObjectCollection obj = new DBObjectCollection();
+            ObjectIdCollection ids = new ObjectIdCollection();
+
+            Point3d ft = new Point3d(col.X,col.H0, 0);
+            Point3d top = new Point3d(col.X, col.H1, 0);
+            Point3d topCB = new Point3d(col.X, col.H2, 0);           
+
+            #endregion
+
+            #region 墩身
+            double w1 = col.Section1.Width;
+            double w0 = col.Section1.Width;
+            List<Point2d> piers = new List<Point2d>();
+            piers.Add(ft.C2D());
+            piers.Add(ft.C2D(-0.5*w0));
+            piers.Add(top.C2D(-0.5*w1));
+            piers.Add(top.C2D());
+            piers.Add(top.C2D(0.5 * w1)) ;
+            piers.Add(ft.C2D(0.5 * w0)) ;
+            Polyline pl=(Polyline) PLPloter.AddPolylineByPointList(piers, "H粗线", true)[0];
+            obj.Add(pl);
+            obj.Add(new Line(ft, topCB) { Layer = "H中心线" });
+
+            var cb=MLPloter.AddTube(top.C2D(), topCB.C2D(), w1, 0, "H粗线", null, null, false);
+            Extensions.Add(obj, cb);
+
+            obj.Add(new Line(topCB.C3D(-0.5 * w1), topCB.C3D(0.5 * w1)) { Layer = "H粗线" });
+
+            #endregion
+
+
+
+            #region 标注
+            #endregion
+
+
+
+            #region 输出
+            foreach (DBObject item in obj)
+            {
+                Entity ent = (Entity)item;
+                ent.TransformBy(Matrix3d.Displacement(moveVector.C3D()));
+            }
+            ids=Ploter.WriteDatabase(obj);
+            ext = Ploter.GetExtends(ids);
+            #endregion
+
+
+
+
+        }
 
         public static void DrawColumnElev(this Model.Column model, Database db, Point2d cc, out Extents2d ext, double scale = 0)
         {
@@ -73,7 +129,7 @@ namespace CADInterface.API
                 entyList.Add(DimPloter.DimRot(ptd, pte, pta.C3D(-10 * scale), 90, 0.25, string.Format("K×{0:F0}", model.BeamStep * 100), Unit.Meter, Unit.Centimeter));
                 entyList.Add(DimPloter.DimRot(pte, ptf, pta.C3D(-10 * scale), 90, 0.25, "B", Unit.Meter, Unit.Centimeter));
                 entyList.Add(DimPloter.DimRot(pta.C3D(0, model.CapHeight - model.InstallOffset), pta, pta.C3D(-10 * scale), 90, 0.25, "", Unit.Meter, Unit.Centimeter));
-                entyList.Add(DimPloter.DimRot(pta.C3D(0, model.CapHeight - model.InstallOffset), ptf, pta.C3D(-15 * scale), 90, 0.25, "H", Unit.Meter, Unit.Centimeter));
+                entyList.Add(DimPloter.DimRot(pta.C3D(0, model.CapHeight - model.InstallOffset), ptf, pta.C3D(-15 * scale), 90, 0.25, "L", Unit.Meter, Unit.Centimeter));
 
                 var pa1= pt0.C3D(-0.5 * model.MainArch.WidthInside - model.MainArch.WidthOutside);
 
@@ -163,7 +219,7 @@ namespace CADInterface.API
             {
                 outID.Add(item);
             }
-            ext = Ploter.GetExtendds(outID);
+            ext = Ploter.GetExtends(outID);
 
         }
 
@@ -229,7 +285,7 @@ namespace CADInterface.API
             }
 
             var ids=Ploter.WriteDatabase(entyList);
-            ext = Ploter.GetExtendds(ids);
+            ext = Ploter.GetExtends(ids);
 
         }
 
@@ -356,7 +412,7 @@ namespace CADInterface.API
                 Point3d ptb = new Point3d(model.X, model.Z2 - model.CapHeight - model.BeamStep * model.InstallSteps * model.N, 0);
                 Point3d ptc = new Point3d(model.X, model.Z2, 0);
                 entyList.Add(DimPloterO.CreatDimRotated(db,  pta, ptb, pt0.C3D(12 * scale), "M-CM-4-1", 90, "A\\X起步节段"));
-                entyList.Add(DimPloterO.CreatDimRotated(db,  pta, ptc, pt0.C3D(17 * scale), "M-CM-4-1", 90, "H"));
+                entyList.Add(DimPloterO.CreatDimRotated(db,  pta, ptc, pt0.C3D(17 * scale), "M-CM-4-1", 90, "L"));
                 entyList.Add(DimPloterO.CreatMLeader(db,  ptc.C2D(-0.5*model.L,-18.5),  "立柱竖杆",true));
                 entyList.Add(DimPloterO.CreatMLeader(db, ptc.C2D(0,-model.CapHeight-model.BeamStep*model.InstallSteps+model.InstallOffset),
                     "横撑",true));
@@ -379,6 +435,75 @@ namespace CADInterface.API
                 db.AddEntityToModeSpace((Entity)item);
                 ext = ext.Add(ent.GeometricExtents.C2D());
             }         
+
+        }
+
+
+
+        public static void DrawPlan(this Model.RCColumn col, Point2d dispV, out Extents2d ext)
+        {
+            DBObjectCollection obj = new DBObjectCollection();
+            ObjectIdCollection ids = new ObjectIdCollection();
+            Matrix3d mat = Matrix3d.Displacement(dispV.C3D().GetAsVector());
+            double y0 = col.MainArch.WidthInside * 0.5 + col.MainArch.WidthOutside * 0.5;
+            double x0 = col.X;
+            double w = col.Section0.Width;
+            double l = col.Section0.Length;
+            obj.Add(PLPloter.AddPloy4(new Point2d(x0, y0).C2D(0, 0.5 * w), 0.5 * l, 0.5 * l, w, "H粗线"));
+            obj.Add(PLPloter.AddPloy4(new Point2d(x0, -y0).C2D(0, 0.5 * w), 0.5 * l, 0.5 * l, w, "H粗线"));
+            obj.Add(new Line(new Point3d(x0, -y0 - w, 0), new Point3d(x0, y0 + w, 0)) { Layer = "H中心线" });
+
+            Ploter.ExertTransform(obj, mat);
+            ids= Ploter.WriteDatabase(obj);
+            ext= Ploter.GetExtends(ids);
+        }
+
+        public static void DrawColumnPlan(this Model.Column col,Point2d dispV, out Extents2d ext,bool onlyHalf=false)
+        {
+            DBObjectCollection obj = new DBObjectCollection();
+            ObjectIdCollection ids = new ObjectIdCollection();
+            Matrix3d mat = Matrix3d.Displacement(dispV.C3D().GetAsVector());
+
+            double x0 = col.X;
+            double w = col.FootW;
+            double l = col.FootL;
+            foreach (double y0 in new double[] {0.5*col.MainArch.WidthInside,0.5*col.MainArch.Width })
+            {
+                Point2d cc = new Point2d(x0, y0);
+                obj.Add(PLPloter.AddPloy4(cc.C2D(0, 0.5 * w), 0.5 * l, 0.5 * l, w, "H细线"));
+                obj.Add(new Circle(cc.C3D(-0.5 * col.L), Vector3d.ZAxis, 0.5 * col.MainDiameter));
+                obj.Add(new Circle(cc.C3D(+0.5 * col.L), Vector3d.ZAxis, 0.5 * col.MainDiameter));
+            }
+            if (onlyHalf)
+            {
+                foreach (var item in obj)
+                {
+                    var ent = (Entity)item;
+                    ent.TransformBy(mat);
+                }
+                ids = Ploter.WriteDatabase(obj);
+                ext = Ploter.GetExtends(ids);
+                return;
+            }
+            else
+            {
+                foreach (double y0 in new double[] { -0.5 * col.MainArch.WidthInside, -0.5 * col.MainArch.Width })
+                {
+                    Point2d cc = new Point2d(x0, y0);
+                    obj.Add(PLPloter.AddPloy4(cc.C2D(0, 0.5 * w), 0.5 * l, 0.5 * l, w, "H细线"));
+                    obj.Add(new Circle(cc.C3D(-0.5 * col.L), Vector3d.ZAxis, 0.5 * col.MainDiameter));
+                    obj.Add(new Circle(cc.C3D(+0.5 * col.L), Vector3d.ZAxis, 0.5 * col.MainDiameter));
+                }
+                foreach (var item in obj)
+                {
+                    var ent = (Entity)item;
+                    ent.TransformBy(mat);
+                }
+                ids = Ploter.WriteDatabase(obj);
+                ext = Ploter.GetExtends(ids);
+                return;
+            }
+
 
         }
     }

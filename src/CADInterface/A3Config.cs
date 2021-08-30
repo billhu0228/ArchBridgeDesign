@@ -17,6 +17,23 @@ namespace CADInterface
             InitMark();
             InitWrittenWords2Block();
         }
+
+        /// <summary>
+        /// 初始化制图单位
+        /// </summary>
+        /// <param name="drawingUnit"></param>
+        public static void InitUnits(UnitsValue drawingUnit = UnitsValue.Millimeters)
+        {
+            Database db = HostApplicationServices.WorkingDatabase;
+            using (Transaction tr = db.TransactionManager.StartTransaction())
+            {
+                BlockTable bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+                BlockTableRecord ms = tr.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+                ms.Units = drawingUnit;
+                tr.Commit();
+            }
+        }
+
         /// <summary>
         /// 初始化标注
         /// </summary>

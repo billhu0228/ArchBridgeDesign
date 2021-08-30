@@ -14,6 +14,18 @@ namespace Model
         public double Diameter;
     }
 
+    public class RectSection : Section
+    {
+        public double Width, Length;
+
+        public RectSection(double w,double l)
+        {
+            Width = w;
+            Length = l;
+            Diameter = double.NaN;
+        }
+    }
+
     public class HSection : Section
     {
         public double W1, W2, W3, t1, t2, t3;
