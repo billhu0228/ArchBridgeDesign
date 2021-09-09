@@ -64,7 +64,7 @@ namespace Model
 
         public override string ToString()
         {
-            return string.Format("控制面 x={0} , Ang={1} , 类别={2}",Center.X,Angle0.Degrees, EnumHelper.GetDescription(typeof(eDatumType),DatumType));
+            return string.Format("控制面 {3} : x={0} , Ang={1} , 类别={2}",Center.X,Angle0.Degrees, EnumHelper.GetDescription(typeof(eDatumType),DatumType),ID);
 
 
         }

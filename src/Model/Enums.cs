@@ -25,6 +25,9 @@ namespace Model
         [Description("无截面控制面")]
         ControlDatum = 6,
 
+        [Description("安装控制面")]
+        InstallDatum =7,
+
         [Description("一般控制面")]
         GeneralDatum =9,
     }

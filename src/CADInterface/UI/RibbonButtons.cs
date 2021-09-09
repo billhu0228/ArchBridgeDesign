@@ -61,21 +61,46 @@ namespace CADInterface.UI
         }
 
 
+        //主拱圈一般构造图按钮
+        private static RibbonButtonEX archBtn;
+        public static RibbonButtonEX ArchBtn
+        {
+            get
+            {
+                archBtn = new RibbonButtonEX("主拱构造", RibbonItemSize.Large, Orientation.Vertical, "ArchDraw");
+                archBtn.SetImg(Config.CurPath + "Images\\bridge.PNG");//设置按钮图片
+                //添加提示对象
+                RibbonToolTip toolTip = new RibbonToolTip();
+                toolTip.Title = "主拱构造";
+                toolTip.Content = "主拱构造";
+                toolTip.Command = "ArchDraw";
+                toolTip.ExpandedContent = "主拱构造";
+                string imgToolTipFileName = Config.CurPath + "Images\\bridge.PNG";
+                Uri toolTipUri = new Uri(imgToolTipFileName);
+                BitmapImage toolTipBitmapImge = new BitmapImage(toolTipUri);
+                toolTip.ExpandedImage = toolTipBitmapImge;
+                archBtn.ToolTip = toolTip;
+                //鼠标进入时的图片
+                archBtn.ImgHoverFileName = Config.CurPath + "Images\\cursor-default-click-outline.PNG";
+                return archBtn;
+            }
+        }
+
         //GA按钮
         private static RibbonButtonEX gaBtn;
         public static RibbonButtonEX GABtn
         {
             get
             {
-                gaBtn = new RibbonButtonEX("绘制主拱", RibbonItemSize.Large, Orientation.Vertical, "GA");
-                gaBtn.SetImg(Config.CurPath + "Images\\bridge.PNG");//设置按钮图片
+                gaBtn = new RibbonButtonEX("一般布置图", RibbonItemSize.Large, Orientation.Vertical, "GeneralArrangement");
+                gaBtn.SetImg(Config.CurPath + "Images\\平面.PNG");//设置按钮图片
                 //添加提示对象
                 RibbonToolTip toolTip = new RibbonToolTip();
-                toolTip.Title = "绘制主拱";
-                toolTip.Content = "绘制主拱";
-                toolTip.Command = "GA";
-                toolTip.ExpandedContent = "用GA命令，生成桥形图";
-                string imgToolTipFileName = Config.CurPath + "Images\\bridge.PNG";
+                toolTip.Title = "一般布置图";
+                toolTip.Content = "一般布置图";
+                toolTip.Command = "GeneralArrangement";
+                toolTip.ExpandedContent = "一般布置图";
+                string imgToolTipFileName = Config.CurPath + "Images\\平面.PNG";
                 Uri toolTipUri = new Uri(imgToolTipFileName);
                 BitmapImage toolTipBitmapImge = new BitmapImage(toolTipUri);
                 toolTip.ExpandedImage = toolTipBitmapImge;
@@ -86,43 +111,18 @@ namespace CADInterface.UI
             }
         }
 
-        //GP按钮
-        private static RibbonButtonEX gpBtn;
-        public static RibbonButtonEX GPBtn
-        {
-            get
-            {
-                gpBtn = new RibbonButtonEX("桥位图", RibbonItemSize.Large, Orientation.Vertical, "GP");
-                gpBtn.SetImg(Config.CurPath + "Images\\平面.PNG");//设置按钮图片
-                //添加提示对象
-                RibbonToolTip toolTip = new RibbonToolTip();
-                toolTip.Title = "桥位图";
-                toolTip.Content = "生成桥位图";
-                toolTip.Command = "GP";
-                toolTip.ExpandedContent = "用GP命令，生成桥位图";
-                string imgToolTipFileName = Config.CurPath + "Images\\平面.PNG";
-                Uri toolTipUri = new Uri(imgToolTipFileName);
-                BitmapImage toolTipBitmapImge = new BitmapImage(toolTipUri);
-                toolTip.ExpandedImage = toolTipBitmapImge;
-                gpBtn.ToolTip = toolTip;
-                //鼠标进入时的图片
-                gpBtn.ImgHoverFileName = Config.CurPath + "Images\\cursor-default-click-outline.PNG";
-                return gpBtn;
-            }
-        }
-
         //立柱绘制
         private static RibbonButtonEX colBtn;
         public static RibbonButtonEX ColBtn
         {
             get
             {
-                colBtn = new RibbonButtonEX("绘制立柱", RibbonItemSize.Large, Orientation.Vertical, "ColumnDraw");
+                colBtn = new RibbonButtonEX("立柱构造", RibbonItemSize.Large, Orientation.Vertical, "ColumnDraw");
                 colBtn.SetImg(Config.CurPath + "Images\\ladder.PNG");//设置按钮图片
                 //添加提示对象
                 RibbonToolTip toolTip = new RibbonToolTip();
-                toolTip.Title = "绘制立柱";
-                toolTip.Content = "绘制立柱";
+                toolTip.Title = "立柱构造";
+                toolTip.Content = "立柱构造";
                 toolTip.Command = "ColumnDraw";
                 toolTip.ExpandedContent = "";
                 string imgToolTipFileName = Config.CurPath + "Images\\ladder.PNG";
@@ -136,6 +136,32 @@ namespace CADInterface.UI
             }
         }
 
+
+        
+        //立柱绘制
+        private static RibbonButtonEX segBtn;
+        public static RibbonButtonEX SegBtn
+        {
+            get
+            {
+                segBtn = new RibbonButtonEX("节段构造", RibbonItemSize.Large, Orientation.Vertical, "DrawSegment");
+                segBtn.SetImg(Config.CurPath + "Images\\ladder.PNG");//设置按钮图片
+                //添加提示对象
+                RibbonToolTip toolTip = new RibbonToolTip();
+                toolTip.Title = "节段构造";
+                toolTip.Content = "节段构造";
+                toolTip.Command = "DrawSegment";
+                toolTip.ExpandedContent = "";
+                string imgToolTipFileName = Config.CurPath + "Images\\ladder.PNG";
+                Uri toolTipUri = new Uri(imgToolTipFileName);
+                BitmapImage toolTipBitmapImge = new BitmapImage(toolTipUri);
+                toolTip.ExpandedImage = toolTipBitmapImge;
+                segBtn.ToolTip = toolTip;
+                //鼠标进入时的图片
+                segBtn.ImgHoverFileName = Config.CurPath + "Images\\cursor-default-click-outline.PNG";
+                return segBtn;
+            }
+        }
         #endregion
 
     }

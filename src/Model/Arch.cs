@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Data;
+using System.Diagnostics;
 
 namespace Model
 {
@@ -21,7 +22,10 @@ namespace Model
         public ArchAxis Axis;
         public double H0, H1;
         public double WidthInside, WidthOutside;
-        public List<DatumPlane> MainDatum, SecondaryDatum, DiagonalDatum;
+        public List<DatumPlane> MainDatum, SecondaryDatum, DiagonalDatum,InstallDatum;
+
+        public List<InstallationSegment> InstPartList;
+
         protected List<MemberPropertyRecord> PropertyTable;
         public delegate double get_z(double x0);
         public List<Point2D> UpSkeleton, LowSkeleton,UpUpSkeleton,UpLowSkeleton,LowUpSkeleton,LowLowSkeleton;
@@ -33,6 +37,7 @@ namespace Model
         public DataTable ColumnTable;
         double HeightOrder;
 
+        double footLevel;
 
 
         /// <summary>
@@ -56,10 +61,16 @@ namespace Model
             RCColumnList = new List<RCColumn>();
             SecondaryDatum = new List<DatumPlane>();
             DiagonalDatum = new List<DatumPlane>();
+            InstPartList = new List<InstallationSegment>();
             PropertyTable = new List<MemberPropertyRecord>();
+
+            InstallDatum = new List<DatumPlane>() {
+                new DatumPlane(0,new Point2D( -Axis.L1,Axis.GetZ(-Axis.L1)),Axis.GetNormalAngle(-Axis.L1),eDatumType.InstallDatum),                
+                new DatumPlane(2,new Point2D( Axis.L1,Axis.GetZ(Axis.L1)),Axis.GetNormalAngle(Axis.L1),eDatumType.InstallDatum),
+                };
             HeightOrder = order;
             ElevationOfTop = elevationOfTop;
-
+            footLevel = elevationOfTop-ax.f;
         }
 
 
@@ -88,7 +99,13 @@ namespace Model
 
             }
         }
-
+        public double FootLevel
+        {
+            get
+            {
+                return footLevel;
+            }
+        }
         public double Width
         {
             get
@@ -131,6 +148,98 @@ namespace Model
         }
 
         /// <summary>
+        /// 生成通用安装节段
+        /// </summary>
+        /// <param name="curI"></param>
+        /// <param name="nexI"></param>
+        /// <param name="vs1"></param>
+        /// <param name="vs2"></param>
+        /// <param name="vs3"></param>
+        public void CreateInstallSegment(DatumPlane curI, DatumPlane nexI, double[] dist, double[] ang_degList, bool[] is_dia,double e)
+        {
+            //首先判断参数合理性
+            double La = nexI.Center.X - curI.Center.X;
+            Debug.Assert(dist.Sum() == La);
+            Debug.Assert(dist.Length == ang_degList.Length + 1);
+            Debug.Assert(is_dia.Length == dist.Length);
+
+            List<eDatumType> Dtlist = new List<eDatumType>();
+            //List<double> ang_degList = new List<double>();
+
+
+            for (int i = 0; i < dist.Count()-1; i++)
+            {
+                double xi = curI.Center.X + dist.ToList().GetRange(0, i + 1).Sum();
+                if (ang_degList[i]==90)
+                {
+                    Dtlist.Add(eDatumType.VerticalDatum);
+                }                
+                else
+                {
+                    Dtlist.Add(eDatumType.NormalDatum);
+                }
+            }
+            List<DatumPlane> newMainDatum = new List<DatumPlane>();
+            List<DatumPlane> newDiaDatum = new List<DatumPlane>();
+            for (int i = 0; i < dist.Length-1; i++)
+            {
+                double xi = curI.Center.X + dist.ToList().GetRange(0, i + 1).Sum();
+                Point2D cc = new Point2D(xi, Axis.GetZ(xi));
+                double ang = ang_degList[i]; 
+                newMainDatum.Add(new DatumPlane(0, cc, Angle.FromDegrees(ang), Dtlist[i]));
+                if (i!=0)
+                {
+                    if (is_dia[i])
+                    {
+                        var dia=CreatDiagonalDatum(newMainDatum[i - 1], newMainDatum[i], e);
+                        var a = (newMainDatum[i - 1].Angle0.Degrees + newMainDatum[i].Angle0.Degrees) * 0.5;
+                        SecondaryDatum.Add(new DatumPlane(0,dia.Center, Angle.FromDegrees(a), eDatumType.MiddleDatum));
+                        newDiaDatum.Add(dia);
+                    }
+                }
+            }
+
+            foreach (var item in newMainDatum)
+            {
+                MainDatum.Add(item);
+            }
+            foreach (var item in newDiaDatum)
+            {
+                DiagonalDatum.Add(item);
+
+            }
+            MainDatum.MySort();
+            DiagonalDatum.MySort();
+            SecondaryDatum.MySort();
+        }
+
+
+        public void AddInstSeg(int id, double x_start, double x_end, ref InstallationSegment refPart, bool reWrite=false)
+        {
+
+            InstallationSegment newInst = refPart.Clone() as InstallationSegment;
+
+            if (InstPartList.Find(x=>x.Id==id)!=null)
+            {
+                if (reWrite)
+                {
+                    var idx=InstPartList.IndexOf(InstPartList.Find(x => x.Id == id));
+                    InstPartList.RemoveAt(idx);
+                }
+                else
+                {
+                    throw new Exception(string.Format("编号为{0}的吊装节段已定义.", id));
+                }           
+            }
+            newInst.Id = id;
+            newInst.X_Start = x_start;
+            newInst.X_End = x_end;
+            newInst.theArch = this;
+            InstPartList.Add(newInst);
+        }
+
+
+        /// <summary>
         /// 定义基准平面，无角度时为正交平面
         /// </summary>
         /// <param name="sectid"></param>
@@ -145,19 +254,34 @@ namespace Model
                 angle_deg = Axis.GetAngle(location).Degrees + 90.0;
             }
             Point2D cc = Axis.GetCenter(location);
-            if (ST == eDatumType.MiddleDatum)
+
+            if (ST==eDatumType.InstallDatum)
+            {
+                var datum = new DatumPlane(0, cc, Angle.FromDegrees(angle_deg), ST);
+                InstallDatum.Add(datum);
+                InstallDatum.MySort();
+            }
+            else if (ST == eDatumType.MiddleDatum)
             {
                 var datum = new DatumPlane(0, cc, Angle.FromDegrees(angle_deg), ST);
                 SecondaryDatum.Add(datum);
+                SecondaryDatum.MySort();
             }
             else
             {
                 var datum = new DatumPlane(0, cc, Angle.FromDegrees(angle_deg), ST);
                 MainDatum.Add(datum);
+                MainDatum.MySort();
 
             }
 
             return;
+        }
+
+
+        public DatumPlane GetMainDatum(int id)
+        {
+            return MainDatum.Find(x => x.ID == id);
         }
 
         public DatumPlane GetDatum(double x, eDatumType theType, double tor = 1e-5)
@@ -206,7 +330,12 @@ namespace Model
         {
             Column theCol = new Column(this, x0, relativeH, colid, columnL,  capH,stepL, numStep, offset, footW, footL, footMinH);
             ColumnList.Add(theCol);
-            ColumnList.Sort(new Column());
+            if (colid==0)
+            {
+                ColumnList.MySort();
+            }
+
+            // ColumnList.Sort(new Column());
         }
 
         /// <summary>
@@ -242,6 +371,65 @@ namespace Model
                 double x = (P1.Center.X + P2.Center.X) * 0.5;
                 SecondaryDatum.Add(new DatumPlane(0, Axis.GetCenter(x), Angle.FromDegrees(90), eDatumType.MiddleDatum));
             }
+        }
+
+        /// <summary>
+        /// 设置拱脚高程
+        /// </summary>
+        /// <param name="val"></param>
+        public void SetFootLevel(double val)
+        {
+            footLevel = val;
+            ElevationOfTop = val + Axis.f;
+        }
+
+        /// <summary>
+        /// 生成斜腹杆平面
+        /// </summary>
+        /// <param name="P1"></param>
+        /// <param name="P2"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public DatumPlane CreatDiagonalDatum(DatumPlane P1, DatumPlane P2, double e,DatumPlane Pmid=null)
+        {
+            double up_dia = GetTubeProperty(0, eMemberType.UpperCoord).Section.Diameter;
+            double down_dia = GetTubeProperty(0, eMemberType.LowerCoord).Section.Diameter;
+            double x = (P1.Center.X + P2.Center.X) * 0.5;
+            double a = (P1.Angle0.Degrees + P2.Angle0.Degrees) * 0.5;
+            DatumPlane Pm = Pmid == null? new DatumPlane(0, Axis.GetCenter(x), Angle.FromDegrees(a), eDatumType.MiddleDatum):Pmid;
+
+            Line2D L_UP_1 = new Line2D(Get3Point(P1.Center.X,P1.Angle0.Degrees)[0], Get3Point(Pm.Center.X, Pm.Angle0.Degrees)[0]);
+            Line2D L_UP_2 = new Line2D(Get3Point(Pm.Center.X, Pm.Angle0.Degrees)[0], Get3Point(P2.Center.X, P2.Angle0.Degrees)[0]);
+
+            Line2D L_DOWN_1 = new Line2D(Get3Point(P1.Center.X, P1.Angle0.Degrees)[2], Get3Point(Pm.Center.X, Pm.Angle0.Degrees)[2]);
+            Line2D L_DOWN_2 = new Line2D(Get3Point(Pm.Center.X, Pm.Angle0.Degrees)[2], Get3Point(P2.Center.X, P2.Angle0.Degrees)[2]);
+
+            Line2D L1 = P1.Line.Offset(-0.5 * GetTubeProperty(P1.Center.X, eMemberType.VerticalWeb).Section.Diameter);
+            Line2D L2 = P2.Line.Offset(0.5 * GetTubeProperty(P2.Center.X, eMemberType.VerticalWeb).Section.Diameter);
+
+            Circle2D C_UP, C_DOWN;
+
+            double dia = GetTubeProperty(Pm.Center.X, eMemberType.InclineWeb).Section.Diameter;
+
+            if (P2.Center.X < 0)
+            {
+
+                C_UP = new Circle2D((Point2D)(L1.IntersectWith(L_UP_1.Offset(-0.5 * up_dia))) + L_UP_1.Direction * e, dia);
+                C_DOWN = new Circle2D((Point2D)(L2.IntersectWith(L_DOWN_2.Offset(0.5 * down_dia))) - L_DOWN_2.Direction * e, dia);
+
+            }
+            else if (P1.Center.X > 0)
+            {
+                C_UP = new Circle2D((Point2D)(L2.IntersectWith(L_UP_2.Offset(-0.5 * down_dia))) - L_UP_2.Direction * e, dia);
+                C_DOWN = new Circle2D((Point2D)(L1.IntersectWith(L_DOWN_1.Offset(0.5 * up_dia))) + L_DOWN_1.Direction * e, dia);
+            }
+            else
+            {
+                throw new Exception();
+            }
+            var B = C_UP.Center.Tangent(C_DOWN)[0];
+            Line2D datumLine = (new Line2D(B, C_UP.Center)).Offset(Math.Sign(P1.Center.X) * 0.5 * dia);
+            return new DatumPlane(0, Axis.Intersect(datumLine), Vector2D.XAxis.AngleTo(datumLine.Direction), eDatumType.DiagonalDatum);
         }
 
         /// <summary>
@@ -421,6 +609,7 @@ namespace Model
         public void GenerateTruss(int numCol, int distCol, 
             double distVertical1, double distVertical2, double distVertical3,int CellsSide)
         {
+
             double x0 = (numCol-1)*distCol*-0.5;
             for (int i = 0; i < numCol; i++)
             {
@@ -460,6 +649,74 @@ namespace Model
                 }
             }
         }
+
+
+        /// <summary>
+        /// 生成平行式桁架（基于吊装单元，需提前定义所有吊装基准面）
+        /// </summary>
+        /// <param name="numCol"></param>
+        /// <param name="distCol"></param>
+        /// <param name="distVertical1"></param>
+        /// <param name="distVertical2"></param>
+        /// <param name="distVertical3"></param>
+        /// <param name="CellsSide"></param>
+        public void GenerateTrussUnit(double installGap,double sideDist,double dist,int numMid,
+            double sideDistC, double distC, int numMidC)
+        {
+            var Inst = (from DatumPlane dt in InstallDatum where dt.Angle0 == Angle.FromDegrees(90.0) select dt).ToList();
+            double La = installGap + sideDist * 2 + numMid * dist;
+            double Lb = installGap + sideDistC * 2 + numMidC * distC;
+            double sd, d;
+            int numd;
+
+            for (int i = 0; i < Inst.Count; i++)
+            {
+                var item = Inst[i];
+                Point2D cc = new Point2D(item.Center.X - 0.5 * installGap, Axis.GetZ(item.Center.X - 0.5 * installGap));
+                MainDatum.Add(new DatumPlane(0, cc, Angle.FromDegrees(90.0), eDatumType.VerticalDatum));
+                cc = new Point2D(item.Center.X + 0.5 * installGap, Axis.GetZ(item.Center.X + 0.5 * installGap));
+                MainDatum.Add(new DatumPlane(0, cc, Angle.FromDegrees(90.0), eDatumType.VerticalDatum));
+
+                if (i!=0)
+                {
+                    var previousItem = Inst[i - 1];
+
+                    if ((item.Center.X-previousItem.Center.X)==La)
+                    {
+                        sd = sideDist;
+                        numd = numMid;
+                        d = dist;
+                    }
+                    else if ((item.Center.X - previousItem.Center.X) == Lb)
+                    {
+                        sd = sideDistC;
+                        numd = numMidC;
+                        d = distC;
+                    }
+                    else
+                    {
+                        throw new Exception();
+                    }
+                    double xi=previousItem.Center.X+0.5*installGap+ sd;
+                    for (int j = 0; j < numd + 1; j++)
+                    {
+                        cc = new Point2D(xi, Axis.GetZ(xi));
+                        MainDatum.Add(new DatumPlane(0, cc, Angle.FromDegrees(90.0), eDatumType.VerticalDatum));
+                        SecondaryDatum.Add(new DatumPlane(0, new Point2D(xi+0.5*d,Axis.GetZ(xi+0.5*d)), Angle.FromDegrees(90.0), eDatumType.MiddleDatum));
+                        if (j==0)
+                        {
+                            SecondaryDatum.Add(new DatumPlane(0, new Point2D(xi - 0.5 * d, Axis.GetZ(xi - 0.5 * d)), Angle.FromDegrees(90.0), eDatumType.MiddleDatum));
+                        }
+                        xi +=  d;
+                    }
+                }// 标准节段
+            }
+
+            MainDatum.MySort();
+            SecondaryDatum.MySort();
+            ;
+        }
+
 
         /// <summary>
         /// 生成立柱模型
@@ -541,7 +798,7 @@ namespace Model
             {
                 item.Generate();
                 row = ColumnTable.NewRow();
-                row["name"] = "LZ-"+item.ID.ToString().PadLeft(2,'0');
+                row["name"] = "LZ-"+(item.ID+1).ToString().PadLeft(2,'0');
                 row["L(m)"] = item.H.ToString("F3");
                 row["A(m)"] = item.A.ToString("F3");
                 row["B(m)"] = item.B.ToString("F3");
@@ -559,12 +816,17 @@ namespace Model
 
         }
 
-        public void AddTriWeb(double centerX, DatumPlane targetDatum,double offset)
+        public void AddTriWeb(DatumPlane fromDatum, DatumPlane targetDatum,double offset,double half_c_offset=0)
         {
+            double centerX = fromDatum.Center.X;
+            Vector2D direction_from = Vector2D.XAxis.Rotate(fromDatum.Angle0);
             double DiaNormal = GetTubeProperty(targetDatum.Center.X, eMemberType.VerticalWeb).Section.Diameter;
             var sect = GetTubeProperty((centerX + targetDatum.Center.X) * 0.5, eMemberType.InclineWebS).Section;
             double dia = sect.Diameter;
-            Point2D O = Axis.GetCenter(centerX);
+            Point2D O0 = Axis.GetCenter(centerX);
+            Point2D OA = O0 + half_c_offset *direction_from;
+            Point2D OB = O0 - half_c_offset *direction_from;
+
             int direct = targetDatum.Center.X > centerX ? 1 : -1;
             Line2D bd = targetDatum.Line.Offset(direct * DiaNormal*0.5);
 
@@ -582,21 +844,27 @@ namespace Model
             inter.Sort((x, y) => x.X.CompareTo(y.X));
             Point2D B1 = direct == 1 ? inter[0] : inter[1];
 
-            var A2 = O.Tangent(new Circle2D(A1,dia*0.5))[1];
-            var B2 = O.Tangent(new Circle2D(B1,dia*0.5))[0];
+            var A2 = OA.Tangent(new Circle2D(A1,dia*0.5))[1];
+            var B2 = OB.Tangent(new Circle2D(B1,dia*0.5))[0];
 
-            var A3 = Get3PointReal(O.X, Vector2D.XAxis.AngleTo(A2 - O).Degrees)[0];
-            double deg = Vector2D.XAxis.AngleTo(B2 - O).Degrees;
+            var VA = Axis.Intersect(new Line2D(OA, A2));
+            var VB = Axis.Intersect(new Line2D(OB, B2));
+            
+            var A3 = Get3PointReal(VA.X, Vector2D.XAxis.AngleTo(A2 - OA).Degrees)[0];
+            
+            double deg = Angle.FromRadians( Vector2D.XAxis.SignedAngleBetween(B2 - OB)).Degrees;
             if (deg<0)
             {
                 deg = 180 + deg;
 
             }
-            var B3 = Get3PointReal(O.X, deg)[2];
-            MemberTable.Add(new Member(0, new Line2D(O, A3), sect, eMemberType.InclineWebS));
-            MemberTable.Add(new Member(0, new Line2D(O, B3), sect, eMemberType.InclineWebS));
-
-
+            var B3 = Get3PointReal(VB.X, deg)[2];
+            var MemberA = new Member(0, new Line2D(OA, A3), sect, eMemberType.InclineWebS);
+            MemberA.StartDatum = fromDatum;
+            MemberTable.Add(MemberA);
+            var MemberB = new Member(0, new Line2D(OB, B3), sect, eMemberType.InclineWebS);
+            MemberB.StartDatum = fromDatum;
+            MemberTable.Add(MemberB);
         }
 
         #endregion
@@ -695,7 +963,41 @@ namespace Model
             return prop;
         }
 
+        public List<Angle> Get3AngleReal(double x)
+        {
+            Angle AngUp, AngCC, AngLow;
 
+            AngCC = Axis.GetAngle(x);
+            Line2D theCutLine = new Line2D(Axis.GetCenter(x), Axis.GetCenter(x) + new Vector2D(0, 1));
+            List<Angle> tmp = new List<Angle>();
+            for (int i = 0; i < UpSkeleton.Count-1; i++)
+            {
+               var  seg = new List<Point2D>() { UpSkeleton[i], UpSkeleton[i + 1] };
+                var pt=Extension.Intersection(seg, theCutLine);
+                if (pt!=null)
+                {
+                    tmp.Add(Vector2D.XAxis.SignedAngleTo(UpSkeleton[i + 1] - UpSkeleton[i]));
+                }
+            }
+            AngUp = Angle.FromDegrees((from a in tmp select a.Degrees).ToList().Average());
+
+            tmp = new List<Angle>();
+            for (int i = 0; i < LowSkeleton.Count - 1; i++)
+            {
+                var seg = new List<Point2D>() { LowSkeleton[i], LowSkeleton[i + 1] };
+                var pt = Extension.Intersection(seg, theCutLine);
+                if (pt != null)
+                {
+                    tmp.Add(Vector2D.XAxis.SignedAngleTo(LowSkeleton[i + 1] - LowSkeleton[i]));
+                }
+            }
+            AngLow = Angle.FromDegrees((from a in tmp select a.Degrees).ToList().Average());
+
+            List<Angle> res = new List<Angle>() {AngUp,AngCC, AngLow };
+            return res;
+
+
+        }
 
         /// <summary>
         /// 获取曲线拱法线方向三个轴点

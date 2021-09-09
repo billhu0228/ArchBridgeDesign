@@ -13,6 +13,25 @@ namespace Model
     /// </summary>
     public static class Extension
     {
+        public static void MySort(this List<Column> theList)
+        {
+            theList.Sort((x, y) => x.X.CompareTo(y.X));
+            for (int i = 0; i < theList.Count; i++)
+            {
+                theList[i].ID = i;
+            }
+        }
+
+        public static void MySort (this List<DatumPlane> theList)
+        {
+            theList.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
+            for (int i = 0; i < theList.Count; i++)
+            {
+                theList[i].ID = i;
+
+            }
+        }
+
 
         /// <summary>
         /// 值域

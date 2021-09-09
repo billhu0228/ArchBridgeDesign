@@ -55,6 +55,7 @@
     <Compile Include="Column.cs" />
     <Compile Include="DatumPlane.cs" />
     <Compile Include="Extension.cs" />
+    <Compile Include="InstallationSegment.cs" />
     <Compile Include="Member.cs" />
     <Compile Include="MemberPropertyRecord.cs" />
     <Compile Include="Enums.cs" />

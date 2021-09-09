@@ -12,6 +12,7 @@ namespace Model
     public abstract class Section
     {
         public double Diameter;
+        public double Thickness;
     }
 
     public class RectSection : Section
@@ -23,6 +24,7 @@ namespace Model
             Width = w;
             Length = l;
             Diameter = double.NaN;
+            Thickness = 0;
         }
     }
 
@@ -39,6 +41,7 @@ namespace Model
             this.t2 = t2;
             this.t3 = t3;
             Diameter = w1;
+            Thickness = 0;
         }
         public override string ToString()
         {
@@ -49,7 +52,6 @@ namespace Model
 
     public class TubeSection:Section
     {
-        public double Thickness;
         public double Area;
         public TubeSection(double dia, double th)
         {
