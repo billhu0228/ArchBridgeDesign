@@ -119,6 +119,7 @@
     <Compile Include="API\ArchAPI.cs" />
     <Compile Include="Plotters\DimPloterO.cs" />
     <Compile Include="Plotters\MulitlinePloterO.cs" />
+    <Compile Include="Plotters\MyPloter.cs" />
     <Compile Include="Plotters\PolylinePloter.cs" />
     <Compile Include="Plotters\TablePloterO.cs" />
     <Compile Include="Plotters\TextPloterO.cs" />
@@ -143,6 +144,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
+    <None Include="data\Columns.config" />
+    <None Include="data\jsconfig1.json" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

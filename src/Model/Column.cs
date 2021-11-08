@@ -70,7 +70,7 @@ namespace Model
 
         public override string ToString()
         {
-            return string.Format("拱上立柱 {0}, H={1}  ", ID,RelativeHeight);
+            return string.Format("拱上立柱 {0}, H={1}  ", ID,H);
         }
 
         /// <summary>
@@ -165,7 +165,7 @@ namespace Model
             n = (int)((h - CapHeight) / InstallLen); // 标准节数量
             a = h - CapHeight - n * InstallLen; // 起步节长度
 
-            if (a < (BeamStep - InstallOffset))
+            if (a < (BeamStep - InstallOffset)+0.5)
             {
                 k = 0;
                 b = InstallOffset+a;

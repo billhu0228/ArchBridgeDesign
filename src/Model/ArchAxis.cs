@@ -92,6 +92,16 @@ namespace Model
         }
 
         /// <summary>
+        /// 任意x0值下的正交角值，拱顶为90，逆时针为正.
+        /// </summary>
+        /// <param name="x0"></param>
+        /// <returns></returns>
+        public Angle GetNormalAngle(double x0)
+        {
+            return GetAngle(x0) + Angle.FromDegrees(90.0);
+        }
+
+        /// <summary>
         /// 任意x0值下的切角值，拱顶为0，逆时针为正.
         /// </summary>
         /// <param name="x0"></param>
@@ -103,7 +113,7 @@ namespace Model
             {
                 double eta = 2 * f * k / (m - 1) / L;
                 Angle phi = Angle.FromRadians(-Math.Atan(eta * Math.Sinh(k * kesi)));
-                return phi;                
+                return phi;
             }
             else
             {

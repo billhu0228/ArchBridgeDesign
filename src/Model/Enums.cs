@@ -25,6 +25,9 @@ namespace Model
         [Description("无截面控制面")]
         ControlDatum = 6,
 
+        [Description("安装控制面")]
+        InstallDatum =7,
+
         [Description("一般控制面")]
         GeneralDatum =9,
     }
@@ -63,7 +66,7 @@ namespace Model
         LowerCoord = 2,
         [Description("普通竖腹杆")]        
         VerticalWeb = 3,
-        [Description("立柱竖腹杆")]
+        [Description("立柱斜撑")]
         ColumnWeb =31,
         [Description("斜腹杆")]
         InclineWeb = 4,
@@ -88,6 +91,73 @@ namespace Model
         ColumnCrossL = 21,
         [Description("立柱横桥向横撑")]
         ColumnCrossW = 22,
+    }
+
+
+    public enum eMaterial
+    {
+        [Description("混凝土-C35")]
+        C35 = 101,
+
+        [Description("混凝土-C40")]
+        C40 = 102,
+
+        [Description("混凝土-C50自密实微膨胀")]
+        C50SCC = 103,
+
+        [Description("混凝土-C50预制")]
+        C50PRE = 104,
+
+        [Description("混凝土-C80自密实微膨胀")]
+        C80SCC = 105,
+
+        [Description("铺装-沥青")]
+        W_ASPHALT = 201,
+
+        [Description("铺装-防水层")]
+        W_PROOF = 202,
+
+        [Description("钢筋-HRB500")]
+        HRB500 = 401,
+
+        [Description("钢筋-HBR400")]
+        HRB400 = 402,
+
+        [Description("钢材-Q420D钢管")]
+        Q420D_T = 501,
+
+        [Description("钢材-Q345D钢管")]
+        Q345D_T = 502,
+
+        [Description("钢材-Q345D钢材")]
+        Q345D_P = 503,
+
+        [Description("钢材-Q235C钢材")]
+        Q235C_P = 504,
+
+        [Description("钢材-Q235C钢管")]
+        Q235C_T = 505,
+
+        [Description("螺栓-高强")]
+        BOLT_H = 601,
+
+        [Description("螺栓-普通")]
+        BOLT_N = 602,
+
+        [Description("防腐涂层-外表面")]
+        COAT_E = 701,
+
+        [Description("防腐涂层-内表面")]
+        COAT_I = 702,
+
+        [Description("支座-QZ2000GD")]
+        QZ2000GD = 801,
+
+        [Description("支座-QZ2000DX")]
+        QZ2000DX = 802,
+
+        [Description("伸缩缝-MF240")]
+        MF240 = 901,
     }
 
     public static class EnumHelper

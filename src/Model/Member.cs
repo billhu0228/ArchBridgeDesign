@@ -11,6 +11,7 @@ namespace Model
         public int ID;
         public Section Sect;
         public eMemberType ElemType;
+        public DatumPlane StartDatum;
 
         public Member(int id, Line2D line, Section sect, eMemberType et)
         {

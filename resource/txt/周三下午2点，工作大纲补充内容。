@@ -1,0 +1,39 @@
+%YAML 1.1
+# Type: Model
+# Program: OrcaFlex 11.0a
+# User: IBD2
+# Machine: DESKTOP-HGUG67M
+---
+LineTypes:
+  - Name: Line type1
+    Category: Homogeneous pipe
+    # Geometry and density
+    OD: Profile1
+    ID: 0
+    MaterialDensity: 7.85
+    # Structure
+    E: 212e6
+    PoissonRatio: 0.293
+    # Drag, lift, added mass and slam
+    Cdn: 1.2
+    Cdz: 0.008
+    Cl: 0
+    Can: 1
+    Caz: 0
+    Cs: 0
+    Ce: 0
+    # Friction
+    SeabedNormalFrictionCoefficient: 0.5
+    SeabedAxialFrictionCoefficient: ~
+    # Contact
+    ClashStiffness: 0
+    # Stress
+    AllowableStress: ~
+    # Structural damping
+    RayleighDampingCoefficients: (no damping)
+    # Coating and lining
+    CoatingThickness: 0
+    LiningThickness: 0
+    # Additional stiffness
+    AdditionalEI: 0
+...

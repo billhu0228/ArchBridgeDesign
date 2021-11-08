@@ -3,16 +3,18 @@ using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.Geometry;
 using Model;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Configuration;
+using System.Collections.Specialized;
 using CADInterface.Plotters;
 using CADInterface.UI;
 using CADInterface.API;
 using Autodesk.AutoCAD.ApplicationServices;
 using HS = HPDI.DrawingStandard;
 using HPDI.DrawingStandard;
+using Autodesk.AutoCAD.EditorInput;
+using MathNet.Spatial.Units;
+using MathNet.Spatial.Euclidean;
+using System.Xml;
 
 [assembly: CommandClass(typeof(CADInterface.Commands))]
 namespace CADInterface
@@ -35,110 +37,31 @@ namespace CADInterface
             HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Centimeter, 0.25, "H仿宋");
             HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Centimeter, 0.5, "H仿宋");
             HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Centimeter, 0.1, "H仿宋");
+            HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Millimeter, 0.1, "H仿宋");
+            HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Millimeter, 0.125, "H仿宋");
+            HS.InitConfig.InitDimStyle(Unit.Millimeter, Unit.Millimeter, 40, "H仿宋");
+            HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Millimeter, 0.06666666666666, "H仿宋");
             HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Centimeter, 1, "H仿宋");
+            HS.InitConfig.InitDimStyle(Unit.Meter, Unit.Centimeter, 2, "H仿宋");
         }
 
         [CommandMethod("GenModel")]
         public void GenerateModel()
         {
+            Database db = HostApplicationServices.WorkingDatabase;
+            Editor ed = db.GetEditor();
+            ed.WriteMessage("\\n初始化模型..");
             // properDia.ShowDialog();
-            double L = 518.0;
 
-
-            #region 基本步骤
-
-            // 1. 设置拱系
-            theArchAxis = new ArchAxis(L / 4.5, 2.2, 518);
-            archModel = new Arch(theArchAxis, 7.0, 16.5, 12, 4);
-            // 2. 生成桁架
-            archModel.GenerateTruss(10, 49, 7, 6, 7, 2);
-            archModel.GenerateMiddleDatum(); //生成中插平面
-            // 补充
-            archModel.AddDatum(0, -L * 0.5, eDatumType.ControlDatum);
-            archModel.AddDatum(0, L * 0.5, eDatumType.ControlDatum);
-
-            foreach (var dxx in new double[] { 6, 12.5, 19 })
-            {
-
-                archModel.AddDatum(0, -0.5 * L + dxx, eDatumType.NormalDatum);
-                archModel.AddDatum(0, 0.5 * L - dxx, eDatumType.NormalDatum);
-            }
-
-
-            var dx = 1.0 / Math.Cos(archModel.Axis.GetAngle(-L * 0.5).Radians);
-            archModel.AddDatum(0, -L * 0.5 - dx, eDatumType.ControlDatum);
-            archModel.AddDatum(0, +L * 0.5 + dx, eDatumType.ControlDatum);
-
-
-            // 3. 配置截面
-            var s1 = new TubeSection(1.4, 0.035);
-            archModel.AssignProperty(eMemberType.UpperCoord, s1);
-            archModel.AssignProperty(eMemberType.LowerCoord, s1);
-            archModel.AssignProperty(eMemberType.VerticalWeb, new TubeSection(0.9, 0.024));
-            archModel.AssignProperty(eMemberType.ColumnWeb, new TubeSection(0.9, 0.024));
-            archModel.AssignProperty(eMemberType.InclineWeb, new TubeSection(0.9, 0.024));
-            archModel.AssignProperty(eMemberType.CrossBraceing, new TubeSection(0.7, 0.016));
-            archModel.AssignProperty(eMemberType.WebBracing, new HSection(0.3, 0.3, 0.3, 0.012, 0.012, 0.008));
-            archModel.AssignProperty(eMemberType.InclineWebS, new TubeSection(0.3, 0.008));
-            // 4. 生成上下弦骨架
-            archModel.GenerateSkeleton();
-            // 5. 生成斜杆基准面
-            archModel.GenerateDiagonalDatum(0.060);
-            // 6. 生成模型
-            archModel.GenerateArch();
-
-            // 6.1 增加三角斜腹杆
-            archModel.AddTriWeb(-0.5 * L, archModel.GetDatum(-0.5 * L + 6, eDatumType.NormalDatum), 0.06);
-            archModel.AddTriWeb(-0.5 * L + 6, archModel.GetDatum(-0.5 * L + 12.5, eDatumType.NormalDatum), 0.06);
-            archModel.AddTriWeb(-0.5 * L + 12.5, archModel.GetDatum(-0.5 * L + 19, eDatumType.NormalDatum), 0.06);
-
-            archModel.AddTriWeb(0.5 * L, archModel.GetDatum(0.5 * L - 6, eDatumType.NormalDatum), 0.06);
-            archModel.AddTriWeb(0.5 * L - 6, archModel.GetDatum(0.5 * L - 12.5, eDatumType.NormalDatum), 0.06);
-            archModel.AddTriWeb(0.5 * L - 12.5, archModel.GetDatum(0.5 * L - 19, eDatumType.NormalDatum), 0.06);
-
-            // 7. 立柱建模
-            double h0 = 15.5;
-            foreach (var item in archModel.MainDatum)
-            {
-                if (item.DatumType == eDatumType.ColumnDatum)
-                {
-                    var x = item.Center.X;
-                    var relH = archModel.Axis.f + h0;
-
-                    archModel.AddColumn(0, x, relH, 1.6, 2.8, 3.0, 3, 1, 1, 2.7, 0.5);
-                }
-            }
-            var s2 = new TubeSection(0.6, 0.016);
-            var s3 = new TubeSection(0.4, 0.016);
-
-            archModel.AssignProperty(eMemberType.ColumnMain, s2);
-            archModel.AssignProperty(eMemberType.ColumnCrossL, s3);
-            archModel.AssignProperty(eMemberType.ColumnCrossW, s3);
-
-            archModel.GenerateColumn();
-            // 8. 交界墩
-            double RtZ0 = -106;
-            double RtZ1 = 9;
-            double wratio = 0.0125;
-            RectSection S1 = new RectSection(6, 3);
-            RectSection S2 = new RectSection(7, 3);
-            RectSection S0 = new RectSection(6 + 2 * wratio * (RtZ1 - RtZ0), 3 + 2 * wratio * (RtZ1 - RtZ0));
-
-            archModel.AddColumn(0, -270.5, new RCColumn(0, -106, 9, 11, S0, S1, S2));
-            archModel.AddColumn(0, 270.5, new RCColumn(0, -106, 9, 11, S0, S1, S2));
-            #endregion
-
-
-            
-
+            archModel = Arch.PreliminaryDesignModel(out theArchAxis);
         }
 
-        [CommandMethod("GA")]
+        [CommandMethod("ArchDraw")]
         public void DrawingGeneralArrangment()
         {
             Database db = HostApplicationServices.WorkingDatabase;
 
-            ObjectId LayoutID = db.CreatLayout("S4-03 主拱圈一般构造","block\\TK.dwg");
+            ObjectId LayoutID = db.CreatLayout("C-1-05 主拱圈一般构造","block\\TK.dwg");
             Extents2d ext1, ext2, ext3,ext4;
 
             archModel.DrawingLeftElevation(out ext1);
@@ -176,7 +99,7 @@ namespace CADInterface
             blkNote = TextPloter.AddNoteFromFile(new Point3d(340, 140, 0), "txt\\主拱圈一般构造设计说明.txt", 66);            
             Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(205.9734, 15, 0), "主拱圈一般构造", 1, 5, 
                 "H仿宋", 0, TextHorizontalMode.TextCenter, TextVerticalMode.TextVerticalMid));            
-            Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(361.1744, 15, 0), "S4-4-3", 1, 5, 
+            Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(361.1744, 15, 0), "C-1-05", 1, 5, 
                 "H仿宋", 0, TextHorizontalMode.TextCenter, TextVerticalMode.TextVerticalMid));   
             
             Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(380, 282, 0), "1", 1, 4, 
@@ -184,7 +107,7 @@ namespace CADInterface
             Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(400, 282, 0), "1", 1, 4, 
                 "H仿宋", 0, TextHorizontalMode.TextCenter, TextVerticalMode.TextVerticalMid));
 
-            Ploter.WriteDatabase(blkNote, "S4-03 主拱圈一般构造");
+            Ploter.WriteDatabase(blkNote, "C-1-05 主拱圈一般构造");
             #endregion
 
             #region 布图
@@ -221,15 +144,16 @@ namespace CADInterface
             }
             Database db = HostApplicationServices.WorkingDatabase;
 
-            ObjectId LayoutID = db.CreatLayout("S4-04 拱上立柱一般构造", "block\\TK.dwg");
-            double vX = archModel.MainDatum.Find(x => x.DatumType == eDatumType.ColumnDatum).Center.X;
+            ObjectId LayoutID = db.CreatLayout("C-1-07 拱上立柱一般构造", "block\\TK.dwg");
+            double vX = 231;
             double vY = archModel.Get3PointReal(vX, 90.0)[0].Y;
             double vH = archModel.Get3PointReal(vX, 90.0)[0].Y+51.8-3+archModel.Axis.f;
 
 
             #region 立面
-            archModel.AddColumn(91, vX, vH, 1.6, 2.8, 3, 3, 1, 1.0, 2.0+0.6+0.5);
-            archModel.AddColumn(92, vX, vH, 2.0, 2.8, 3, 3, 1, 1.0, 2.0+0.6+0.5);
+            archModel.AddColumn(91, vX, vH, 4.0, 2.8, 3, 3, 1, 1.0, 2.0+0.6+0.5);
+            archModel.AddColumn(92, vX, vH, 3.0, 2.8, 3, 3, 1, 1.0, 2.0+0.6+0.5);
+            archModel.AddColumn(93, vX, vH, 2.0, 2.8, 3, 3, 1, 1.0, 2.0+0.6+0.5);
             Extents2d theExt = new Extents2d();
             Extents2d outExt;
             Model.Column theCol = archModel.ColumnList.Find(x => x.ID == 91);
@@ -240,12 +164,21 @@ namespace CADInterface
             theCol.DrawColumnElev(db, new Point2d(-vX-20, -vY), out outExt, 0.25);
             TextPloterO.PlotTextWithLine(db, ref outExt, new Point3d(- 20, 52,0), "立面", 0.25, 3, "仿宋");
             theExt = theExt.Add(outExt);
+
             Model.Column theCol92;
             theCol92 = archModel.ColumnList.Find(x => x.ID == 92);
             theCol92.CalculateParameters();
             theCol92.DarwColumnSide( new Point2d(-vX, -vY).Convert2D(15), out outExt, 0.25);
             TextPloterO.PlotTextWithLine(db, ref outExt, new Point3d(15, 52, 0), "B-B", 0.25, 3, "仿宋");
             theExt = theExt.Add(outExt);
+
+            Model.Column theCol93;
+            theCol92 = archModel.ColumnList.Find(x => x.ID == 93);
+            theCol92.CalculateParameters();
+            theCol92.DarwColumnSide(new Point2d(-vX, -vY).Convert2D(30), out outExt, 0.25);
+            TextPloterO.PlotTextWithLine(db, ref outExt, new Point3d(30, 52, 0), "C-C", 0.25, 3, "仿宋");
+            theExt = theExt.Add(outExt);
+
             #endregion
 
             #region 断面图
@@ -292,7 +225,7 @@ namespace CADInterface
             blkNote = TextPloter.AddNoteFromFile(new Point3d(275, 100, 0), "txt\\立柱构造设计说明.txt", 130);
             Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(205.9734, 15, 0), "拱上立柱一般构造", 1, 5,
                 "H仿宋", 0, TextHorizontalMode.TextCenter, TextVerticalMode.TextVerticalMid));
-            Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(361.1744, 15, 0), "S4-4-4", 1, 5,
+            Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(361.1744, 15, 0), "C-1-07", 1, 5,
                 "H仿宋", 0, TextHorizontalMode.TextCenter, TextVerticalMode.TextVerticalMid));
 
             Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(380, 282, 0), "1", 1, 4,
@@ -300,7 +233,7 @@ namespace CADInterface
             Extensions.Add(blkNote, TextPloter.AddDBText(new Point3d(400, 282, 0), "1", 1, 4,
                 "H仿宋", 0, TextHorizontalMode.TextCenter, TextVerticalMode.TextVerticalMid));
 
-            Ploter.WriteDatabase(blkNote, "S4-04 拱上立柱一般构造");
+            Ploter.WriteDatabase(blkNote, "C-1-07 拱上立柱一般构造");
             #endregion
 
 
@@ -308,6 +241,27 @@ namespace CADInterface
             db.AddEntityToModeSpace(theExt.ConvertRec());
             db.AddEntityToModeSpace(theExtS.ConvertRec());
         }
+
+
+        [CommandMethod("GeneralArrangement")]
+        public void GeneralArrangement()
+        {
+
+
+        }
+
+        [CommandMethod("DrawSegment")]
+        public void DrawSegment()
+        {
+            Database db = HostApplicationServices.WorkingDatabase;
+            ObjectId LayoutID = db.CreatLayout("S4-06 主拱圈节段一般构造", "block\\TK.dwg");
+            Extents2d ext1, ext2, ext3, ext4;
+            archModel.DrawingSegment(out ext1, -119, -105);
+
+
+
+        }
+
 
         [CommandMethod("LockDoc", CommandFlags.Session)]
         public static void LockDoc()

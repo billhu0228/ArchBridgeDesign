@@ -12,6 +12,7 @@ namespace Model
     public abstract class Section
     {
         public double Diameter;
+        public double Thickness;
     }
 
     public class RectSection : Section
@@ -23,6 +24,7 @@ namespace Model
             Width = w;
             Length = l;
             Diameter = double.NaN;
+            Thickness = 0;
         }
     }
 
@@ -39,7 +41,17 @@ namespace Model
             this.t2 = t2;
             this.t3 = t3;
             Diameter = w1;
+            Thickness = 0;
         }
+
+        public double Area
+        {
+            get
+            {
+                return W1 * t1 + W2 * t2 + (W3 - t1 - t2) * t3;
+            }
+        }
+
         public override string ToString()
         {
             return string.Format("H{0:G}X{1:G}X{2:G}X{3:G}", W3* 1000, W1 * 1000,t3*1000,t1*1000);
@@ -49,7 +61,6 @@ namespace Model
 
     public class TubeSection:Section
     {
-        public double Thickness;
         public double Area;
         public TubeSection(double dia, double th)
         {
@@ -61,6 +72,13 @@ namespace Model
         public override string ToString()
         {
             return string.Format("{0:G}x{1:F0}", Diameter*1000, Thickness*1000);
+        }
+
+        public static double GetAs(double diameter,double thick)
+        {
+            double r = diameter * 0.5;
+            double r2 = diameter * 0.5 - thick;
+            return Math.PI * (r * r - r2 * r2);
         }
     }
 }

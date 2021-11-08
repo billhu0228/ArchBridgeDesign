@@ -389,7 +389,7 @@ namespace CADInterface.API
 
             double x1 = model.X - 0.5 * model.L + model.MainDiameter * 0.5;
             double x2 = model.X + 0.5 * model.L - model.MainDiameter * 0.5;
-            for (int i = 0; i < model.M + model.K+1; i++)
+            for (int i = 0; i < model.M + model.K+(int)model.C/2; i++)
             {
                 var st = new Point2d(x1, model.Z1 + model.B + i * model.BeamStep);
                 var ed = new Point2d(x2, model.Z1 + model.B + i * model.BeamStep);
