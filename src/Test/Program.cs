@@ -17,12 +17,12 @@ namespace Test
     {
         static void Main(string[] args) 
         {
-
-            XmlTextReader reader = new XmlTextReader("data/Columns.config");
-
-            PreDesignModel();
-
-
+            ArchAxis ax;
+            Arch theArchModel;
+            theArchModel = Arch.PreliminaryDesignModel(out ax);
+            // 写出基准面
+            string name = "PreliminaryDesignModel";
+            theArchModel.WriteMember(string.Format("{0}-member.lsp", name));
             return;
 
             //GenerateModel();

@@ -104,9 +104,9 @@ namespace CADInterface.API
                 obj.Add(CC);
 
                 var member = (from item in theArch.MemberTable where item.ElemType == eMemberType.UpperCoord select item).ToList()[0];
-                Point3d[] StPts=new Point3d[2];
-                Point3d[] EdPts=new Point3d[2];
-                
+                Point3d[] StPts = new Point3d[2];
+                Point3d[] EdPts = new Point3d[2];
+
                 for (int i = 0; i < 2; i++)
                 {
                     int dir = i == 0 ? -1 : 1;
@@ -125,7 +125,7 @@ namespace CADInterface.API
                     EdPts[i] = mm.EndPoint;
                 }
                 var bz = DimPloter.ArcUpBreakLine(CC.StartPoint.C2D(), member.Sect.Diameter);
-                double ang = new Line(StPts[0],StPts[1]).Angle;                
+                double ang = new Line(StPts[0], StPts[1]).Angle;
                 foreach (var ob in bz)
                 {
                     var ent = (Entity)ob;
@@ -261,7 +261,7 @@ namespace CADInterface.API
 
                             var web = MLPloter.AddTube(item.Line.StartPoint.ToAcadPoint2d(), item.Line.EndPoint.ToAcadPoint2d(), item.Sect.Diameter, item.Sect.Thickness, "H细线", bd1, bd2);
 
-                            var web2 = MyPloter.XG(web, bd1, item.Sect.Diameter, theArch.MainTubeDiameter,-1);
+                            var web2 = MyPloter.XG(web, bd1, item.Sect.Diameter, theArch.MainTubeDiameter, -1);
 
                             Extensions.Add(obj, web);
                             Extensions.Add(obj, web2);
@@ -391,14 +391,14 @@ namespace CADInterface.API
                 ep1 = L1.GetPoint2dAt(L1.NumberOfVertices - 1);
                 ep2 = L2.GetPoint2dAt(L2.NumberOfVertices - 1);
 
-                
-                var dims= DimPloter.ArcBottomBreakLine(
+
+                var dims = DimPloter.ArcBottomBreakLine(
                     new Line(ep1.C3D(), ep2.C3D()).GetMidPoint2d(),
                     theArch.MainTubeDiameter);
                 foreach (var ob in dims)
                 {
                     var ent = (Entity)ob;
-                    ent.TransformBy(Matrix3d.Rotation(Angle.FromDegrees(-90).Radians, 
+                    ent.TransformBy(Matrix3d.Rotation(Angle.FromDegrees(-90).Radians,
                         Vector3d.ZAxis, CC.EndPoint));
                     obj.Add(ent);
                 }
@@ -454,13 +454,10 @@ namespace CADInterface.API
             List<Extents2d> extList = new List<Extents2d>();
             foreach (var theCol in theArch.ColumnList)
             {
-                if (theCol.ID == 0)
+                if (theCol.X < 0)
                 {
-                    if (theCol.X < 0)
-                    {
-                        theCol.DarwColumnSide(Point2d.Origin, out colExt);
-                        extList.Add(colExt);
-                    }
+                    theCol.DarwColumnSide(Point2d.Origin, out colExt);
+                    extList.Add(colExt);
                 }
             }
             for (int i = 0; i < theArch.ColumnList.Count / 2; i++)
@@ -614,10 +611,10 @@ namespace CADInterface.API
                 if (install.Center.X > 0)
                 {
                     continue;
-                }                
+                }
                 var pts = (from p in model.Get3PointReal(install) select p.ToAcadPoint2d()).ToList();
                 if (isElev)
-                {                    
+                {
                     pts.Add(pts[0] + 2 * nvec);
                     pts.Add(pts[2] - 2 * nvec);
                 }
@@ -733,7 +730,7 @@ namespace CADInterface.API
                     {
                         continue;
                     }
-                    if (Math.Abs(item.Center.X - (-236.6))<0.1)
+                    if (Math.Abs(item.Center.X - (-236.6)) < 0.1)
                     {
                         continue;
                     }
@@ -752,11 +749,12 @@ namespace CADInterface.API
                 var p0 = new Point2d(xi, 0);
 
                 var curBar = MLPloter.AddTube(p0.Convert2D(0, -0.5 * theArch.WidthInside + 0.5 * theArch.MainTubeDiameter),
-                    p0.Convert2D(0, 0), theArch.CrossBracingDiameter, 0, "H细线", null, null);
+                    p0.Convert2D(0, 0), theArch.CrossBracingDiameter, 0, "H细线", null, null);// 边
                 obj.Add(curBar);
 
                 if (i != 0 && Math.Abs(theArch.Get3PointReal(carry[i - 1])[0].X - theArch.Get3PointReal(carry[i])[0].X) > 2)
                 {
+                    // 平联
                     if (WindBraceCount % 2 == 0)
                     {
                         var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[2].X, 0), new Point2d(theArch.Get3PointReal(carry[i])[2].X, -0.5 * theArch.WidthInside),
@@ -807,7 +805,7 @@ namespace CADInterface.API
             for (int i = 0; i < carry.Count; i++)
             {
                 var item = carry[i];
-                double xi=theArch.Get3PointReal(item)[0].X;
+                double xi = theArch.Get3PointReal(item)[0].X;
                 var p0 = new Point2d(xi, 0);
                 var curBar = MLPloter.AddTube(p0.Convert2D(0, 0),
                     p0.Convert2D(0, 0.5 * theArch.WidthInside - 0.5 * theArch.MainTubeDiameter), theArch.CrossBracingDiameter, 0, "H细线", null, null);
@@ -815,7 +813,7 @@ namespace CADInterface.API
                 if (i != 0 && Math.Abs(theArch.Get3PointReal(carry[i - 1])[0].X - theArch.Get3PointReal(carry[i])[0].X) > 2)
                 {
                     if (WindBraceCount % 2 == 0)
-                    {       
+                    {
                         var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[0].X, 0), new Point2d(theArch.Get3PointReal(carry[i])[0].X, 0.5 * theArch.WidthInside),
                             theArch.GetTubeProperty(item.Center.X, eMemberType.WebBracing).Section.Diameter, 0, "H细线", (Curve)beforeBar[0], (Curve)archRib[1][2]);
                         obj.Add(dd);
@@ -852,7 +850,7 @@ namespace CADInterface.API
                 {
                     continue;
                 }
-                var PTS=theArch.Get3PointReal(install);
+                var PTS = theArch.Get3PointReal(install);
 
                 var pts = new List<Point2d>() {
                     new Point2d(PTS[0].X, 0).C2D(0, 0.5 * theArch.Width + 2),

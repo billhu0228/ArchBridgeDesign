@@ -22,7 +22,7 @@ namespace Model
             }
         }
 
-        public static void MySort (this List<DatumPlane> theList)
+        public static void MySort(this List<DatumPlane> theList)
         {
             theList.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
             for (int i = 0; i < theList.Count; i++)
@@ -32,6 +32,10 @@ namespace Model
             }
         }
 
+        public static Point2D C2D(this Point3D pt)
+        {
+            return new Point2D(pt.X, pt.Y);
+        }
 
         /// <summary>
         /// 值域
@@ -39,16 +43,16 @@ namespace Model
         /// <param name="vv"></param>
         /// <param name="vto"></param>
         /// <returns></returns>
-        public static double SignedAngleBetween(this Vector2D vv,Vector2D vto)
+        public static double SignedAngleBetween(this Vector2D vv, Vector2D vto)
         {
             var ang = vv.SignedAngleTo(vto);
 
-            if (ang.Radians<-Math.PI)
+            if (ang.Radians < -Math.PI)
             {
                 return ang.Radians + 2 * Math.PI;
 
             }
-            else if(ang.Radians<Math.PI)
+            else if (ang.Radians < Math.PI)
             {
                 return ang.Radians;
             }
@@ -64,12 +68,12 @@ namespace Model
             double kk = L.Direction.Y / L.Direction.X;
             double C0 = L.StartPoint.Y - L.StartPoint.X * kk;
 
-            return t *kk + C0;
+            return t * kk + C0;
         }
 
-        public static Line2D Offset(this Line2D L,double val)
+        public static Line2D Offset(this Line2D L, double val)
         {
-            Vector2D xv=L.Direction.Rotate(Angle.FromDegrees(90.0));
+            Vector2D xv = L.Direction.Rotate(Angle.FromDegrees(90.0));
             Point2D NewSt = L.StartPoint + xv * val;
             Point2D NewEd = L.EndPoint + xv * val;
             return new Line2D(NewSt, NewEd);
@@ -86,16 +90,16 @@ namespace Model
         /// <param name="pt"></param>
         /// <param name="cir"></param>
         /// <returns></returns>
-        public static List<Point2D> Tangent(this Point2D pt,Circle2D cir)
+        public static List<Point2D> Tangent(this Point2D pt, Circle2D cir)
         {
             var r = cir.Radius;
             var po = cir.Center - pt;
-            var pob =Angle.FromRadians( Math.Acos(cir.Radius / po.Length));
+            var pob = Angle.FromRadians(Math.Acos(cir.Radius / po.Length));
             var ob = (-po).Rotate(-pob).Normalize();
             var oc = (-po).Rotate(pob).Normalize();
             var res = new List<Point2D>() { cir.Center + ob * r, cir.Center + oc * r };
             res.Sort((x, y) => x.Y.CompareTo(y.Y));
-            return res ;
+            return res;
 
         }
 
@@ -105,11 +109,11 @@ namespace Model
         /// <param name="pt"></param>
         /// <param name="seg"></param>
         /// <returns></returns>
-        public static bool OnSegment(this Point2D pt,LineSegment2D seg)
+        public static bool OnSegment(this Point2D pt, LineSegment2D seg)
         {
             var f = seg.ClosestPointTo(pt);
-            
-            if (f.DistanceTo(pt)<1e-6)
+
+            if (f.DistanceTo(pt) < 1e-6)
             {
                 return true;
             }
@@ -128,13 +132,13 @@ namespace Model
         {
             List<Point2D> res = new List<Point2D>();
             Line2D seg;
-            for (int i = 0; i < polyline.Count-1; i++)
+            for (int i = 0; i < polyline.Count - 1; i++)
             {
-                seg = new Line2D(polyline[i], polyline[i+1]);
-                var pt=(Point2D)seg.IntersectWith(other);
+                seg = new Line2D(polyline[i], polyline[i + 1]);
+                var pt = (Point2D)seg.IntersectWith(other);
                 if (pt != null)
                 {
-             
+
                     if (pt.Equals(seg.StartPoint, 1e-6) || pt.Equals(seg.EndPoint, 1e-6))
                     {
                         res.Add(pt);
@@ -150,11 +154,11 @@ namespace Model
                     }
                 }
             }
-            if (res.Count==1)
+            if (res.Count == 1)
             {
                 return res[0];
             }
-            else if (res.Count==0)
+            else if (res.Count == 0)
             {
                 return null;
             }
@@ -171,23 +175,23 @@ namespace Model
             }
         }
 
-        public static bool IsOutside(this Circle2D c,Point2D pt)
+        public static bool IsOutside(this Circle2D c, Point2D pt)
         {
             return pt.DistanceTo(c.Center) > c.Radius;
         }
 
-        public static List<Point2D> IntersectWith (this LineSegment2D seg,Circle2D cir)
+        public static List<Point2D> IntersectWith(this LineSegment2D seg, Circle2D cir)
         {
             List<Point2D> ret = new List<Point2D>();
             var pt = seg.ClosestPointTo(cir.Center);
-            if (pt.DistanceTo(cir.Center)<1e-7)
+            if (pt.DistanceTo(cir.Center) < 1e-7)
             {
                 //共线
                 Line2D theLine = new Line2D(seg.StartPoint, seg.EndPoint);
                 Vector2D v = seg.Direction;
                 double m = cir.Radius;
 
-                Point2D p1 = cir.Center +  v * m;
+                Point2D p1 = cir.Center + v * m;
                 Point2D p2 = cir.Center + v * -m;
 
                 if (p1.OnSegment(seg))
@@ -200,21 +204,21 @@ namespace Model
                 }
                 return ret;
             }
-            if (seg.LineTo(cir.Center).Length>cir.Radius)
+            if (seg.LineTo(cir.Center).Length > cir.Radius)
             {
-                return new List<Point2D>() ;
+                return new List<Point2D>();
             }
-            else if (seg.StartPoint.DistanceTo(cir.Center)<cir.Radius &&
+            else if (seg.StartPoint.DistanceTo(cir.Center) < cir.Radius &&
                 seg.EndPoint.DistanceTo(cir.Center) < cir.Radius)
             {
                 return new List<Point2D>();
             }
             else
             {
-         
+
                 Line2D theLine = new Line2D(seg.StartPoint, seg.EndPoint);
-                Vector2D n = theLine.ClosestPointTo(cir.Center,false) - cir.Center;
-         
+                Vector2D n = theLine.ClosestPointTo(cir.Center, false) - cir.Center;
+
                 Vector2D v = n.Rotate(Angle.FromDegrees(90)).Normalize();
                 if (n.Length < 1e-6)
                 {
@@ -222,8 +226,8 @@ namespace Model
                 }
                 double m = Math.Sqrt(Math.Pow(cir.Radius, 2) - Math.Pow(n.Length, 2));
 
-                Point2D p1 = cir.Center + n + v * m ;
-                Point2D p2 = cir.Center + n + v * -m ;
+                Point2D p1 = cir.Center + n + v * m;
+                Point2D p2 = cir.Center + n + v * -m;
 
                 if (p1.OnSegment(seg))
                 {
@@ -232,7 +236,7 @@ namespace Model
                 if (p2.OnSegment(seg))
                 {
                     ret.Add(p2);
-                }                
+                }
             }
             return ret;
         }
@@ -252,16 +256,16 @@ namespace Model
                 }
             }
 
-            if (tmp.Count>2)
+            if (tmp.Count > 2)
             {
                 var p1 = tmp[0];
                 List<double> dist = new List<double>();
-                for (int i = 1; i < tmp.Count-1; i++)
+                for (int i = 1; i < tmp.Count - 1; i++)
                 {
                     dist.Add(tmp[i].DistanceTo(p1));
                 }
 
-                var p2=tmp[dist.FindIndex(x => x == dist.Max())+1];
+                var p2 = tmp[dist.FindIndex(x => x == dist.Max()) + 1];
                 return new List<Point2D>() { p1, p2 };
             }
             else
@@ -274,7 +278,7 @@ namespace Model
 
 
 
-        public static DatumPlane Datum(this Line2D line ,ref ArchAxis ax)
+        public static DatumPlane Datum(this Line2D line, ref ArchAxis ax)
         {
             Point2D cc = ax.Intersect(line);
             var dir = line.Direction.Y < 0 ? -line.Direction : line.Direction;

@@ -97,15 +97,15 @@ namespace CADInterface.Plotters
 
         //    obj.Add((Polyline)PLPloter.AddPolylineByPointList(lstA, PL.Layer, false)[0]);
         //    obj.Add((Polyline)PLPloter.AddPolylineByPointList(lstB, PL.Layer, false)[0]);
-            
+
 
         //    obj.Add(  (Polyline)
-                
+
         //        Polyline.CreateFromGeCurve
         //        PL.GetSplitCurves(new Point3dCollection() { PL.StartPoint, Pa.C3D() })
-                
-                
-                
+
+
+
         //        );
         //    obj.Add(  PL.GetSplitCurves(new Point3dCollection() { Pb.C3D(), PL.EndPoint}));
         //    return obj;
