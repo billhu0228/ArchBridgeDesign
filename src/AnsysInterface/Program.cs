@@ -20,8 +20,6 @@ namespace AnsysInterface
             theArchModel = Arch.PreliminaryDesignModel(out ax);
             FEMModel theFem = new FEMModel(ref theArchModel);
             theFem.WriteAnsys(Directory.CreateDirectory(Path.Combine("C:\\Users\\IBD2\\", "AnsysBin")).FullName);
-
-
             var t = 1;
         }
     }

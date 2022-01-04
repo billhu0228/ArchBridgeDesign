@@ -19,7 +19,7 @@ namespace Test
         {
             ArchAxis ax;
             Arch theArchModel;
-            theArchModel = Arch.PreliminaryDesignModel(out ax);
+            theArchModel = Arch.PreliminaryDesignModelV2(out ax);
             // 写出基准面
             string name = "PreliminaryDesignModel";
             theArchModel.WriteMember(string.Format("{0}-member.lsp", name));

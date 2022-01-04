@@ -146,6 +146,12 @@ namespace Model
         /// <param name="cutLine"></param>
         public Point2D Intersect(Line2D cutLine)
         {
+            if (cutLine.StartPoint.X==cutLine.EndPoint.X)
+            {
+                var xx = cutLine.EndPoint.X;
+                var yy = GetZ(xx);
+                return new Point2D(xx, yy);
+            }
             if ((GetZ(-L1) - cutLine.GetY(-L1)) * (GetZ(L1) - cutLine.GetY(L1)) > 0)
             {
                 throw new Exception();

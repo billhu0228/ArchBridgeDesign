@@ -15,6 +15,7 @@ namespace BOQInterface
             Arch theArchModel;
             BOQTable theTable = new BOQTable();
             theArchModel = Arch.PreliminaryDesignModel(out ax);
+            //theArchModel = Arch.PreliminaryDesignModelV2(out ax);
             theArchModel.CastBOQTable(ref theTable);
             theTable.SaveCSV("..\\..\\..\\..\\data\\out_boq.csv");
             return;
