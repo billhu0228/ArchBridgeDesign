@@ -19,7 +19,8 @@ namespace AnsysInterface
             Arch theArchModel;
             theArchModel = Arch.PreliminaryDesignModel(out ax);
             FEMModel theFem = new FEMModel(ref theArchModel);
-            theFem.WriteAnsys(Directory.CreateDirectory(Path.Combine("C:\\Users\\IBD2\\", "AnsysBin")).FullName);
+            //theFem.WriteAnsys(Directory.CreateDirectory(Path.Combine("C:\\Users\\IBD2\\", "AnsysBin")).FullName);
+            theFem.WriteMidas("C:\\Users\\IBD2\\Desktop\\Test.mct");
             var t = 1;
         }
     }

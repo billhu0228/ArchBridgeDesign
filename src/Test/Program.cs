@@ -37,7 +37,7 @@ namespace Test
             }
             else
             {
-                ModelT1(4.0, 1.85, "Test");
+                ModelT1(4.5, 1.5, "Test");
             }
         }
 

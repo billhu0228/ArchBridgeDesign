@@ -327,7 +327,7 @@ namespace Model
             #region 基本步骤
             double L = 518.0;
             double m = 2.0;
-            double f = L / 4.5;
+            double f = L / 4.0;
             double e = 0.060;
             #endregion
 

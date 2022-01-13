@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace AnsysInterface
 {
-    public class FEMModel
+    public partial class FEMModel
     {
         public List<FEMNode> NodeList;
         public List<FEMElement> ElementList;
@@ -30,6 +30,17 @@ namespace AnsysInterface
             GenerateRib();
 
             GenerateCol();
+            /// <remarks>
+            /// 1:拱肋截面--15
+            /// 2: 竖腹杆--20
+            /// 3: 斜腹杆--18
+            /// 4: 横梁--5
+            /// 5：无使用--5
+            /// 6：斜撑--7
+            /// 7: 内横梁--6
+            /// 8：立柱竖杆--23
+            /// 9：立柱盖梁--9
+            /// </remarks>
         }
         /// <summary>
         /// 生成立柱
@@ -38,13 +49,13 @@ namespace AnsysInterface
         {
             foreach (var col in RelatedArchBridge.ColumnList)
             {
-                int baseID = col.ID * 1000 + 100000 + 1;
+                int baseID = col.ID * 1000 + 100000;
                 var wi = RelatedArchBridge.WidthInside;
                 var wo = RelatedArchBridge.WidthOutside;
                 var x0 = col.X;
                 List<double> ylist = new List<double>();
                 ylist.Add(col.Z2);
-                ylist.Add(col.Z2 - 2.8);
+                ylist.Add(col.Z2 - 2.0);
 
 
                 for (int i = 0; i < col.M; i++)
@@ -60,10 +71,44 @@ namespace AnsysInterface
                 {
                     ylist.Add(ylist.Last() - col.BeamStep);
                 }
-
+                ylist.Add(col.Z1);
 
                 foreach (var yi in ylist)
                 {
+                    if (yi == ylist.First())
+                    {
+                        // 盖梁
+                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, (-0.5 * wi - wo))));
+                        baseID += 1;
+                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, (-0.5 * wi))));
+                        baseID += 1;
+                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, 0)));
+                        baseID += 1;
+                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, (+0.5 * wi))));
+                        baseID += 1;
+                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, (0.5 * wi + wo))));
+                        baseID += 1;
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 0, baseID - 5 + 1, 9));
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 1, baseID - 5 + 2, 9));
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 2, baseID - 5 + 3, 9));
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 3, baseID - 5 + 4, 9));
+                        // 刚臂
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 0, baseID + 0, 99));
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 0, baseID + 4, 99));
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 1, baseID + 1, 99));
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 1, baseID + 5, 99));
+
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 3, baseID + 2, 99));
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 3, baseID + 6, 99));
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 4, baseID + 3, 99));
+                        ElementList.Add(new FEMElement(0, baseID - 5 + 4, baseID + 7, 99));
+
+                    }
+                    //if (yi==ylist.Last())
+                    //{
+                    //    NodeList.fin
+
+                    //}
                     foreach (var xi in new double[] { (x0 - col.L * 0.5), (x0 + col.L * 0.5) })
                     {
                         foreach (var zi in new double[] { (-0.5 * wi - wo), (-0.5 * wi), (0.5 * wi), (0.5 * wi + wo), })
@@ -77,15 +122,21 @@ namespace AnsysInterface
                             baseID += 1;
                         }
                     }
-                    ElementList.Add(new FEMElement(0, baseID - 8 + 0, baseID - 8 + 1, 7));
-                    ElementList.Add(new FEMElement(0, baseID - 8 + 1, baseID - 8 + 5, 7));
-                    ElementList.Add(new FEMElement(0, baseID - 8 + 5, baseID - 8 + 4, 7));
-                    ElementList.Add(new FEMElement(0, baseID - 8 + 4, baseID - 8 + 0, 7));
+                    
+                    if (yi!=ylist.Last() && yi != ylist.First())
+                    {
+                        ElementList.Add(new FEMElement(0, baseID - 8 + 0, baseID - 8 + 1, 7));
+                        ElementList.Add(new FEMElement(0, baseID - 8 + 1, baseID - 8 + 5, 7));
+                        ElementList.Add(new FEMElement(0, baseID - 8 + 5, baseID - 8 + 4, 7));
+                        ElementList.Add(new FEMElement(0, baseID - 8 + 4, baseID - 8 + 0, 7));
 
-                    ElementList.Add(new FEMElement(0, baseID - 8 + 2, baseID - 8 + 3, 7));
-                    ElementList.Add(new FEMElement(0, baseID - 8 + 3, baseID - 8 + 7, 7));
-                    ElementList.Add(new FEMElement(0, baseID - 8 + 7, baseID - 8 + 6, 7));
-                    ElementList.Add(new FEMElement(0, baseID - 8 + 6, baseID - 8 + 2, 7));
+                        ElementList.Add(new FEMElement(0, baseID - 8 + 2, baseID - 8 + 3, 7));
+                        ElementList.Add(new FEMElement(0, baseID - 8 + 3, baseID - 8 + 7, 7));
+                        ElementList.Add(new FEMElement(0, baseID - 8 + 7, baseID - 8 + 6, 7));
+                        ElementList.Add(new FEMElement(0, baseID - 8 + 6, baseID - 8 + 2, 7));
+                    }
+
+
                 }
             }
             return;
@@ -97,7 +148,6 @@ namespace AnsysInterface
         /// <exception cref="NotImplementedException"></exception>
         private void GenerateRib()
         {
-
             var theArch = RelatedArchBridge;
             List<Point2D> ls = new List<Point2D>();
 
@@ -696,6 +746,11 @@ namespace AnsysInterface
 
         #region 写出OpenSEES模型
 
+        #endregion
+
+
+        #region 写出midas命令
+        
         #endregion
     }
 
