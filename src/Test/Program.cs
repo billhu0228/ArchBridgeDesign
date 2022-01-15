@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using System.Configuration;
 using System.Collections.Specialized;
 using System.Xml;
+using System.Diagnostics;
 
 namespace Test
 {
@@ -17,12 +18,34 @@ namespace Test
     {
         static void Main(string[] args) 
         {
+            //ArchAxis bx = new ArchAxis(518 / 4.5, 2, 518);
+            //var re= bx.Intersect(new Point2D(55, -10));
+
             ArchAxis ax;
             Arch theArchModel;
-            theArchModel = Arch.PreliminaryDesignModelV2(out ax);
-            // 写出基准面
-            string name = "PreliminaryDesignModel";
-            theArchModel.WriteMember(string.Format("{0}-member.lsp", name));
+
+            //theArchModel = NamedArch.PhoenixModel(out ax, 1.5, 518 / (4.1));
+            //// 写出基准面
+            //string name = "PhoenixModel";
+            //theArchModel.WriteMember(string.Format("{0}-member.lsp", name));
+
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 10; j++)
+                {
+                    try
+                    {
+                        theArchModel = NamedArch.PhoenixModel(out ax, 1.5 + i * 0.1, 518 / (3.5 + j * 0.1));
+                        Console.WriteLine("f={0},m={1},建模完成..\n", 3.5 + j * 0.1, 1.5 + i * 0.1);
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine("f={0},m={1},建模失败..\n", 3.5 + j * 0.1, 1.5 + i * 0.1);
+                        continue;
+                    }
+                }
+            }
+
             return;
 
             //GenerateModel();

@@ -14,6 +14,7 @@ using System.Diagnostics;
 
 namespace Model
 {
+
     /// <summary>
     /// 主拱2.5D
     /// </summary>
@@ -497,6 +498,10 @@ namespace Model
 
 
         }
+
+
+
+
         #region 属性
         public double WebTubeDiameter
         {
@@ -804,6 +809,64 @@ namespace Model
             footLevel = val;
             ElevationOfTop = val + Axis.f;
         }
+
+        /// <summary>
+        /// 根据竖腹杆生成相邻法向腹杆
+        /// </summary>
+        /// <param name="P1"></param>
+        /// <param name="isLeft"></param>
+        /// <param name="isUp"></param>
+        /// <param name="e"></param>
+        /// <returns></returns>
+        public DatumPlane CreatNormalDatumByVertical(DatumPlane P1, bool isLeft, bool isUp, double e)
+        {
+            //double up_dia = GetTubeProperty(0, eMemberType.UpperCoord).Section.Diameter;
+            //double down_dia = GetTubeProperty(0, eMemberType.LowerCoord).Section.Diameter;
+            double norm_dia = GetTubeProperty(0, eMemberType.VerticalWeb).Section.Diameter;
+            Point2D KP,KP2;
+            Vector2D Direction;
+            if (isLeft)
+            {
+                if (isUp)
+                {
+                    // 左上
+                    KP= Get7Point(P1.Center.X - norm_dia * 0.5, 90.0)[2];
+                    KP2 = Get7Point(P1.Center.X - norm_dia * 0.5-0.01, 90.0)[2];
+                }
+                else
+                {
+                    // 左下
+                    KP = Get7Point(P1.Center.X - norm_dia * 0.5, 90.0)[4];
+                    KP2 = Get7Point(P1.Center.X - norm_dia * 0.5-0.01, 90.0)[4];
+
+                }
+            }
+            else
+            {
+                if (isUp)
+                {
+                    // 右上
+                    KP = Get7Point(P1.Center.X + norm_dia * 0.5, 90.0)[2];
+                    KP2 = Get7Point(P1.Center.X + norm_dia * 0.5+0.01, 90.0)[2];
+                }
+                else
+                {
+                    // 右下
+                    KP = Get7Point(P1.Center.X + norm_dia * 0.5, 90.0)[4];
+                    KP2 = Get7Point(P1.Center.X + norm_dia * 0.5+0.01, 90.0)[4];
+                }
+            }
+            Direction = (KP2 - KP).Normalize();
+
+            Point2D CC = KP + Direction * (e + 0.5 * norm_dia) * 1.05;
+
+            Point2D AxCC = Axis.Intersect(CC);
+            
+            return new DatumPlane(0,AxCC, Axis.GetNormalAngle(AxCC.X),eDatumType.NormalDatum);
+
+        }
+
+
 
         /// <summary>
         /// 生成斜腹杆平面
@@ -1266,14 +1329,47 @@ namespace Model
             inter.Sort((x, y) => x.X.CompareTo(y.X));
             Point2D B1 = direct == 1 ? inter[0] : inter[1];
 
-            var A2 = OA.Tangent(new Circle2D(A1, dia * 0.5))[1];
-            var B2 = OB.Tangent(new Circle2D(B1, dia * 0.5))[0];
 
-            var VA = Axis.Intersect(new Line2D(OA, A2));
-            var VB = Axis.Intersect(new Line2D(OB, B2));
+            var TanPtsA = OA.Tangent(new Circle2D(A1, dia * 0.5));
+            var TanPtsB = OB.Tangent(new Circle2D(B1, dia * 0.5));
 
+            double Ang00 = (TanPtsA[0] - OA).AngleTo(TanPtsB[0] - OB).Degrees;
+            double Ang01 = (TanPtsA[0] - OA).AngleTo(TanPtsB[1] - OB).Degrees;
+            double Ang10 = (TanPtsA[1] - OA).AngleTo(TanPtsB[0] - OB).Degrees;
+            double Ang11 = (TanPtsA[1] - OA).AngleTo(TanPtsB[1] - OB).Degrees;
+            double AngMax = new List<double>() { Ang00, Ang01, Ang10, Ang11, }.Max();
+            var A2 = TanPtsA[0];
+            var B2 = TanPtsB[0];
+            if (Ang01==AngMax)
+            {
+                A2 = TanPtsA[0];
+                B2 = TanPtsB[1];
+            }
+            else if (Ang10==AngMax)
+            {
+                A2 = TanPtsA[1];
+                B2 = TanPtsB[0];
+            }
+            else if (Ang11 == AngMax)
+            {
+                A2 = TanPtsA[1];
+                B2 = TanPtsB[1];
+            }
+
+            var LinA = new Line2D(OA, A2);
+            var LinB = new Line2D(OB, B2);
+            double st = 0, ed = 0;
+            if (OA.X>0)
+            {
+                ed = Axis.L1;
+            }
+            else
+            {
+                st = Axis.L1 * -1;
+            }
+            var VA = Axis.Intersect(new Line2D(A2 + LinA.Direction * (-2 * LinA.Length), A2),st,ed);
+            var VB = Axis.Intersect(new Line2D(B2 + LinB.Direction * (-2 * LinB.Length), B2),st,ed);
             var A3 = Get3PointReal(VA.X, Vector2D.XAxis.AngleTo(A2 - OA).Degrees)[0];
-
             double deg = Angle.FromRadians(Vector2D.XAxis.SignedAngleBetween(B2 - OB)).Degrees;
             if (deg < 0)
             {
@@ -1623,6 +1719,41 @@ namespace Model
             return new List<Point2D>() { Upper, CC, Lower };
         }
 
+        public List<Point2D> Get3PointV22(double x0, double ang_deg)
+        {
+            Point2D Upper, CC, Lower;
+            CC = Axis.GetCenter(x0);
+            Angle CutAngle = Angle.FromDegrees(ang_deg);
+            Vector2D TargetDir = Vector2D.XAxis.Rotate(CutAngle);
+            Func<double, double> f = (x) => ((TargetDir).SignedAngleBetween((get_3pt(x)[0] - Axis.GetCenter(x0))));
+            double x_new = 0;
+            try
+            {
+                x_new = x0 > 0 ? Bisection.FindRoot(f, 0, Axis.L1 * 3, 1e-6) : Bisection.FindRoot(f, -3 * Axis.L1, 0, 1e-6);
+            }
+            catch (Exception)
+            {
+                f = (x) => ((-TargetDir).SignedAngleBetween((get_3pt(x)[0] - Axis.GetCenter(x0))));
+                x_new = x0 > 0 ? Bisection.FindRoot(f, 0, Axis.L1 * 3, 1e-6) : Bisection.FindRoot(f, -3 * Axis.L1, 0, 1e-6);
+            }
+          
+            Upper = get_3pt(x_new)[0];
+
+            f = (x) => ((TargetDir).SignedAngleBetween((get_3pt(x)[2] - Axis.GetCenter(x0))));
+            try
+            {
+                x_new = x0 > 0 ? Bisection.FindRoot(f, 0, Axis.L1 * 3, 1e-6) : Bisection.FindRoot(f, -3 * Axis.L1, 0, 1e-6);
+            }
+            catch (Exception)
+            {
+                f = (x) => ((-TargetDir).SignedAngleBetween((get_3pt(x)[2] - Axis.GetCenter(x0))));
+                x_new = x0 > 0 ? Bisection.FindRoot(f, 0, Axis.L1 * 3, 1e-6) : Bisection.FindRoot(f, -3 * Axis.L1, 0, 1e-6);
+            }
+
+            Lower = get_3pt(x_new)[2];
+
+            return new List<Point2D>() { Upper, CC, Lower };
+        }
 
         public List<Point2D> Get3Point(DatumPlane cutPlane)
         {
