@@ -244,7 +244,7 @@ namespace CADInterface.API
                     }
                     else
                     {
-                        if (item.ElemType == eMemberType.InclineWebS)
+                        if (item.ElemType == eMemberType.TriWeb)
                         {
                             double xc = item.Line.StartPoint.X;
                             var cuts = theArch.get_3pt_real(xc);
@@ -419,13 +419,13 @@ namespace CADInterface.API
                     {
                         continue;
                     }
-                    if (item.ElemType == eMemberType.InclineWebS)
+                    if (item.ElemType == eMemberType.TriWeb)
                     {
                         //double xc = item.Line.StartPoint.X;
                         var cuts = theArch.Get3PointReal(item.StartDatum);
 
                         Line bd1 = new Line(cuts[0].ToAcadPoint(), cuts[2].ToAcadPoint());
-                        bd1 = (Line)bd1.Offset(theArch.WebTubeDiameter * 0.5)[0];
+                        bd1 = (Line)bd1.Offset(item.Sect.Diameter * 0.5)[0];
 
                         var bd2 = LowPL;
                         if (item.Line.EndPoint.Y > theArch.Axis.GetZ(item.Line.EndPoint.X))
@@ -721,6 +721,39 @@ namespace CADInterface.API
             #endregion
 
             #region 下风撑
+            // 内横隔
+
+            var ColumnX = (from e in theArch.ColumnList select e.X).ToList();
+            List<double> MidColumnList = new List<double>();
+
+            double xloc = 0;
+            var selX = (
+    from e in theArch.MemberTable
+    where e.ElemType == eMemberType.MainWeb
+    select e.Line.MiddlePoint().X).ToList();
+            for (int i = 0; i < ColumnX.Count + 1; i++)
+            {
+                if (i == 0)
+                {
+                    xloc = ColumnX[0] - 14;
+                }
+                else if (i == ColumnX.Count)
+                {
+                    xloc = ColumnX.Last() + 14;
+                }
+                else
+                {
+                    xloc = ColumnX[i - 1] + 21;
+                }
+                var deltabs = (from x in selX select Math.Abs(x - xloc)).ToList();
+                int idx = deltabs.FindIndex((e) => e == deltabs.Min());
+                double xreal = selX[idx];
+                MidColumnList.Add(xreal);
+
+            }
+
+
+            var eleSelected = (from e in theArch.MemberTable where e.ElemType == eMemberType.MainWeb select e).ToList();
             List<DatumPlane> carry = new List<DatumPlane>();
             foreach (var item in theArch.MainDatum)
             {
@@ -749,7 +782,7 @@ namespace CADInterface.API
                 var p0 = new Point2d(xi, 0);
 
                 var curBar = MLPloter.AddTube(p0.Convert2D(0, -0.5 * theArch.WidthInside + 0.5 * theArch.MainTubeDiameter),
-                    p0.Convert2D(0, 0), theArch.CrossBracingDiameter, 0, "H细线", null, null);// 边
+                    p0.Convert2D(0, 0), theArch.CrossBracingDiameter, 0, "H细线", null, null);// 横隔
                 obj.Add(curBar);
 
                 if (i != 0 && Math.Abs(theArch.Get3PointReal(carry[i - 1])[0].X - theArch.Get3PointReal(carry[i])[0].X) > 2)
@@ -758,14 +791,14 @@ namespace CADInterface.API
                     if (WindBraceCount % 2 == 0)
                     {
                         var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[2].X, 0), new Point2d(theArch.Get3PointReal(carry[i])[2].X, -0.5 * theArch.WidthInside),
-                            theArch.GetTubeProperty(item.Center.X, eMemberType.WebBracing).Section.Diameter, 0, "H细线", (Curve)beforeBar[0], (Curve)archRib[3][0]);
+                            theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)beforeBar[0], (Curve)archRib[3][0]);
                         obj.Add(dd);
                         WindBraceCount += 1;
                     }
                     else
                     {
                         var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[2].X, -0.5 * theArch.WidthInside), new Point2d(theArch.Get3PointReal(carry[i])[2].X, 0),
-                            theArch.GetTubeProperty(item.Center.X, eMemberType.WebBracing).Section.Diameter, 0, "H细线", (Curve)archRib[3][0], (Curve)curBar[2]);
+                            theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)archRib[3][0], (Curve)curBar[2]);
                         obj.Add(dd);
                         WindBraceCount += 1;
                     }
@@ -815,14 +848,14 @@ namespace CADInterface.API
                     if (WindBraceCount % 2 == 0)
                     {
                         var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[0].X, 0), new Point2d(theArch.Get3PointReal(carry[i])[0].X, 0.5 * theArch.WidthInside),
-                            theArch.GetTubeProperty(item.Center.X, eMemberType.WebBracing).Section.Diameter, 0, "H细线", (Curve)beforeBar[0], (Curve)archRib[1][2]);
+                            theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)beforeBar[0], (Curve)archRib[1][2]);
                         obj.Add(dd);
                         WindBraceCount += 1;
                     }
                     else
                     {
                         var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[0].X, 0.5 * theArch.WidthInside), new Point2d(theArch.Get3PointReal(carry[i])[0].X, 0),
-                            theArch.GetTubeProperty(item.Center.X, eMemberType.WebBracing).Section.Diameter, 0, "H细线", (Curve)archRib[1][2], (Curve)curBar[2]);
+                            theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)archRib[1][2], (Curve)curBar[2]);
                         obj.Add(dd);
                         WindBraceCount += 1;
                     }

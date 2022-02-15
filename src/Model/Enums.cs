@@ -30,6 +30,11 @@ namespace Model
 
         [Description("一般控制面")]
         GeneralDatum =9,
+
+
+        [Description("安装闭合控制面")]
+        DoubleDatum = 10,
+
     }
     /// <summary>
     /// 七种拱肋轴线定义
@@ -61,36 +66,48 @@ namespace Model
     public enum eMemberType
     {
         [Description("上弦杆")]
-        UpperCoord = 1,
+        UpperCoord = 11,
         [Description("下弦杆")]
-        LowerCoord = 2,
-        [Description("普通竖腹杆")]        
-        VerticalWeb = 3,
-        [Description("立柱斜撑")]
-        ColumnWeb =31,
-        [Description("斜腹杆")]
-        InclineWeb = 4,
-        [Description("半斜腹杆")]
-        InclineWebS = 41,
+        LowerCoord = 12,
 
-        [Description("横撑")]
-        CrossBraceing =5,
-        [Description("横风撑")]        
-        WindBraceingV =6,
-        [Description("风撑平联")]
-        WindBraceingH =7,
+        [Description("主腹杆")]        
+        MainWeb = 21,
+        [Description("次腹杆")]
+        SubWeb = 22,
+        [Description("拼接腹杆")]
+        InstallWeb = 23,
+        [Description("三角腹杆")]
+        TriWeb = 24,
+
+        [Description("横隔弦杆")]
+        DiaphragmCoord = 31,
+        [Description("横隔斜杆")]
+        DiaphragmWeb = 32,
+
+        [Description("横梁弦杆")]
+        CrossCoord =41,
+        [Description("横梁斜杆")]
+        CrossWeb = 42,
+        [Description("横梁竖杆")]
+        CrossVerical = 43,
+
         [Description("斜撑")]
-        WebBracing =8,
-
-        [Description("虚拟截面")]
-        Virtual = 10,
+        WindBracing =51,
 
         [Description("立柱主杆")]
-        ColumnMain=20,
+        ColumnMain=61,
         [Description("立柱顺桥向横撑")]
-        ColumnCrossL = 21,
+        ColumnCrossL = 62,
         [Description("立柱横桥向横撑")]
-        ColumnCrossW = 22,
+        ColumnCrossW = 63,
+        [Description("立柱盖梁")]
+        ColumnCapBeam = 64,
+        [Description("立柱小斜撑")]
+        ColumnWeb = 65,
+
+        [Description("虚拟截面")]
+        Virtual = 70,
+
     }
 
 

@@ -14,9 +14,10 @@ namespace BOQInterface
             ArchAxis ax;
             Arch theArchModel;
             BOQTable theTable = new BOQTable();
-            theArchModel = Arch.PreliminaryDesignModel(out ax);
-            theArchModel.CastBOQTable(ref theTable);
-            theTable.SaveCSV("..\\..\\..\\..\\data\\out_boq.csv");
+            theArchModel = NamedArch.PhoenixModelV3(out ax, 2.0, 518 / 5.0);
+            FEMModel theFem = new FEMModel(ref theArchModel);
+            theFem.CastBOQTable(ref theTable);
+            theTable.SaveCSV("..\\..\\..\\..\\data\\out_boq_new.csv");
             return;
         }
     }

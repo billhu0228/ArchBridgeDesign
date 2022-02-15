@@ -40,12 +40,17 @@ namespace BOQInterface
             column = new DataColumn();
             column.DataType = Type.GetType("System.Double");
             column.ColumnName = "Quantity";
-            column.Caption = "数";
+            column.Caption = "量";
             Columns.Add(column);
 
+            column = new DataColumn();
+            column.DataType = Type.GetType("System.Double");
+            column.ColumnName = "Length";
+            column.Caption = "长";
+            Columns.Add(column);
         }
 
-        internal void AddItem(eMemberType loc, eMaterial mat, int num, double quantity)
+        internal void AddItem(eMemberType loc, eMaterial mat, int num, double quantity,double length)
         {
             DataRow row;
             row = NewRow();
@@ -54,6 +59,7 @@ namespace BOQInterface
             row["Location"] = EnumHelper.GetDescription(typeof(eMemberType), loc);
             row["Number"] = num;
             row["Quantity"] = quantity;
+            row["Length"] = length;
 
             Rows.Add(row);
         }

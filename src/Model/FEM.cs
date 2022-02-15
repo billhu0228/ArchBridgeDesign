@@ -5,13 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AnsysInterface
+namespace Model
 {
     public class FEMNode
     {
         public int ID;
         public double X, Y, Z;
-        internal Point3D location;
+        public Point3D location;
 
         public FEMNode(int v, Point3D point3D)
         {
