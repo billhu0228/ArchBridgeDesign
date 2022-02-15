@@ -54,7 +54,8 @@ namespace CADInterface
             // properDia.ShowDialog();
 
             //archModel = Arch.PreliminaryDesignModel(out theArchAxis);
-            archModel = Arch.PreliminaryDesignModelV2(out theArchAxis);
+            //archModel = Arch.PreliminaryDesignModelV2(out theArchAxis);
+            archModel = NamedArch.PhoenixModelV3(out theArchAxis, 2.0, 518 / 4.5);
         }
 
         [CommandMethod("ArchDraw")]

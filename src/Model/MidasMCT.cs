@@ -1,12 +1,11 @@
 ﻿using MathNet.Spatial.Euclidean;
-using Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-namespace AnsysInterface
+namespace Model
 {
     public partial  class FEMModel
     {

@@ -52,10 +52,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnsysExtensions.cs" />
-    <Compile Include="MidasMCT.cs" />
-    <Compile Include="FEM.cs" />
-    <Compile Include="FEMModel.cs" />
     <Compile Include="OPSExtensions.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

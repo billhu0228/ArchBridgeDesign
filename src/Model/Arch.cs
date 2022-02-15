@@ -27,7 +27,7 @@ namespace Model
 
         public List<InstallationSegment> InstPartList;
 
-        protected List<MemberPropertyRecord> PropertyTable;
+        public List<MemberPropertyRecord> PropertyTable;
         public delegate double get_z(double x0);
         public List<Point2D> UpSkeleton, LowSkeleton, UpUpSkeleton, UpLowSkeleton, LowUpSkeleton, LowLowSkeleton;
         List<Node2D> NodeTable;
@@ -74,430 +74,6 @@ namespace Model
             footLevel = elevationOfTop - ax.f;
         }
 
-        public static Arch PreliminaryDesignModel(out ArchAxis theArchAxis)
-        {
-            Arch archModel;
-
-            #region 基本步骤
-            double L = 518.0;
-            double m = 2.0;
-            double f = L / 4.5;
-            double e = 0.060;
-            #endregion
-
-            #region 1. 设置拱系
-            theArchAxis = new ArchAxis(f, m, L);
-            archModel = new Arch(theArchAxis, 8.5, 17, 14, 4);
-            archModel.SetFootLevel(1270 + 11.3);
-            #endregion
-
-            #region  2. 配置截面
-            var MainSection = new TubeSection(1.5, 0.035);
-            var WebSection = new TubeSection(0.8, 0.024);
-            var s2 = new TubeSection(0.6, 0.016);
-            var s3 = new TubeSection(0.4, 0.016);
-            archModel.AssignProperty(eMemberType.UpperCoord, MainSection);
-            archModel.AssignProperty(eMemberType.LowerCoord, MainSection);
-            archModel.AssignProperty(eMemberType.VerticalWeb, WebSection);
-            archModel.AssignProperty(eMemberType.ColumnWeb, WebSection);
-            archModel.AssignProperty(eMemberType.InclineWeb, WebSection);
-            archModel.AssignProperty(eMemberType.CrossBraceing, new TubeSection(0.7, 0.016));
-            archModel.AssignProperty(eMemberType.WebBracing, new HSection(0.3, 0.3, 0.3, 0.012, 0.012, 0.008));
-            archModel.AssignProperty(eMemberType.InclineWebS, WebSection);
-            archModel.AssignProperty(eMemberType.ColumnMain, s2);
-            archModel.AssignProperty(eMemberType.ColumnCrossL, s3);
-            archModel.AssignProperty(eMemberType.ColumnCrossW, s3);
-            #endregion
-
-            #region 3. 切割拱圈
-            double x0 = -224;
-            foreach (var dx in new double[] { 0, 21, 21, 21, 21, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 21, 21, 21, 21 })
-            {
-                x0 = x0 + dx;
-                archModel.AddDatum(0, x0, eDatumType.InstallDatum, 90);
-            }
-
-            var CutAng = 118.2;
-            var CutX = 240.5;
-            archModel.AddDatum(0, -CutX, eDatumType.InstallDatum, CutAng);
-            archModel.AddDatum(0, CutX, eDatumType.InstallDatum, 180 - CutAng);
-            #endregion
-
-            #region 4. 布置主平面，生成骨架
-            double halfD = 0.75;
-            for (int i = 0; i < archModel.InstallDatum.Count - 1; i++)
-            {
-                var CurI = archModel.InstallDatum[i];
-                var NexI = archModel.InstallDatum[i + 1];
-                if (CurI.Angle0 == Angle.FromDegrees(90.0))
-                {
-                    // 起终点为垂直面
-                    if (NexI.Angle0 == Angle.FromDegrees(90))
-                    {
-                        if (NexI.Center.X - CurI.Center.X == 21)
-                        {
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { halfD, 7 - halfD, 7, 7 - halfD, halfD },
-                                new double[] { 90, 90, 90, 90 },
-                                new bool[] { false, true, true, true, false }, 0.060);
-                        }
-                        else
-                        {
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { halfD, 7 - halfD, 7, 7, 7 - halfD, halfD },
-                                new double[] { 90, 90, 90, 90, 90 },
-                                new bool[] { false, true, true, true, true, false }, 0.060);
-                        }
-                    }
-                    else
-                    {
-
-                        if (NexI.Center.X == theArchAxis.L1)
-                        {
-                            continue;
-                            // 最后一节 241-247-252-259 ,无此情况
-                            Line2D theCutLineEd = CurI.Line;
-                            theCutLineEd = theCutLineEd.Offset(-1);
-                            var cced = theArchAxis.Intersect(theCutLineEd);
-                            double d1 = cced.X - CurI.Center.X;
-                            double ll = NexI.Center.X - CurI.Center.X;
-
-                            double ang1 = theArchAxis.GetNormalAngle(247).Degrees;
-                            double ang2 = theArchAxis.GetNormalAngle(252).Degrees;
-
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { d1, 6 - d1, 5, 7 },
-                                new double[] { CurI.Angle0.Degrees, ang1, ang2 },
-                                new bool[] { false, false, false, false }, 0.060);
-                        }
-                        else
-                        {
-                            // 倒数第二节
-                            double X2 = 236.6;
-                            double A2 = 180 - 95.5144;
-                            double X1 = 231;
-
-                            Line2D theCutLineEd = NexI.Line;
-                            theCutLineEd = theCutLineEd.Offset(halfD);
-                            var cced = theArchAxis.Intersect(theCutLineEd);
-                            double d1 = NexI.Center.X - cced.X;
-                            double ll = NexI.Center.X - CurI.Center.X;
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { halfD, 7 - halfD, (X2 - X1), CutX - X2 - d1, d1 },
-                                new double[] { 90, 90, A2, NexI.Angle0.Degrees },
-                                new bool[] { false, true, true, false, false }, 0.060);
-                        }
-                        // 终点为正交面
-
-                    }
-                }
-                else
-                {
-                    if (NexI.Angle0 == Angle.FromDegrees(90))
-                    {
-                        double X1 = -236.6;
-                        double A1 = 95.5144;
-                        double X2 = -231;
-                        // 第二节 -241 -> -224
-                        Line2D theCutLineEd = CurI.Line;
-                        theCutLineEd = theCutLineEd.Offset(-halfD);
-                        var cced = theArchAxis.Intersect(theCutLineEd);
-                        double d1 = cced.X - CurI.Center.X;
-                        double ll = NexI.Center.X - CurI.Center.X;
-                        archModel.CreateInstallSegment(CurI, NexI,
-                            new double[] { d1, (X1 + CutX) - d1, (X2 - X1), 7 - halfD, halfD },
-                            new double[] { CurI.Angle0.Degrees, A1, 90, 90 },
-                            new bool[] { false, false, true, true, false }, 0.060);
-                    }
-                    else
-                    {
-                        if (NexI.Center.X == theArchAxis.L1)
-                        {
-                            // 最后一节 241-247-252-259
-                            double X2 = 251.8;
-                            double X1 = 246.6;
-                            double A2 = 180 - 128.27;
-                            double A1 = 180 - 122.47;
-
-                            Line2D theCutLineEd = CurI.Line;
-                            theCutLineEd = theCutLineEd.Offset(-1);
-                            var cced = theArchAxis.Intersect(theCutLineEd);
-                            double d1 = cced.X - CurI.Center.X;
-                            double ll = NexI.Center.X - CurI.Center.X;
-
-                            double ang1 = theArchAxis.GetNormalAngle(247).Degrees;
-                            double ang2 = theArchAxis.GetNormalAngle(252).Degrees;
-
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { d1, (X1 - CutX) - d1, X2 - X1, archModel.Axis.L1 - X2 },
-                                new double[] { CurI.Angle0.Degrees, A1, A2 },
-                                new bool[] { false, false, false, false }, 0.060);
-                        }
-                        else
-                        {
-                            // 第一节     241-247-252-259
-                            // -259:-251.5:-246
-                            // 132:128.3
-                            double X1 = -251.8;
-                            double X2 = -246.6;
-                            double A1 = 128.27;
-                            double A2 = 122.47;
-                            Line2D theCutLineEd = NexI.Line;
-                            theCutLineEd = theCutLineEd.Offset(halfD);
-                            var cced = theArchAxis.Intersect(theCutLineEd);
-                            double d1 = NexI.Center.X - cced.X;
-                            double ll = NexI.Center.X - CurI.Center.X;
-
-                            double ang1 = theArchAxis.GetNormalAngle(-252).Degrees;
-                            double ang2 = theArchAxis.GetNormalAngle(-247).Degrees;
-
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { X1 + archModel.Axis.L1, X2 - X1, (-CutX - X2) - d1, d1 },
-                                new double[] { A1, A2, NexI.Angle0.Degrees },
-                                new bool[] { false, false, false, false }, 0.060);
-                        }
-                    }
-                }
-            }
-
-            archModel.AddDatum(0, -theArchAxis.L1, eDatumType.ControlDatum);
-            archModel.AddDatum(0, theArchAxis.L1, eDatumType.ControlDatum);
-
-            archModel.AddDatum(0, -theArchAxis.L1 - 2, eDatumType.ControlDatum);
-            archModel.AddDatum(0, theArchAxis.L1 + 2, eDatumType.ControlDatum);
-            archModel.GenerateSkeleton();
-            #endregion
-
-            #region 6. 生成模型
-            archModel.GenerateArch();
-            // 6.1 增加三角斜腹杆
-            int num = archModel.MainDatum.Count;
-            archModel.AddTriWeb(archModel.GetMainDatum(1), archModel.GetMainDatum(2), e);
-            archModel.AddTriWeb(archModel.GetMainDatum(2), archModel.GetMainDatum(3), e, 0.25);
-            archModel.AddTriWeb(archModel.GetMainDatum(3), archModel.GetMainDatum(4), e, 0.25);
-            archModel.AddTriWeb(archModel.GetMainDatum(num - 2), archModel.GetMainDatum(num - 3), e);
-            archModel.AddTriWeb(archModel.GetMainDatum(num - 3), archModel.GetMainDatum(num - 4), e, 0.25);
-            archModel.AddTriWeb(archModel.GetMainDatum(num - 4), archModel.GetMainDatum(num - 5), e, 0.25);
-            #endregion
-
-            #region 7. 立柱建模
-            double xx = -231;
-            double[] Ls = new double[] { 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4 };
-
-            //double[] H2S = new double[]
-            //{
-            //    1414.012000,1414.348000,1414.679775,1414.944375,1415.120775,1415.208975,
-            //    1415.208975,1415.120775,1414.944375,1414.679775,1414.348000,1414.012000
-            //};
-            double[] H2S = new double[]
-            {
-                1403.714000,1403.966000,1404.218000,1404.464375,1404.640775,1404.728975,
-                1404.728975,1404.640775,1404.464375,1404.218000,1403.966000,1403.714000,
-            };
-
-
-            for (int i = 0; i < 12; i++)
-            {
-                var xi = xx + i * 42;
-                archModel.AddColumn(0, xi, H2S[i] - archModel.FootLevel, Ls[i], 2.8, 3.0, 3, 1, 1, Ls[i] + 1.5, 0.8);
-            }
-            archModel.GenerateColumn();
-            #endregion
-
-            #region 8. 交界墩
-            double P2H2 = 1413.676000;
-            double RtZ0 = -106;
-            double RtZ1 = -archModel.Axis.f + (P2H2 - archModel.FootLevel) - 2;
-            double wratio = 0.0125;
-            RectSection S1 = new RectSection(6, 3);
-            RectSection S2 = new RectSection(7, 3);
-            RectSection S0 = new RectSection(6 + 2 * wratio * (RtZ1 - RtZ0), 3 + 2 * wratio * (RtZ1 - RtZ0));
-
-            archModel.AddColumn(0, -273, new RCColumn(0, RtZ0, RtZ1, RtZ1 + 2, S0, S1, S2));
-            archModel.AddColumn(0, 273, new RCColumn(0, RtZ0, RtZ1, RtZ1 + 2, S0, S1, S2));
-            #endregion
-
-            return archModel;
-
-
-        }
-        public static Arch PreliminaryDesignModelV2(out ArchAxis theArchAxis)
-        {
-            Arch archModel;
-
-            #region 基本步骤
-            double L = 518.0;
-            double m = 2.0;
-            double f = L / 4.0;
-            double e = 0.060;
-            #endregion
-
-            #region 1. 设置拱系
-            theArchAxis = new ArchAxis(f, m, L);
-            archModel = new Arch(theArchAxis, 8.5, 17, 14, 4);
-            archModel.SetFootLevel(1270 + 11.3);
-            #endregion
-
-            #region  2. 配置截面
-            var MainSection = new TubeSection(1.5, 0.035);
-            var WebSection = new TubeSection(0.8, 0.024);
-            var s2 = new TubeSection(0.6, 0.016);
-            var s3 = new TubeSection(0.4, 0.016);
-            archModel.AssignProperty(eMemberType.UpperCoord, MainSection);
-            archModel.AssignProperty(eMemberType.LowerCoord, MainSection);
-            archModel.AssignProperty(eMemberType.VerticalWeb, WebSection);
-            archModel.AssignProperty(eMemberType.ColumnWeb, WebSection);
-            archModel.AssignProperty(eMemberType.InclineWeb, WebSection);
-            archModel.AssignProperty(eMemberType.CrossBraceing, new TubeSection(0.7, 0.016));
-            archModel.AssignProperty(eMemberType.WebBracing, new HSection(0.3, 0.3, 0.3, 0.012, 0.012, 0.008));
-            archModel.AssignProperty(eMemberType.InclineWebS, WebSection);
-            archModel.AssignProperty(eMemberType.ColumnMain, s2);
-            archModel.AssignProperty(eMemberType.ColumnCrossL, s3);
-            archModel.AssignProperty(eMemberType.ColumnCrossW, s3);
-            #endregion
-
-            #region 3. 切割拱圈
-            double x0 = -238;
-            foreach (var dx in new double[] { 0, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 28, 28, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, })
-            {
-                x0 = x0 + dx;
-                archModel.AddDatum(0, x0, eDatumType.InstallDatum, 90);
-            }
-
-            //var CutAng = 118.2;
-            //var CutX = 240.5;
-            //archModel.AddDatum(0, -CutX, eDatumType.InstallDatum, CutAng);
-            //archModel.AddDatum(0, CutX, eDatumType.InstallDatum, 180 - CutAng);
-            #endregion
-
-            #region 4. 布置主平面，生成骨架
-            double halfD = 0.75;
-            for (int i = 0; i < archModel.InstallDatum.Count - 1; i++)
-            {
-                var CurI = archModel.InstallDatum[i];
-                var NexI = archModel.InstallDatum[i + 1];
-                if (CurI.Angle0 == Angle.FromDegrees(90.0))
-                {
-                    // 起终点为垂直面
-                    if (NexI.Angle0 == Angle.FromDegrees(90))
-                    {
-                        if (NexI.Center.X - CurI.Center.X == 21)
-                        {
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { halfD, 7 - halfD, 7, 7 - halfD, halfD },
-                                new double[] { 90, 90, 90, 90 },
-                                new bool[] { false, true, true, true, false }, 0.060);
-                        }
-                        else
-                        {
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { halfD, 7 - halfD, 7, 7, 7 - halfD, halfD },
-                                new double[] { 90, 90, 90, 90, 90 },
-                                new bool[] { false, true, true, true, true, false }, 0.060);
-                        }
-                    }
-                    else
-                    {
-                        // 最后一节 241-247-252-259 ,无此情况
-                        Line2D theCutLineEd = CurI.Line;
-                        theCutLineEd = theCutLineEd.Offset(-1);
-                        var cced = theArchAxis.Intersect(theCutLineEd);
-                        double d1 = cced.X - CurI.Center.X;
-                        double ll = NexI.Center.X - CurI.Center.X;
-
-                        double ang1 = theArchAxis.GetNormalAngle(247).Degrees;
-                        double ang2 = theArchAxis.GetNormalAngle(252).Degrees;
-
-                        archModel.CreateInstallSegment(CurI, NexI,
-                            new double[] { d1,NexI.Center.X-CurI.Center.X-d1 },
-                            new double[] { CurI.Angle0.Degrees },
-                            new bool[] { false, false }, 0.060);
-
-
-                    }
-                }
-                else
-                {
-                    // 第一节     241-247-252-259
-                    // -259:-251.5:-246
-                    // 132:128.3
-
-                    Line2D theCutLineEd = NexI.Line;
-                    theCutLineEd = theCutLineEd.Offset(1);
-                    var cced = theArchAxis.Intersect(theCutLineEd);
-                    double d1 = NexI.Center.X - cced.X;
-                    double ll = NexI.Center.X - CurI.Center.X;
-
-                    archModel.CreateInstallSegment(CurI, NexI,
-                        new double[] { ll - d1, d1 },
-                        new double[] { NexI.Angle0.Degrees },
-                        new bool[] { false, false }, 0.060);
-
-
-                }
-            }
-
-            archModel.AddDatum(0, -theArchAxis.L1, eDatumType.ControlDatum);
-            archModel.AddDatum(0, theArchAxis.L1, eDatumType.ControlDatum);
-
-            archModel.AddDatum(0, -theArchAxis.L1 - 2, eDatumType.ControlDatum);
-            archModel.AddDatum(0, theArchAxis.L1 + 2, eDatumType.ControlDatum);
-            archModel.GenerateSkeleton();
-            #endregion
-
-            #region 6. 生成模型
-            archModel.GenerateArch();
-            // 6.1 增加三角斜腹杆
-            int num = archModel.MainDatum.Count;
-            archModel.AddTriWeb(archModel.GetMainDatum(1), archModel.GetMainDatum(2), e);
-            archModel.AddTriWeb(archModel.GetMainDatum(2), archModel.GetMainDatum(3), e, 0.25);
-            archModel.AddTriWeb(archModel.GetMainDatum(3), archModel.GetMainDatum(4), e, 0.25);
-            archModel.AddTriWeb(archModel.GetMainDatum(num - 2), archModel.GetMainDatum(num - 3), e);
-            archModel.AddTriWeb(archModel.GetMainDatum(num - 3), archModel.GetMainDatum(num - 4), e, 0.25);
-            archModel.AddTriWeb(archModel.GetMainDatum(num - 4), archModel.GetMainDatum(num - 5), e, 0.25);
-            #endregion
-
-            #region 7. 立柱建模
-            double xx = -231;
-            double[] Ls = new double[] { 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4 };
-
-            //double[] H2S = new double[]
-            //{
-            //    1414.012000,1414.348000,1414.679775,1414.944375,1415.120775,1415.208975,
-            //    1415.208975,1415.120775,1414.944375,1414.679775,1414.348000,1414.012000
-            //};
-            double[] H2S = new double[]
-            {
-                1403.714000,1403.966000,1404.218000,1404.464375,1404.640775,1404.728975,
-                1404.728975,1404.640775,1404.464375,1404.218000,1403.966000,1403.714000,
-            };
-
-
-            for (int i = 0; i < 12; i++)
-            {
-                var xi = xx + i * 42;
-                archModel.AddColumn(0, xi, H2S[i] - archModel.FootLevel, Ls[i], 2.8, 3.0, 3, 1, 1, Ls[i] + 1.5, 0.8);
-            }
-            archModel.GenerateColumn();
-            #endregion
-
-            #region 8. 交界墩
-            double P2H2 = 1413.676000;
-            double RtZ0 = -106;
-            double RtZ1 = -archModel.Axis.f + (P2H2 - archModel.FootLevel) - 2;
-            double wratio = 0.0125;
-            RectSection S1 = new RectSection(6, 3);
-            RectSection S2 = new RectSection(7, 3);
-            RectSection S0 = new RectSection(6 + 2 * wratio * (RtZ1 - RtZ0), 3 + 2 * wratio * (RtZ1 - RtZ0));
-
-            archModel.AddColumn(0, -273, new RCColumn(0, RtZ0, RtZ1, RtZ1 + 2, S0, S1, S2));
-            archModel.AddColumn(0, 273, new RCColumn(0, RtZ0, RtZ1, RtZ1 + 2, S0, S1, S2));
-            #endregion
-
-            return archModel;
-
-
-        }
 
 
 
@@ -507,7 +83,7 @@ namespace Model
         {
             get
             {
-                return GetTubeProperty(0, eMemberType.InclineWeb).Section.Diameter;
+                return GetTubeProperty(0, eMemberType.SubWeb).Section.Diameter;
             }
         }
         public double MainTubeDiameter
@@ -522,7 +98,7 @@ namespace Model
         {
             get
             {
-                return GetTubeProperty(0, eMemberType.CrossBraceing).Section.Diameter;
+                return GetTubeProperty(0, eMemberType.CrossCoord).Section.Diameter;
 
             }
         }
@@ -582,7 +158,9 @@ namespace Model
         /// <param name="vs1"></param>
         /// <param name="vs2"></param>
         /// <param name="vs3"></param>
-        public void CreateInstallSegment(DatumPlane curI, DatumPlane nexI, double[] dist, double[] ang_degList, bool[] is_dia, double e)
+        public void CreateInstallSegment(DatumPlane curI, DatumPlane nexI, 
+            double[] dist, double[] ang_degList,
+            bool[] is_dia, double e)
         {
             //首先判断参数合理性
             double La = nexI.Center.X - curI.Center.X;
@@ -596,18 +174,85 @@ namespace Model
 
             for (int i = 0; i < dist.Count() - 1; i++)
             {
-                double xi = curI.Center.X + dist.ToList().GetRange(0, i + 1).Sum();
-                if (ang_degList[i] == 90)
+                if (i == 0)
                 {
-                    Dtlist.Add(eDatumType.VerticalDatum);
+                    if (Math.Abs(dist[i]) <= 2)
+                    {
+                        Dtlist.Add(eDatumType.DoubleDatum);
+                    }
+                    else
+                    {
+                        if (ang_degList[i] == 90)
+                        {
+                            Dtlist.Add(eDatumType.VerticalDatum);
+                        }
+                        else
+                        {
+                            Dtlist.Add(eDatumType.NormalDatum);
+                        }
+                    }
+                }
+                else if (i == ang_degList.Length - 1)
+                {
+                    if (dist.Last() <= 2)
+                    {
+                        Dtlist.Add(eDatumType.DoubleDatum);
+                    }
+                    else
+                    {
+                        if (ang_degList[i] == 90)
+                        {
+                            Dtlist.Add(eDatumType.VerticalDatum);
+                        }
+                        else
+                        {
+                            Dtlist.Add(eDatumType.NormalDatum);
+                        }
+                    }
                 }
                 else
                 {
-                    Dtlist.Add(eDatumType.NormalDatum);
+                    if (ang_degList[i] == 90)
+                    {
+                        Dtlist.Add(eDatumType.VerticalDatum);
+                    }
+                    else
+                    {
+                        Dtlist.Add(eDatumType.NormalDatum);
+                    }
                 }
+                //double xi = curI.Center.X + dist.ToList().GetRange(0, i + 1).Sum();
+
             }
             List<DatumPlane> newMainDatum = new List<DatumPlane>();
             List<DatumPlane> newDiaDatum = new List<DatumPlane>();
+            // 判断斜腹杆方向
+            bool GreaterThanZero = curI.Center.X > 0;
+            bool AnyNorm = curI.Angle0.Degrees != 90.0 || nexI.Angle0.Degrees != 90;
+            bool DiaDirect = true;
+            if (AnyNorm)
+            {
+                if (GreaterThanZero)
+                {
+                    DiaDirect = true;
+                }
+                else
+                {
+                    DiaDirect = false;
+                }
+            }
+            else
+            {
+                if (GreaterThanZero)
+                {
+                    DiaDirect = false;
+                }
+                else
+                {
+                    DiaDirect = true;
+                }
+            }
+            // 判断斜腹杆方向
             for (int i = 0; i < dist.Length - 1; i++)
             {
                 double xi = curI.Center.X + dist.ToList().GetRange(0, i + 1).Sum();
@@ -618,7 +263,9 @@ namespace Model
                 {
                     if (is_dia[i])
                     {
-                        var dia = CreatDiagonalDatum(newMainDatum[i - 1], newMainDatum[i], e);
+                        var dia = CreatDiagonalDatum(newMainDatum[i - 1], newMainDatum[i],
+                            
+                            e, DiaDirect);
                         var a = (newMainDatum[i - 1].Angle0.Degrees + newMainDatum[i].Angle0.Degrees) * 0.5;
                         SecondaryDatum.Add(new DatumPlane(0, dia.Center, Angle.FromDegrees(a), eDatumType.MiddleDatum));
                         newDiaDatum.Add(dia);
@@ -633,7 +280,6 @@ namespace Model
             foreach (var item in newDiaDatum)
             {
                 DiagonalDatum.Add(item);
-
             }
             MainDatum.MySort();
             DiagonalDatum.MySort();
@@ -822,7 +468,7 @@ namespace Model
         {
             //double up_dia = GetTubeProperty(0, eMemberType.UpperCoord).Section.Diameter;
             //double down_dia = GetTubeProperty(0, eMemberType.LowerCoord).Section.Diameter;
-            double norm_dia = GetTubeProperty(0, eMemberType.VerticalWeb).Section.Diameter;
+            double norm_dia = GetTubeProperty(0, eMemberType.MainWeb).Section.Diameter;
             Point2D KP,KP2;
             Vector2D Direction;
             if (isLeft)
@@ -866,7 +512,32 @@ namespace Model
 
         }
 
+        /// <summary>
+        /// 控制面类型与单元类型映射
+        /// </summary>
+        /// <param name="dt"></param>
+        /// <returns></returns>
+        public eMemberType MemberTypeFromDamtumType(eDatumType dt)
+        {
+            eMemberType mt;
+            switch (dt)
+            {
+                case eDatumType.VerticalDatum: // 竖直主控面
+                    mt = eMemberType.MainWeb;
+                    break;
+                case eDatumType.NormalDatum:  // 法向主控面
+                    mt = eMemberType.MainWeb;
+                    break;
+                case eDatumType.DoubleDatum:  // 安装主控面
+                    mt = eMemberType.InstallWeb;
+                    break;
+                default:
+                    throw new Exception("不应该有这种。。。");
+            }
 
+            return mt;
+
+        }
 
         /// <summary>
         /// 生成斜腹杆平面
@@ -875,7 +546,7 @@ namespace Model
         /// <param name="P2"></param>
         /// <param name="e"></param>
         /// <returns></returns>
-        public DatumPlane CreatDiagonalDatum(DatumPlane P1, DatumPlane P2, double e, DatumPlane Pmid = null)
+        public DatumPlane CreatDiagonalDatum(DatumPlane P1, DatumPlane P2, double e, bool isLUtoRL, DatumPlane Pmid = null)
         {
             double up_dia = GetTubeProperty(0, eMemberType.UpperCoord).Section.Diameter;
             double down_dia = GetTubeProperty(0, eMemberType.LowerCoord).Section.Diameter;
@@ -889,31 +560,48 @@ namespace Model
             Line2D L_DOWN_1 = new Line2D(Get3Point(P1.Center.X, P1.Angle0.Degrees)[2], Get3Point(Pm.Center.X, Pm.Angle0.Degrees)[2]);
             Line2D L_DOWN_2 = new Line2D(Get3Point(Pm.Center.X, Pm.Angle0.Degrees)[2], Get3Point(P2.Center.X, P2.Angle0.Degrees)[2]);
 
-            Line2D L1 = P1.Line.Offset(-0.5 * GetTubeProperty(P1.Center.X, eMemberType.VerticalWeb).Section.Diameter);
-            Line2D L2 = P2.Line.Offset(0.5 * GetTubeProperty(P2.Center.X, eMemberType.VerticalWeb).Section.Diameter);
+            eMemberType TP1 = MemberTypeFromDamtumType(P1.DatumType);
+            eMemberType TP2= MemberTypeFromDamtumType(P2.DatumType);
+            Line2D L1 = P1.Line.Offset(-0.5 * GetTubeProperty(P1.Center.X, TP1).Section.Diameter);
+            Line2D L2 = P2.Line.Offset(0.5 * GetTubeProperty(P2.Center.X, TP2).Section.Diameter);
 
             Circle2D C_UP, C_DOWN;
 
-            double dia = GetTubeProperty(Pm.Center.X, eMemberType.InclineWeb).Section.Diameter;
+            double dia = GetTubeProperty(Pm.Center.X, eMemberType.SubWeb).Section.Diameter;
 
-            if (P2.Center.X < 0)
+            if (isLUtoRL)
             {
+                // 左上到右下
 
                 C_UP = new Circle2D((Point2D)(L1.IntersectWith(L_UP_1.Offset(-0.5 * up_dia))) + L_UP_1.Direction * e, dia);
                 C_DOWN = new Circle2D((Point2D)(L2.IntersectWith(L_DOWN_2.Offset(0.5 * down_dia))) - L_DOWN_2.Direction * e, dia);
 
             }
-            else if (P1.Center.X > 0)
+            else 
             {
+                // 左下到右上
                 C_UP = new Circle2D((Point2D)(L2.IntersectWith(L_UP_2.Offset(-0.5 * down_dia))) - L_UP_2.Direction * e, dia);
                 C_DOWN = new Circle2D((Point2D)(L1.IntersectWith(L_DOWN_1.Offset(0.5 * up_dia))) + L_DOWN_1.Direction * e, dia);
             }
+            //else
+            //{
+            //    throw new Exception();
+            //}
+            var TangentedPoints = C_UP.Center.Tangent(C_DOWN);
+            TangentedPoints.Sort((pa, pb) => pa.X.CompareTo(pb.X));
+            Point2D B=new Point2D();
+            if (isLUtoRL)
+            {
+                B = TangentedPoints[0];
+            }
             else
             {
-                throw new Exception();
+                B = TangentedPoints[1];
             }
-            var B = C_UP.Center.Tangent(C_DOWN)[0];
-            Line2D datumLine = (new Line2D(B, C_UP.Center)).Offset(Math.Sign(P1.Center.X) * 0.5 * dia);
+
+            int offsetDir = isLUtoRL ? -1 : 1;
+
+            Line2D datumLine = (new Line2D(B, C_UP.Center)).Offset(offsetDir * 0.5 * dia);
             return new DatumPlane(0, Axis.Intersect(datumLine), Vector2D.XAxis.AngleTo(datumLine.Direction), eDatumType.DiagonalDatum);
         }
 
@@ -943,12 +631,12 @@ namespace Model
                 Line2D L_DOWN_1 = new Line2D(Get3Point(P1.Center.X, 90)[2], Get3Point(Pm.Center.X, 90)[2]);
                 Line2D L_DOWN_2 = new Line2D(Get3Point(Pm.Center.X, 90)[2], Get3Point(P2.Center.X, 90)[2]);
 
-                Line2D L1 = P1.Line.Offset(-0.5 * GetTubeProperty(P1.Center.X, eMemberType.VerticalWeb).Section.Diameter);
-                Line2D L2 = P2.Line.Offset(0.5 * GetTubeProperty(P2.Center.X, eMemberType.VerticalWeb).Section.Diameter);
+                Line2D L1 = P1.Line.Offset(-0.5 * GetTubeProperty(P1.Center.X, eMemberType.MainWeb).Section.Diameter);
+                Line2D L2 = P2.Line.Offset(0.5 * GetTubeProperty(P2.Center.X, eMemberType.MainWeb).Section.Diameter);
 
                 Circle2D C_UP, C_DOWN;
 
-                double dia = GetTubeProperty(Pm.Center.X, eMemberType.InclineWeb).Section.Diameter;
+                double dia = GetTubeProperty(Pm.Center.X, eMemberType.SubWeb).Section.Diameter;
 
                 if (P2.Center.X < 0)
                 {
@@ -979,59 +667,54 @@ namespace Model
         {
             MainDatum.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
             SecondaryDatum.Sort((x, y) => x.Center.X.CompareTo(y.Center.X));
-
             MemberTable = new List<Member>();
-
-
             for (int i = 0; i < UpSkeleton.Count - 1; i++)
             {
                 Line2D line = new Line2D(UpSkeleton[i], UpSkeleton[i + 1]);
                 MemberTable.Add(new Member(0, line, GetTubeProperty(line.MiddlePoint().X, eMemberType.UpperCoord).Section, eMemberType.UpperCoord));
             }
-
             for (int i = 0; i < LowSkeleton.Count - 1; i++)
             {
                 Line2D line = new Line2D(LowSkeleton[i], LowSkeleton[i + 1]);
                 MemberTable.Add(new Member(0, line, GetTubeProperty(line.MiddlePoint().X, eMemberType.LowerCoord).Section, eMemberType.LowerCoord));
             }
-
             foreach (var item in DiagonalDatum)
             {
                 var ret = Get3PointReal(item);
                 Line2D line = new Line2D(ret[0], ret[2]);
-                MemberTable.Add(new Member(0, line, GetTubeProperty(line.MiddlePoint().X, eMemberType.InclineWeb).Section, eMemberType.InclineWeb));
+                MemberTable.Add(new Member(0, line, GetTubeProperty(line.MiddlePoint().X, eMemberType.SubWeb).Section, eMemberType.SubWeb));
             }
-
             foreach (var item in MainDatum)
             {
                 var dt = item.DatumType;
                 eMemberType mt = 0;
                 switch (dt)
                 {
-                    case eDatumType.ColumnDatum:
-                        mt = eMemberType.ColumnWeb;
+
+                    case eDatumType.VerticalDatum: // 竖直主控面
+                        mt = eMemberType.MainWeb;
                         break;
-                    case eDatumType.VerticalDatum:
-                        mt = eMemberType.VerticalWeb;
+                    case eDatumType.NormalDatum:  // 法向主控面
+                        mt = eMemberType.MainWeb;
                         break;
-                    case eDatumType.NormalDatum:
-                        mt = eMemberType.VerticalWeb;
-                        break;
-                    case eDatumType.MiddleDatum:
-                        throw new Exception("不应该有这种。。。");
-                    case eDatumType.DiagonalDatum:
-                        mt = eMemberType.InclineWeb;
+                    case eDatumType.DoubleDatum:  // 安装主控面
+                        mt = eMemberType.InstallWeb;
                         break;
                     case eDatumType.ControlDatum:
                         continue;
+                    case eDatumType.MiddleDatum:
+                        throw new Exception("不应该有这种。。。");
+                    case eDatumType.DiagonalDatum:
+                        throw new Exception("不应该有这种。。。");
+                    case eDatumType.ColumnDatum:
+                        throw new Exception("不应该有这种。。。");
                     default:
-                        break;
+                        throw new Exception("不应该有这种。。。");
                 }
                 var ret = Get3PointReal(item);
                 Line2D line = new Line2D(ret[0], ret[2]);
                 MemberTable.Add(new Member(0, line, GetTubeProperty(line.MiddlePoint().X, mt).Section, mt));
             }
-
         }
 
         /// <summary>
@@ -1305,8 +988,8 @@ namespace Model
         {
             double centerX = fromDatum.Center.X;
             Vector2D direction_from = Vector2D.XAxis.Rotate(fromDatum.Angle0);
-            double DiaNormal = GetTubeProperty(targetDatum.Center.X, eMemberType.VerticalWeb).Section.Diameter;
-            var sect = GetTubeProperty((centerX + targetDatum.Center.X) * 0.5, eMemberType.InclineWebS).Section;
+            double DiaNormal = GetTubeProperty(targetDatum.Center.X, eMemberType.MainWeb).Section.Diameter;
+            var sect = GetTubeProperty((centerX + targetDatum.Center.X) * 0.5, eMemberType.TriWeb).Section;
             double dia = sect.Diameter;
             Point2D O0 = Axis.GetCenter(centerX);
             Point2D OA = O0 + half_c_offset * direction_from;
@@ -1361,26 +1044,22 @@ namespace Model
             double st = 0, ed = 0;
             if (OA.X>0)
             {
-                ed = Axis.L1;
+                ed = Axis.L1+10;
             }
             else
             {
-                st = Axis.L1 * -1;
+                st = -Axis.L1 - 10;
             }
-            var VA = Axis.Intersect(new Line2D(A2 + LinA.Direction * (-2 * LinA.Length), A2),st,ed);
+            var VA = Axis.Intersect(new Line2D(A2 + LinA.Direction * (- 2* LinA.Length), A2),st,ed);
             var VB = Axis.Intersect(new Line2D(B2 + LinB.Direction * (-2 * LinB.Length), B2),st,ed);
-            var A3 = Get3PointReal(VA.X, Vector2D.XAxis.AngleTo(A2 - OA).Degrees)[0];
-            double deg = Angle.FromRadians(Vector2D.XAxis.SignedAngleBetween(B2 - OB)).Degrees;
-            if (deg < 0)
-            {
-                deg = 180 + deg;
 
-            }
-            var B3 = Get3PointReal(VB.X, deg)[2];
-            var MemberA = new Member(0, new Line2D(OA, A3), sect, eMemberType.InclineWebS);
+            var A3 = Get3PointReal(VA.X, Vector2D.XAxis.AngleTo(A2 - OA).Degrees)[0];
+            var B3 = Get3PointReal(VB.X, Vector2D.XAxis.AngleTo(B2 - OB).Degrees)[2];
+
+            var MemberA = new Member(0, new Line2D(OA, A3), sect, eMemberType.TriWeb);
             MemberA.StartDatum = fromDatum;
             MemberTable.Add(MemberA);
-            var MemberB = new Member(0, new Line2D(OB, B3), sect, eMemberType.InclineWebS);
+            var MemberB = new Member(0, new Line2D(OB, B3), sect, eMemberType.TriWeb);
             MemberB.StartDatum = fromDatum;
             MemberTable.Add(MemberB);
         }

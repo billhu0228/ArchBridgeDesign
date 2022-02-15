@@ -50,8 +50,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FEMExtensions.cs" />
     <Compile Include="Arch.cs" />
     <Compile Include="ArchAxis.cs" />
+    <Compile Include="CFTS.cs" />
+    <Compile Include="FEM.cs" />
+    <Compile Include="FEMModel.cs" />
+    <Compile Include="MidasMCT.cs" />
     <Compile Include="NamedArch.cs" />
     <Compile Include="Column.cs" />
     <Compile Include="DatumPlane.cs" />
