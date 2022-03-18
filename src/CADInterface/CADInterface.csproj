@@ -81,9 +81,8 @@
       <HintPath>..\AcadLibs\23.1\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="HPDI.DrawingStandard, Version=1.0.0.5, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HPDIDrawingStandard\HpdiDrawingStandard\HPDI.DrawingStandard\HPDI.DrawingStandard\bin\Debug\net47\HPDI.DrawingStandard.dll</HintPath>
+    <Reference Include="HPDI.DrawingStandard, Version=1.0.1.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\HPDI.DrawingStandard.1.0.1.4\lib\net47\HPDI.DrawingStandard.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\MathNet.Numerics.5.0.0-alpha02\lib\net461\MathNet.Numerics.dll</HintPath>

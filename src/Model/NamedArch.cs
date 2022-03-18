@@ -35,7 +35,7 @@ namespace Model
 
             #region 1. 设置拱系
             theArchAxis = new ArchAxis(f, m, L);
-            archModel = new Arch(theArchAxis, 8.5, 17, 14, 4);
+            archModel = new Arch(theArchAxis, 13, 15, 14, 4);
             archModel.SetFootLevel(1270 + 11.3);
             #endregion
 
@@ -62,9 +62,9 @@ namespace Model
             var T300S10C = new TubeSection(64, 0.30, 0.010);
 
 
-            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1500S28, double.NegativeInfinity,-49);
-            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1500S35, -49,49);
-            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1500S28, 49, double.PositiveInfinity) ;
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1500S28, double.NegativeInfinity, -49);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1500S35, -49, 49);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1500S28, 49, double.PositiveInfinity);
 
             archModel.AssignProperty(eMemberType.LowerCoord, CFTS1500S35, double.NegativeInfinity, -154);
             archModel.AssignProperty(eMemberType.LowerCoord, CFTS1500S28, -154, 154);
@@ -126,7 +126,7 @@ namespace Model
             var LB = theArchAxis.GetLength(KP2.X) - theArchAxis.GetLength(KP1.X);
             double DL2 = LB / 5;
             var CTL1 = theArchAxis.GetX0(theArchAxis.GetLength(KP1.X) + DL2 * 2);
-            
+
             List<double> xs = new List<double>() {
                 -CTL1, -CTL0, CTL1,CTL0,
                 -196, -175, -154, -133, -112, -91, -70, -49, -28, 0,
@@ -185,7 +185,7 @@ namespace Model
                     {
                         // 起点垂直，终点法向                                                            
                         var CTLx1 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1);
-                        var CTLx2 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1+DL1);
+                        var CTLx2 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1 + DL1);
 
                         Line2D theCutLineEd = NexI.Line;
                         theCutLineEd = theCutLineEd.Offset(halfD);
@@ -201,7 +201,7 @@ namespace Model
                                  theArchAxis.GetNormalAngle(CTLx1).Degrees,
                                  theArchAxis.GetNormalAngle(CTLx2).Degrees,
                                 NexI.Angle0.Degrees },
-                            new bool[] { false, false, true, true,true, false }, 0.060); ;
+                            new bool[] { false, false, true, true, true, false }, 0.060); ;
                     }
                 }
                 else
@@ -227,7 +227,7 @@ namespace Model
                                 theArchAxis.GetNormalAngle(-CTLx2).Degrees,
                                 theArchAxis.GetNormalAngle(-CTLx1).Degrees,
                                 theArchAxis.GetNormalAngle(-KP0.X).Degrees, 90, },
-                            new bool[] { false, true, true,true, false, false }, 0.060); ;
+                            new bool[] { false, true, true, true, false, false }, 0.060); ;
 
                     }
                     else
@@ -489,11 +489,11 @@ namespace Model
 
             var LA = theArchAxis.GetLength(KP1.X) - theArchAxis.GetLength(KP0.X);
             double DL1 = LA / 3;
-            var CTL0 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1*2);
+            var CTL0 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1 * 2);
 
             var LB = theArchAxis.GetLength(KP2.X) - theArchAxis.GetLength(KP1.X);
             double DL2 = LB / 5;
-            var CTL1 = theArchAxis.GetX0(theArchAxis.GetLength(KP1.X) + DL2*2);
+            var CTL1 = theArchAxis.GetX0(theArchAxis.GetLength(KP1.X) + DL2 * 2);
             //var CTL2 = theArchAxis.GetX0(theArchAxis.GetLength(KP1.X) + DL2 * 4);
 
 
@@ -588,7 +588,7 @@ namespace Model
                             new double[] { 90, theArchAxis.GetNormalAngle(KP0.X).Degrees,
                                  theArchAxis.GetNormalAngle(CTLx).Degrees,
                                 NexI.Angle0.Degrees },
-                            new bool[] { false, false, true,true, false }, 0.060);
+                            new bool[] { false, false, true, true, false }, 0.060);
                     }
                 }
                 else
@@ -608,10 +608,10 @@ namespace Model
                             (-KP0.X)-(-CTLx),
                             NexI.Center.X- (-KP0.X)-halfD,
                                 halfD},
-                            new double[] { CurI.Angle0.Degrees, 
+                            new double[] { CurI.Angle0.Degrees,
                                 theArchAxis.GetNormalAngle(-CTLx).Degrees,
                                 theArchAxis.GetNormalAngle(-KP0.X).Degrees, 90, },
-                            new bool[] { false, true, true,false, false }, 0.060); ;
+                            new bool[] { false, true, true, false, false }, 0.060); ;
 
                     }
                     else
@@ -649,13 +649,13 @@ namespace Model
 
 
                             archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { d1, locs[0] - c1.X, locs[1] - locs[0], NexI.Center.X-locs[1] },
+                                new double[] { d1, locs[0] - c1.X, locs[1] - locs[0], NexI.Center.X - locs[1] },
                                 new double[] {
                                 CurI.Angle0.Degrees,
                                 theArchAxis.GetNormalAngle(locs[0]).Degrees,
                                 theArchAxis.GetNormalAngle(locs[1]).Degrees,
                                 },
-                                new bool[] { false, true, true,  false }, 0.060);
+                                new bool[] { false, true, true, false }, 0.060);
 
                         }
                         else if (CurI.Center.X == -CTL1)
@@ -807,7 +807,7 @@ namespace Model
         /// </summary>
         /// <param name="theArchAxis"></param>
         /// <returns></returns>
-        public static Arch PhoenixModel(out ArchAxis theArchAxis,double m,double f)
+        public static Arch PhoenixModel(out ArchAxis theArchAxis, double m, double f)
         {
             Arch archModel;
 
@@ -838,22 +838,22 @@ namespace Model
             /// 10：立柱横杆--9
             /// 99 :刚臂
             /// </remarks>
-            var MainSection = new TubeSection(1,1.5, 0.035,true);
-            var MainWebSection = new TubeSection(2,0.8, 0.024);
-            var SubWebSection = new TubeSection(3,0.8, 0.024);
-            var s4 = new TubeSection(4,0.6, 0.016);
-            var s8 = new TubeSection(8,0.6, 0.016);
-            var s10= new TubeSection(10,0.4, 0.016);
-            var s5 = new TubeSection(5,0.4, 0.016);
-            var s6 = new TubeSection(6,0.4, 0.016);
-            var s7 = new TubeSection(7,0.4, 0.016);
+            var MainSection = new TubeSection(1, 1.5, 0.035, true);
+            var MainWebSection = new TubeSection(2, 0.8, 0.024);
+            var SubWebSection = new TubeSection(3, 0.8, 0.024);
+            var s4 = new TubeSection(4, 0.6, 0.016);
+            var s8 = new TubeSection(8, 0.6, 0.016);
+            var s10 = new TubeSection(10, 0.4, 0.016);
+            var s5 = new TubeSection(5, 0.4, 0.016);
+            var s6 = new TubeSection(6, 0.4, 0.016);
+            var s7 = new TubeSection(7, 0.4, 0.016);
 
             archModel.AssignProperty(eMemberType.UpperCoord, MainSection);
             archModel.AssignProperty(eMemberType.LowerCoord, MainSection);
             archModel.AssignProperty(eMemberType.MainWeb, MainWebSection);
             archModel.AssignProperty(eMemberType.ColumnWeb, MainWebSection);
             archModel.AssignProperty(eMemberType.SubWeb, SubWebSection);
-            archModel.AssignProperty(eMemberType.CrossCoord,s4);
+            archModel.AssignProperty(eMemberType.CrossCoord, s4);
             archModel.AssignProperty(eMemberType.WindBracing, s6);
             archModel.AssignProperty(eMemberType.TriWeb, SubWebSection);
             archModel.AssignProperty(eMemberType.ColumnMain, s8);
@@ -882,12 +882,12 @@ namespace Model
 
             var LA = theArchAxis.GetLength(KP1.X) - theArchAxis.GetLength(KP0.X);
             double DL1 = LA / 3;
-            var CTL0=theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1);
+            var CTL0 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1);
 
             var LB = theArchAxis.GetLength(KP2.X) - theArchAxis.GetLength(KP1.X);
             double DL2 = LB / 5;
             var CTL1 = theArchAxis.GetX0(theArchAxis.GetLength(KP1.X) + DL2);
-            var CTL2 = theArchAxis.GetX0(theArchAxis.GetLength(KP1.X) + DL2*4);
+            var CTL2 = theArchAxis.GetX0(theArchAxis.GetLength(KP1.X) + DL2 * 4);
 
 
             //var ArchLC10 = theArchAxis.GetLength(KP1.X);
@@ -916,11 +916,11 @@ namespace Model
                 -196, -182, -161, -140, -112, -84, -56, -28, 0,   28, 56, 84, 112, 140, 161, 182, 196,
                 };
 
-            xs.Sort();            
+            xs.Sort();
 
             foreach (var x0 in xs)
             {
-                if (Math.Abs(x0)>= CTL0)
+                if (Math.Abs(x0) >= CTL0)
                 {
                     archModel.AddDatum(0, x0, eDatumType.InstallDatum);
                 }
@@ -973,9 +973,9 @@ namespace Model
                         var cced = theArchAxis.Intersect(theCutLineEd);
 
                         archModel.CreateInstallSegment(CurI, NexI,
-                            new double[] { halfD, KP0.X-CurI.Center.X-halfD,cced.X- KP0.X, NexI.Center.X-cced.X },
+                            new double[] { halfD, KP0.X - CurI.Center.X - halfD, cced.X - KP0.X, NexI.Center.X - cced.X },
                             new double[] { 90, theArchAxis.GetNormalAngle(KP0.X).Degrees, NexI.Angle0.Degrees },
-                            new bool[] { false,false,true,false }, 0.060);
+                            new bool[] { false, false, true, false }, 0.060);
 
 
                     }
@@ -993,15 +993,15 @@ namespace Model
                             new double[] {  d1,
                             (-KP0.X) - CurI.Center.X - d1,
                             NexI.Center.X- (-KP0.X)-halfD,halfD},
-                            new double[] { CurI.Angle0.Degrees, theArchAxis.GetNormalAngle(-KP0.X).Degrees, 90,  },
-                            new bool[] { false, true, false, false }, 0.060); 
+                            new double[] { CurI.Angle0.Degrees, theArchAxis.GetNormalAngle(-KP0.X).Degrees, 90, },
+                            new bool[] { false, true, false, false }, 0.060);
 
                     }
                     else
                     {
                         // 均为法向面
 
-                        if (CurI.Center.X==-theArchAxis.L1)
+                        if (CurI.Center.X == -theArchAxis.L1)
                         {
                             Line2D theCutLineEd = NexI.Line;
                             theCutLineEd = theCutLineEd.Offset(halfD);
@@ -1044,7 +1044,7 @@ namespace Model
                         }
                         else if (CurI.Center.X == CTL0)
                         {
-                            List<double> locs = new List<double>() 
+                            List<double> locs = new List<double>()
                             {
                                 theArchAxis.GetX0(theArchAxis.GetLength(CTL0)+DL1),
                                 theArchAxis.GetX0(theArchAxis.GetLength(CTL0)+DL1*2),
@@ -1094,9 +1094,9 @@ namespace Model
                                 new bool[] { false, true, true, true, false }, 0.060);
                         }
 
-                        
+
                     }
-                    
+
 
                 }
             }
@@ -1146,9 +1146,9 @@ namespace Model
             double RtZ0 = -106;
             double RtZ1 = -archModel.Axis.f + (P2H2 - archModel.FootLevel) - 2;
             double wratio = 0.0125;
-            RectSection S1 = new RectSection(0,6, 3);
-            RectSection S2 = new RectSection(0,7, 3);
-            RectSection S0 = new RectSection(0,6 + 2 * wratio * (RtZ1 - RtZ0), 3 + 2 * wratio * (RtZ1 - RtZ0));
+            RectSection S1 = new RectSection(0, 6, 3);
+            RectSection S2 = new RectSection(0, 7, 3);
+            RectSection S0 = new RectSection(0, 6 + 2 * wratio * (RtZ1 - RtZ0), 3 + 2 * wratio * (RtZ1 - RtZ0));
 
             archModel.AddColumn(0, -273, new RCColumn(0, RtZ0, RtZ1, RtZ1 + 2, S0, S1, S2));
             archModel.AddColumn(0, 273, new RCColumn(0, RtZ0, RtZ1, RtZ1 + 2, S0, S1, S2));
@@ -1634,28 +1634,28 @@ namespace Model
         /// <param name="p2"></param>
         /// <param name="step"></param>
         /// <returns></returns>
-        public static List<double> EquallyLengthCut(ref ArchAxis ax,DatumPlane p1,DatumPlane p2,int step)
+        public static List<double> EquallyLengthCut(ref ArchAxis ax, DatumPlane p1, DatumPlane p2, int step)
         {
             var x1 = ax.Intersect(p1.Line).X;
             var x2 = ax.Intersect(p2.Line).X;
-            if (x1>x2)
+            if (x1 > x2)
             {
                 throw new Exception();
             }
             var L1 = ax.GetLength(x1);
             var L2 = ax.GetLength(x2);
-            var Length=L2 - L1;
+            var Length = L2 - L1;
 
             var dL = Length / step;
 
             List<double> res = new List<double>();
 
-            for (int i = 0; i < step-1; i++)
+            for (int i = 0; i < step - 1; i++)
             {
                 res.Add(ax.GetX0(L1 + (i + 1) * dL));
             }
 
-            return res ;
+            return res;
         }
     }
 }

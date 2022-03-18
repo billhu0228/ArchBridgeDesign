@@ -18,15 +18,28 @@ namespace Test
     {
         static void Main(string[] args)
         {
+            Console.WriteLine("请输入f，按enter继续...");
+            var fstr = Console.ReadLine();
+            Console.WriteLine("\n请输入m，按enter继续...");
+            var mstr = Console.ReadLine();
+
+            Console.WriteLine("\n已输入：f={0:F2}，m={0:F2}", fstr, mstr);
+
+            Console.WriteLine("\n请输入名称，按enter继续...");
+            string name = Console.ReadLine();
+
             //ArchAxis bx = new ArchAxis(518 / 4.5, 2, 518);
             //var re= bx.Intersect(new Point2D(55, -10));
 
+            double f = double.Parse(fstr);
+            double m = double.Parse(mstr);
+
             ArchAxis ax;
             Arch theArchModel;
+            theArchModel = NamedArch.PhoenixModelV3(out ax, m, 518 / (f));
 
-            theArchModel = NamedArch.PhoenixModelV3(out ax, 2.0, 518 / (4.5));
             // 写出基准面
-            string name = "PhoenixModel";
+            // string name = "PhoenixModel";
             theArchModel.WriteMember(string.Format("{0}-member.lsp", name));
 
             //for (int i = 0; i < 10; i++)
@@ -52,6 +65,6 @@ namespace Test
             //return;
 
         }
-       
+
     }
 }
