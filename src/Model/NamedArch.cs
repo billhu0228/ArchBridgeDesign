@@ -22,7 +22,7 @@ namespace Model
         /// </summary>
         /// <param name="theArchAxis"></param>
         /// <returns></returns>
-        public static Arch PhoenixModelV3(out ArchAxis theArchAxis, double m, double f)
+        public static Arch PhoenixModelV3(out ArchAxis theArchAxis, double m, double f, double halfD = 0.6)
         {
             Arch archModel;
 
@@ -35,7 +35,7 @@ namespace Model
 
             #region 1. 设置拱系
             theArchAxis = new ArchAxis(f, m, L);
-            archModel = new Arch(theArchAxis, 13, 15, 14, 4);
+            archModel = new Arch(theArchAxis, 8.5, 17, 14, 4);
             archModel.SetFootLevel(1270 + 11.3);
             #endregion
 
@@ -101,7 +101,7 @@ namespace Model
             #endregion
 
             #region 3. 切割拱圈
-            double halfD = 0.6;
+            // double halfD = 0.75;
             double LastV = 196.0;
             double C10V = 231;
             // 法向控制位置

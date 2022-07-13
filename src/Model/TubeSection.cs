@@ -38,7 +38,7 @@ namespace Model
     {
         public double W1, W2, W3, t1, t2, t3;
 
-        public HSection(int id,double w1, double w2, double w3, double t1, double t2, double t3) : base(id)
+        public HSection(int id, double w1, double w2, double w3, double t1, double t2, double t3) : base(id)
         {
             W1 = w1;
             W2 = w2;
@@ -60,16 +60,16 @@ namespace Model
 
         public override string ToString()
         {
-            return string.Format("H{0:G}X{1:G}X{2:G}X{3:G}", W3* 1000, W1 * 1000,t3*1000,t1*1000);
+            return string.Format("H{0:G}X{1:G}X{2:G}X{3:G}", W3 * 1000, W1 * 1000, t3 * 1000, t1 * 1000);
         }
 
     }
 
-    public class TubeSection:Section
+    public class TubeSection : Section
     {
         public double Area;
         public bool IsCFTS;
-        public TubeSection(int id,double dia, double th,bool isCFTS=false) : base(id)
+        public TubeSection(int id, double dia, double th, bool isCFTS = false) : base(id)
         {
             Thickness = th;
             Diameter = dia;
@@ -79,10 +79,23 @@ namespace Model
 
         public override string ToString()
         {
-            return string.Format("{0:G}x{1:F0}", Diameter*1000, Thickness*1000);
+            return string.Format("{0:G}x{1:F0}", Diameter * 1000, Thickness * 1000);
         }
-
-        public static double GetAs(double diameter,double thick)
+        /// <summary>
+        /// 内径
+        /// </summary>
+        public double CircumferenceI
+        {
+            get { return Math.PI * (Diameter - Thickness * 2); }
+        }
+        /// <summary>
+        /// 外径
+        /// </summary>
+        public double CircumferenceE
+        {
+            get { return Math.PI * Diameter; }
+        }
+        public static double GetAs(double diameter, double thick)
         {
             double r = diameter * 0.5;
             double r2 = diameter * 0.5 - thick;

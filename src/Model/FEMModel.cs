@@ -13,7 +13,7 @@ namespace Model
         public List<FEMElement> ElementList;
         public Arch RelatedArchBridge;
         public List<Tuple<int, List<int>>> RigidGroups;
-        
+
 
         public FEMModel()
         {
@@ -54,7 +54,7 @@ namespace Model
             int secnColMain;// = RelatedArchBridge.GetTubeProperty(0, eMemberType.ColumnMain).Section.SECN;
             int secnColCross;// = RelatedArchBridge.GetTubeProperty(0, eMemberType.ColumnCrossW).Section.SECN;
             int secnColWeb;// = RelatedArchBridge.GetTubeProperty(0, eMemberType.ColumnCrossW).Section.SECN;
-            
+
             foreach (var col in RelatedArchBridge.ColumnList)
             {
                 secnColMain = RelatedArchBridge.GetTubeProperty(col.X, eMemberType.ColumnMain).Section.SECN;
@@ -117,7 +117,7 @@ namespace Model
                         ElementList.Add(new FEMElement(0, baseID - 5 + 4, baseID + 7, 99));
 
                     }
-          
+
                     foreach (var xi in new double[] { (x0 - col.L * 0.5), (x0 + col.L * 0.5) })
                     {
                         foreach (var zi in new double[] { (-0.5 * wi - wo), (-0.5 * wi), (0.5 * wi), (0.5 * wi + wo), })
@@ -134,7 +134,7 @@ namespace Model
                     if (yi == ylist.Last())
                     {
                         //立柱底刚臂
-                        int MasterNodeID= NodeList.FindAll((x) => Math.Abs(x.X - x0)<1e-3 && x.ID>11000 && x.ID<=11999)[0].ID;
+                        int MasterNodeID = NodeList.FindAll((x) => Math.Abs(x.X - x0) < 1e-3 && x.ID > 11000 && x.ID <= 11999)[0].ID;
                         RigidGroups.Add(new Tuple<int, List<int>>(MasterNodeID, new List<int>() { baseID - 4, baseID - 8 }));
 
                         MasterNodeID = NodeList.FindAll((x) => Math.Abs(x.X - x0) < 1e-3 && x.ID > 21000 && x.ID <= 21999)[0].ID;
@@ -149,7 +149,7 @@ namespace Model
                         //NodeList.fin
 
                     }
-                    if (yi!=ylist.Last() && yi != ylist.First())
+                    if (yi != ylist.Last() && yi != ylist.First())
                     {
                         ElementList.Add(new FEMElement(0, baseID - 8 + 0, baseID - 8 + 1, secnColCross));
                         ElementList.Add(new FEMElement(0, baseID - 8 + 1, baseID - 8 + 5, secnColCross));
@@ -163,7 +163,7 @@ namespace Model
 
                         if (AddDiag)
                         {
-                            if ((baseID - 8)%2==0)
+                            if ((baseID - 8) % 2 == 0)
                             {
                                 ElementList.Add(new FEMElement(0, baseID - 8 + 0, baseID + 4, secnColWeb));
                                 ElementList.Add(new FEMElement(0, baseID - 8 + 1, baseID + 5, secnColWeb));
@@ -194,7 +194,7 @@ namespace Model
         private void GenerateRib()
         {
             var theArch = RelatedArchBridge;
-            List<Point2D> ls = new List<Point2D>();            
+            List<Point2D> ls = new List<Point2D>();
             int Secn;
             var UppNodeFromIncline = (from e in theArch.MemberTable where e.ElemType == eMemberType.SubWeb select e.Line.UperPT()).ToList();
             var LowerNodeFromIncline = (from e in theArch.MemberTable where e.ElemType == eMemberType.SubWeb select e.Line.LowerPT()).ToList();
@@ -223,7 +223,7 @@ namespace Model
 
                         if ((baseID) != mID * 10000 + ul * 1000)
                         {
-                            double xmid = 0.5*(NodeList.Find(x => x.ID == baseID - 1).X+ NodeList.Find(x => x.ID == baseID).X);
+                            double xmid = 0.5 * (NodeList.Find(x => x.ID == baseID - 1).X + NodeList.Find(x => x.ID == baseID).X);
                             Secn = theArch.GetTubeProperty(xmid, et).Section.SECN;
                             ElementList.Add(new FEMElement(baseID - 1, baseID - 1, baseID, Secn));
                         }
@@ -237,7 +237,7 @@ namespace Model
             #region 腹杆
             var eleSelected = (
                 from e in theArch.MemberTable
-                where e.ElemType == eMemberType.MainWeb || e.ElemType == eMemberType.SubWeb || e.ElemType==eMemberType.InstallWeb
+                where e.ElemType == eMemberType.MainWeb || e.ElemType == eMemberType.SubWeb || e.ElemType == eMemberType.InstallWeb
                 select e).ToList();
             var ColumnX = (from e in RelatedArchBridge.ColumnList select e.X).ToList();
             List<double> MidColumnList = new List<double>();
@@ -253,7 +253,7 @@ namespace Model
                 {
                     xloc = ColumnX[0] - 14;
                 }
-                else if (i==ColumnX.Count)
+                else if (i == ColumnX.Count)
                 {
                     xloc = ColumnX.Last() + 14;
                 }
@@ -276,7 +276,7 @@ namespace Model
                 var ni = NodeList.Find(x => x.Match(elem.Line.StartPoint));
                 var nj = NodeList.Find(x => x.Match(elem.Line.EndPoint));
                 double xmid = 0.5 * (ni.X + nj.X);
-                int sen = theArch.GetTubeProperty(xmid, elem.ElemType).Section.SECN;                    
+                int sen = theArch.GetTubeProperty(xmid, elem.ElemType).Section.SECN;
                 if (ni == null || nj == null)
                 {
                     Debug.Write(elem.ToString());
@@ -309,7 +309,7 @@ namespace Model
             int ofId = addID;
             foreach (var item in eleSelected)
             {
-                cutExistElem(item.Line, ref addID);                
+                cutExistElem(item.Line, ref addID);
             }
             // 协调节点
             for (int i = 0; i < addID - ofId; i++)
@@ -329,22 +329,192 @@ namespace Model
             // 平联撑
             MakeMCross(false);
             // 内横隔
-            eleSelected = (from e in theArch.MemberTable where e.ElemType == eMemberType.MainWeb|| e.ElemType == eMemberType.InstallWeb select e).ToList();
-            
+            eleSelected = (from e in theArch.MemberTable where e.ElemType == eMemberType.MainWeb || e.ElemType == eMemberType.InstallWeb select e).ToList();
+
             foreach (var elem in eleSelected)
             {
                 var ni = NodeList.Find(x => x.Match(elem.Line.StartPoint));
                 var frameID = ni.ID % 10000 % 1000;
-                MakeDiagram(frameID, true);
+                Console.WriteLine(frameID.ToString());
+                MakeDiagramV2(frameID);
             }
 
 
         }
+
         /// <summary>
-        /// 生成内横隔
+        /// 生成内隔——三角式
+        /// </summary>
+        /// <param name="framID"></param>
+        private void MakeDiagramV2(int frameID)
+        {
+            int diagramSecn = RelatedArchBridge.GetTubeProperty(0, eMemberType.DiaphragmCoord).Section.SECN;
+            int diagramWebSecn = RelatedArchBridge.GetTubeProperty(0, eMemberType.DiaphragmWeb).Section.SECN;
+
+            Vector3D Zdir = new Vector3D(0, 0, 1);
+
+            NodeList.Add(new FEMNode(80000 + 1000 + frameID, GetPoint(10000 + 1000 + frameID) + 2 * Zdir));
+            NodeList.Add(new FEMNode(80000 + 2000 + frameID, GetPoint(10000 + 2000 + frameID) + 2 * Zdir));
+            NodeList.Add(new FEMNode(90000 + 1000 + frameID, GetPoint(30000 + 1000 + frameID) + 2 * Zdir));
+            NodeList.Add(new FEMNode(90000 + 2000 + frameID, GetPoint(30000 + 2000 + frameID) + 2 * Zdir));
+
+            ElementList.Add(new FEMElement(0, 11000 + frameID, 81000 + frameID, diagramSecn));
+            ElementList.Add(new FEMElement(0, 81000 + frameID, 21000 + frameID, diagramSecn));
+            ElementList.Add(new FEMElement(0, 12000 + frameID, 82000 + frameID, diagramSecn));
+            ElementList.Add(new FEMElement(0, 82000 + frameID, 22000 + frameID, diagramSecn));
+            ElementList.Add(new FEMElement(0, 31000 + frameID, 91000 + frameID, diagramSecn));
+            ElementList.Add(new FEMElement(0, 91000 + frameID, 41000 + frameID, diagramSecn));
+            ElementList.Add(new FEMElement(0, 32000 + frameID, 92000 + frameID, diagramSecn));
+            ElementList.Add(new FEMElement(0, 92000 + frameID, 42000 + frameID, diagramSecn));
+
+            if (new int[] { }.Contains(frameID)) // 排除
+            {
+                return;
+            }
+            Vector3D dir = GetNode(12000 + frameID).location - GetNode(11000 + frameID).location;
+            double h = dir.Length;
+            Vector3D normalized_dir = dir.Normalize().ToVector3D();
+            if (h <= 11)
+            {
+                for (int i = 1; i < 5; i++)
+                {
+                    NodeList.Add(new FEMNode(i * 10000 + 3000 + frameID, GetPoint(i * 10000 + 1000 + frameID) + 3.5 * normalized_dir));
+                    NodeList.Add(new FEMNode(i * 10000 + 4000 + frameID, GetPoint(i * 10000 + 2000 + frameID) - 3.5 * normalized_dir));
+                    var e = ElementList.Find(x => (x.Ni == i * 10000 + 1000 + frameID && x.Nj == i * 10000 + 2000 + frameID));
+                    e.Nj = i * 10000 + 3000 + frameID;
+                    ElementList.Add(new FEMElement(0, i * 10000 + 3000 + frameID, i * 10000 + 4000 + frameID, e.Secn));
+                    ElementList.Add(new FEMElement(0, i * 10000 + 4000 + frameID, i * 10000 + 2000 + frameID, e.Secn));
+                }
+                if (true)
+                {
+                    ElementList.Add(new FEMElement(0, 80000 + 1000 + frameID, 10000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 1000 + frameID, 20000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 10000 + 3000 + frameID, 20000 + 3000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 80000 + 2000 + frameID, 10000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 2000 + frameID, 20000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 10000 + 4000 + frameID, 20000 + 4000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 90000 + 1000 + frameID, 30000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 1000 + frameID, 40000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 30000 + 3000 + frameID, 40000 + 3000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 90000 + 2000 + frameID, 30000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 2000 + frameID, 40000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 30000 + 4000 + frameID, 40000 + 4000 + frameID, diagramWebSecn));
+                }
+
+            }
+            else if (h <= 15)
+            {
+                for (int i = 1; i < 5; i++)
+                {
+                    NodeList.Add(new FEMNode(i * 10000 + 3000 + frameID, GetPoint(i * 10000 + 1000 + frameID) + 3.5 * normalized_dir));
+                    NodeList.Add(new FEMNode(i * 10000 + 4000 + frameID, GetPoint(i * 10000 + 2000 + frameID) - 3.5 * normalized_dir));
+                    NodeList.Add(new FEMNode(i * 10000 + 5000 + frameID, GetPoint(i * 10000 + 1000 + frameID) + 0.5 * h * normalized_dir));
+                    var e = ElementList.Find(x => (x.Ni == i * 10000 + 1000 + frameID && x.Nj == i * 10000 + 2000 + frameID));
+                    e.Nj = i * 10000 + 3000 + frameID;
+                    ElementList.Add(new FEMElement(0, i * 10000 + 3000 + frameID, i * 10000 + 5000 + frameID, e.Secn));
+                    ElementList.Add(new FEMElement(0, i * 10000 + 5000 + frameID, i * 10000 + 4000 + frameID, e.Secn));
+                    ElementList.Add(new FEMElement(0, i * 10000 + 4000 + frameID, i * 10000 + 2000 + frameID, e.Secn));
+                }
+                if (true)
+                {
+                    ElementList.Add(new FEMElement(0, 80000 + 1000 + frameID, 10000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 1000 + frameID, 20000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 10000 + 3000 + frameID, 20000 + 3000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 80000 + 2000 + frameID, 10000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 2000 + frameID, 20000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 10000 + 4000 + frameID, 20000 + 4000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 10000 + 5000 + frameID, 20000 + 5000 + frameID, diagramWebSecn));
+
+
+                    ElementList.Add(new FEMElement(0, 90000 + 1000 + frameID, 30000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 1000 + frameID, 40000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 30000 + 3000 + frameID, 40000 + 3000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 90000 + 2000 + frameID, 30000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 2000 + frameID, 40000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 30000 + 4000 + frameID, 40000 + 4000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 30000 + 5000 + frameID, 40000 + 5000 + frameID, diagramWebSecn));
+                }
+            }
+            else
+            {
+                for (int i = 1; i < 5; i++)
+                {
+                    NodeList.Add(new FEMNode(i * 10000 + 3000 + frameID, GetPoint(i * 10000 + 1000 + frameID) + 3.5 * normalized_dir));
+                    NodeList.Add(new FEMNode(i * 10000 + 4000 + frameID, GetPoint(i * 10000 + 2000 + frameID) - 3.5 * normalized_dir));
+                    NodeList.Add(new FEMNode(i * 10000 + 5000 + frameID, GetPoint(i * 10000 + 3000 + frameID) + 3.3 * normalized_dir));
+                    NodeList.Add(new FEMNode(i * 10000 + 6000 + frameID, GetPoint(i * 10000 + 4000 + frameID) - 3.3 * normalized_dir));
+
+                    var e = ElementList.Find(x => (x.Ni == i * 10000 + 1000 + frameID && x.Nj == i * 10000 + 2000 + frameID));
+                    e.Nj = i * 10000 + 3000 + frameID;
+                    ElementList.Add(new FEMElement(0, i * 10000 + 3000 + frameID, i * 10000 + 5000 + frameID, e.Secn));
+                    ElementList.Add(new FEMElement(0, i * 10000 + 5000 + frameID, i * 10000 + 6000 + frameID, e.Secn));
+                    ElementList.Add(new FEMElement(0, i * 10000 + 6000 + frameID, i * 10000 + 4000 + frameID, e.Secn));
+                    ElementList.Add(new FEMElement(0, i * 10000 + 4000 + frameID, i * 10000 + 2000 + frameID, e.Secn));
+                }
+                if (true)
+                {
+                    NodeList.Add(new FEMNode(80000 + 5000 + frameID, GetPoint(10000 + 5000 + frameID) + 2 * Zdir));
+                    NodeList.Add(new FEMNode(80000 + 6000 + frameID, GetPoint(10000 + 6000 + frameID) + 2 * Zdir));
+                    NodeList.Add(new FEMNode(90000 + 5000 + frameID, GetPoint(30000 + 5000 + frameID) + 2 * Zdir));
+                    NodeList.Add(new FEMNode(90000 + 6000 + frameID, GetPoint(30000 + 6000 + frameID) + 2 * Zdir));
+
+                    ElementList.Add(new FEMElement(0, 80000 + 1000 + frameID, 10000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 1000 + frameID, 20000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 10000 + 3000 + frameID, 20000 + 3000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 80000 + 5000 + frameID, 10000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 5000 + frameID, 20000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 10000 + 5000 + frameID, 80000 + 5000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 5000 + frameID, 20000 + 5000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 80000 + 2000 + frameID, 10000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 2000 + frameID, 20000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 10000 + 4000 + frameID, 20000 + 4000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 80000 + 6000 + frameID, 10000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 6000 + frameID, 20000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 10000 + 6000 + frameID, 80000 + 6000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 80000 + 6000 + frameID, 20000 + 6000 + frameID, diagramWebSecn));
+
+
+
+
+                    ElementList.Add(new FEMElement(0, 90000 + 1000 + frameID, 30000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 1000 + frameID, 40000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 30000 + 3000 + frameID, 40000 + 3000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 90000 + 5000 + frameID, 30000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 5000 + frameID, 40000 + 3000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 30000 + 5000 + frameID, 90000 + 5000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 5000 + frameID, 40000 + 5000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 90000 + 2000 + frameID, 30000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 2000 + frameID, 40000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 30000 + 4000 + frameID, 40000 + 4000 + frameID, diagramWebSecn));
+
+                    ElementList.Add(new FEMElement(0, 90000 + 6000 + frameID, 30000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 6000 + frameID, 40000 + 4000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 30000 + 6000 + frameID, 90000 + 6000 + frameID, diagramWebSecn));
+                    ElementList.Add(new FEMElement(0, 90000 + 6000 + frameID, 40000 + 6000 + frameID, diagramWebSecn));
+
+                }
+
+            }
+        }
+
+
+        /// <summary>
+        /// 生成内横隔--弦杆式
         /// </summary>
         /// <param name="ni"></param>
-        private void MakeDiagram(int frameID,  bool Strong)
+        private void MakeDiagram(int frameID, bool Strong)
         {
             int diagramSecn = RelatedArchBridge.GetTubeProperty(0, eMemberType.DiaphragmCoord).Section.SECN;
             int diagramWebSecn = RelatedArchBridge.GetTubeProperty(0, eMemberType.DiaphragmWeb).Section.SECN;
@@ -354,7 +524,7 @@ namespace Model
             ElementList.Add(new FEMElement(0, 31000 + frameID, 41000 + frameID, diagramSecn));
             ElementList.Add(new FEMElement(0, 32000 + frameID, 42000 + frameID, diagramSecn));
 
-            if (new int[] {  }.Contains(frameID))
+            if (new int[] { }.Contains(frameID))
             {
                 return;
             }
@@ -420,7 +590,7 @@ namespace Model
             {
                 int frame = (item.ID % 10000) % 1000;
 
-                var Except = new int[] {};
+                var Except = new int[] { };
                 if (Except.Contains(frame))
                 {
                     continue;
@@ -592,7 +762,7 @@ namespace Model
             ElementList.Add(new FEMElement(0, p3 + 50000, p4 + 30000, coordSecn));
             ElementList.Add(new FEMElement(0, p4 + 30000, p4, coordSecn));
             // 交叉
-            ElementList.Add(new FEMElement(0, p1 + 30000, p4 + 30000, webSecn));  
+            ElementList.Add(new FEMElement(0, p1 + 30000, p4 + 30000, webSecn));
             ElementList.Add(new FEMElement(0, p2 + 30000, p3 + 30000, webSecn));
             ElementList.Add(new FEMElement(0, p1 + 30000, p3 + 30000, vertSecn));
             ElementList.Add(new FEMElement(0, p2 + 30000, p4 + 30000, vertSecn));
@@ -662,7 +832,7 @@ namespace Model
             }
             for (int i = 0; i < 4; i++)
             {
-                ElementList.Add(new FEMElement(0, nilist[i], njlist[i], RelatedArchBridge.GetTubeProperty(0,eMemberType.TriWeb).Section.SECN));
+                ElementList.Add(new FEMElement(0, nilist[i], njlist[i], RelatedArchBridge.GetTubeProperty(0, eMemberType.TriWeb).Section.SECN));
             }
 
             nodeID = curID;
@@ -704,7 +874,7 @@ namespace Model
                 foreach (var secnn in secn_list)
                 {
                     sw.WriteLine("secn,{0}", secnn);
-                    sw.WriteLine("mat,{0}",100+ secnn);
+                    sw.WriteLine("mat,{0}", 100 + secnn);
                     var eles = (from e in ElementList where e.Secn == secnn select e).ToList();
                     foreach (var item in eles)
                     {
@@ -729,11 +899,11 @@ namespace Model
 
         private void WriteSection(string filepath)
         {
-            
+
             var sect = (from e in RelatedArchBridge.PropertyTable select e.Section as TubeSection).ToList();
-            
+
             sect = sect.Distinct().ToList();
-            
+
             using (StreamWriter sw = new StreamWriter(filepath))
             {
                 foreach (var item in sect)
@@ -742,7 +912,7 @@ namespace Model
                     {
                         sw.WriteLine("!----------------SECTION{0}----------------", item.SECN);
                         CFTS PropertyCal = new CFTS(item.Diameter * 1000, item.Thickness * 1000, 80, 420);
-                        sw.WriteLine("MP,EX,{0},{1}",item.SECN+100,PropertyCal.E);
+                        sw.WriteLine("MP,EX,{0},{1}", item.SECN + 100, PropertyCal.E);
                         sw.WriteLine("MP,DENS,{0},{1}", item.SECN + 100, PropertyCal.density);
                         sw.WriteLine("MP,ALPX,{0},1.2E-5", item.SECN + 100);
                         sw.WriteLine("MP,NUXY,{0},0.3", item.SECN + 100);
@@ -758,9 +928,9 @@ namespace Model
                         sw.WriteLine("MP,ALPX,{0},1.2E-5", item.SECN + 100);
                         sw.WriteLine("MP,NUXY,{0},0.3", item.SECN + 100);
 
-                        sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TubeSection{0},0",item.SECN);
-                        sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 
-                            item.Diameter * 1000 * 0.5 - item.Thickness * 1000, item.Diameter*1000 * 0.5);
+                        sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TubeSection{0},0", item.SECN);
+                        sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0",
+                            item.Diameter * 1000 * 0.5 - item.Thickness * 1000, item.Diameter * 1000 * 0.5);
                     }
 
                 }
@@ -800,7 +970,7 @@ namespace Model
         }
         private void WriteSolu(string filepath)
         {
-            var nd=NodeList.FindLast((x) => x.ID <= 11999);
+            var nd = NodeList.FindLast((x) => x.ID <= 11999);
             List<int> idlist = new List<int>();
             for (int i = 0; i < 4; i++)
             {
@@ -810,14 +980,14 @@ namespace Model
                     {
                         var num = (i + 1) * 10000 + (j + 1) * 1000 + k;
                         idlist.Add(num);
-                        num = (i + 1) * 10000 + (j + 1) * 1000 + (nd.ID-11000 - k);
+                        num = (i + 1) * 10000 + (j + 1) * 1000 + (nd.ID - 11000 - k);
                         idlist.Add(num);
                     }
 
                 }
 
             }
-            
+
             using (StreamWriter sw = new StreamWriter(filepath))
             {
 
@@ -833,10 +1003,10 @@ namespace Model
                     sw.WriteLine(string.Format("nsel,{0},node,,{1}", ch, item));
                 }
                 sw.WriteLine("d,all,all");
-                double L1X = RelatedArchBridge.Axis.L1*1000;
-                double L1Y = RelatedArchBridge.Axis.GetCenter(RelatedArchBridge.Axis.L1).Y*1000;
-                sw.WriteLine("nsel,s,loc,x,{0},{1}", L1X - 1, L1X + 1) ;
-                sw.WriteLine("nsel,r,loc,y,{0},{1}", L1Y - 1, L1Y + 1) ;
+                double L1X = RelatedArchBridge.Axis.L1 * 1000;
+                double L1Y = RelatedArchBridge.Axis.GetCenter(RelatedArchBridge.Axis.L1).Y * 1000;
+                sw.WriteLine("nsel,s,loc,x,{0},{1}", L1X - 1, L1X + 1);
+                sw.WriteLine("nsel,r,loc,y,{0},{1}", L1Y - 1, L1Y + 1);
                 sw.WriteLine("d,all,all");
                 sw.WriteLine("nsel,s,loc,x,{0},{1}", -L1X - 1, -L1X + 1);
                 sw.WriteLine("nsel,r,loc,y,{0},{1}", L1Y - 1, L1Y + 1);

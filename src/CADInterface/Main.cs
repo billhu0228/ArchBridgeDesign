@@ -20,7 +20,7 @@ namespace CADInterface
     public class Main : IExtensionApplication
     {
         public void Initialize()
-        { 
+        {
 
 
             //AddRibbon();//添加ribbon菜单的函数  
@@ -62,7 +62,7 @@ namespace CADInterface
             panelDataSource0.Items.Add(RibbonButtons.ColBtn); //添加配置绘制标准按钮 
             panelDataSource0.Items.Add(RibbonButtons.GABtn); //添加配置绘制标准按钮 
             panelDataSource0.Items.Add(RibbonButtons.SegBtn); //添加配置绘制标准按钮 
-                       
+
 
             //SysInfo.isCreated = true;
             //SRBPublicFunc.Extensions.curPaht = CurPaht.curPaht;
