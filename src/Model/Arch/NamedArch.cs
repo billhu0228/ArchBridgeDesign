@@ -405,6 +405,7 @@ namespace Model
             archModel.AddColumn(0, 273, new RCColumn(0, RtZ0, RtZ1, RtZ1 + 2, S0, S1, S2));
             #endregion
 
+            archModel.InstallDist = 2 * halfD;
             return archModel;
         }
         /// <summary>

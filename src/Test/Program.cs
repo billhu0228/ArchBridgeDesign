@@ -23,7 +23,7 @@ namespace Test
             Console.WriteLine("\n请输入m，按enter继续...");
             var mstr = Console.ReadLine();
 
-            Console.WriteLine("\n已输入：f={0:F2}，m={0:F2}", fstr, mstr);
+            Console.WriteLine("\n已输入：f={0:F2}，m={1:F2}", fstr, mstr);
 
             Console.WriteLine("\n请输入名称，按enter继续...");
             string name = Console.ReadLine();

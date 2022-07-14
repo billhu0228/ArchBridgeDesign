@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AnsysInterface
+namespace Model
 {
-    class OPSExtensions
+    public class CompositeDeck
     {
     }
 }

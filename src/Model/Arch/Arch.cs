@@ -37,7 +37,7 @@ namespace Model
         public double ElevationOfTop;
         public DataTable ColumnTable;
         double HeightOrder;
-
+        public double InstallDist;
         double footLevel;
 
 
@@ -72,6 +72,7 @@ namespace Model
             HeightOrder = order;
             ElevationOfTop = elevationOfTop;
             footLevel = elevationOfTop - ax.f;
+            InstallDist = 1.2;
         }
 
 
@@ -158,7 +159,7 @@ namespace Model
         /// <param name="vs1"></param>
         /// <param name="vs2"></param>
         /// <param name="vs3"></param>
-        public void CreateInstallSegment(DatumPlane curI, DatumPlane nexI, 
+        public void CreateInstallSegment(DatumPlane curI, DatumPlane nexI,
             double[] dist, double[] ang_degList,
             bool[] is_dia, double e)
         {
@@ -227,7 +228,7 @@ namespace Model
             List<DatumPlane> newMainDatum = new List<DatumPlane>();
             List<DatumPlane> newDiaDatum = new List<DatumPlane>();
             // 判断斜腹杆方向
-            bool GreaterThanZero = curI.Center.X > 0;
+            bool GreaterThanZero = 0.5 * (curI.Center.X + nexI.Center.X) > 0;
             bool AnyNorm = curI.Angle0.Degrees != 90.0 || nexI.Angle0.Degrees != 90;
             bool DiaDirect = true;
             if (AnyNorm)
@@ -263,9 +264,7 @@ namespace Model
                 {
                     if (is_dia[i])
                     {
-                        var dia = CreatDiagonalDatum(newMainDatum[i - 1], newMainDatum[i],
-                            
-                            e, DiaDirect);
+                        var dia = CreatDiagonalDatum(newMainDatum[i - 1], newMainDatum[i], e, DiaDirect);
                         var a = (newMainDatum[i - 1].Angle0.Degrees + newMainDatum[i].Angle0.Degrees) * 0.5;
                         SecondaryDatum.Add(new DatumPlane(0, dia.Center, Angle.FromDegrees(a), eDatumType.MiddleDatum));
                         newDiaDatum.Add(dia);
@@ -469,21 +468,21 @@ namespace Model
             //double up_dia = GetTubeProperty(0, eMemberType.UpperCoord).Section.Diameter;
             //double down_dia = GetTubeProperty(0, eMemberType.LowerCoord).Section.Diameter;
             double norm_dia = GetTubeProperty(0, eMemberType.MainWeb).Section.Diameter;
-            Point2D KP,KP2;
+            Point2D KP, KP2;
             Vector2D Direction;
             if (isLeft)
             {
                 if (isUp)
                 {
                     // 左上
-                    KP= Get7Point(P1.Center.X - norm_dia * 0.5, 90.0)[2];
-                    KP2 = Get7Point(P1.Center.X - norm_dia * 0.5-0.01, 90.0)[2];
+                    KP = Get7Point(P1.Center.X - norm_dia * 0.5, 90.0)[2];
+                    KP2 = Get7Point(P1.Center.X - norm_dia * 0.5 - 0.01, 90.0)[2];
                 }
                 else
                 {
                     // 左下
                     KP = Get7Point(P1.Center.X - norm_dia * 0.5, 90.0)[4];
-                    KP2 = Get7Point(P1.Center.X - norm_dia * 0.5-0.01, 90.0)[4];
+                    KP2 = Get7Point(P1.Center.X - norm_dia * 0.5 - 0.01, 90.0)[4];
 
                 }
             }
@@ -493,13 +492,13 @@ namespace Model
                 {
                     // 右上
                     KP = Get7Point(P1.Center.X + norm_dia * 0.5, 90.0)[2];
-                    KP2 = Get7Point(P1.Center.X + norm_dia * 0.5+0.01, 90.0)[2];
+                    KP2 = Get7Point(P1.Center.X + norm_dia * 0.5 + 0.01, 90.0)[2];
                 }
                 else
                 {
                     // 右下
                     KP = Get7Point(P1.Center.X + norm_dia * 0.5, 90.0)[4];
-                    KP2 = Get7Point(P1.Center.X + norm_dia * 0.5+0.01, 90.0)[4];
+                    KP2 = Get7Point(P1.Center.X + norm_dia * 0.5 + 0.01, 90.0)[4];
                 }
             }
             Direction = (KP2 - KP).Normalize();
@@ -507,8 +506,8 @@ namespace Model
             Point2D CC = KP + Direction * (e + 0.5 * norm_dia) * 1.05;
 
             Point2D AxCC = Axis.Intersect(CC);
-            
-            return new DatumPlane(0,AxCC, Axis.GetNormalAngle(AxCC.X),eDatumType.NormalDatum);
+
+            return new DatumPlane(0, AxCC, Axis.GetNormalAngle(AxCC.X), eDatumType.NormalDatum);
 
         }
 
@@ -561,7 +560,7 @@ namespace Model
             Line2D L_DOWN_2 = new Line2D(Get3Point(Pm.Center.X, Pm.Angle0.Degrees)[2], Get3Point(P2.Center.X, P2.Angle0.Degrees)[2]);
 
             eMemberType TP1 = MemberTypeFromDamtumType(P1.DatumType);
-            eMemberType TP2= MemberTypeFromDamtumType(P2.DatumType);
+            eMemberType TP2 = MemberTypeFromDamtumType(P2.DatumType);
             Line2D L1 = P1.Line.Offset(-0.5 * GetTubeProperty(P1.Center.X, TP1).Section.Diameter);
             Line2D L2 = P2.Line.Offset(0.5 * GetTubeProperty(P2.Center.X, TP2).Section.Diameter);
 
@@ -577,7 +576,7 @@ namespace Model
                 C_DOWN = new Circle2D((Point2D)(L2.IntersectWith(L_DOWN_2.Offset(0.5 * down_dia))) - L_DOWN_2.Direction * e, dia);
 
             }
-            else 
+            else
             {
                 // 左下到右上
                 C_UP = new Circle2D((Point2D)(L2.IntersectWith(L_UP_2.Offset(-0.5 * down_dia))) - L_UP_2.Direction * e, dia);
@@ -589,7 +588,7 @@ namespace Model
             //}
             var TangentedPoints = C_UP.Center.Tangent(C_DOWN);
             TangentedPoints.Sort((pa, pb) => pa.X.CompareTo(pb.X));
-            Point2D B=new Point2D();
+            Point2D B = new Point2D();
             if (isLUtoRL)
             {
                 B = TangentedPoints[0];
@@ -1023,12 +1022,12 @@ namespace Model
             double AngMax = new List<double>() { Ang00, Ang01, Ang10, Ang11, }.Max();
             var A2 = TanPtsA[0];
             var B2 = TanPtsB[0];
-            if (Ang01==AngMax)
+            if (Ang01 == AngMax)
             {
                 A2 = TanPtsA[0];
                 B2 = TanPtsB[1];
             }
-            else if (Ang10==AngMax)
+            else if (Ang10 == AngMax)
             {
                 A2 = TanPtsA[1];
                 B2 = TanPtsB[0];
@@ -1042,19 +1041,19 @@ namespace Model
             var LinA = new Line2D(OA, A2);
             var LinB = new Line2D(OB, B2);
             double st = 0, ed = 0;
-            if (OA.X>0)
+            if (OA.X > 0)
             {
-                ed = Axis.L1+10;
+                ed = Axis.L1 + 10;
             }
             else
             {
                 st = -Axis.L1 - 10;
             }
-            var VA = Axis.Intersect(new Line2D(A2 + LinA.Direction * (- 2* LinA.Length), A2),st,ed);
-            var VB = Axis.Intersect(new Line2D(B2 + LinB.Direction * (-2 * LinB.Length), B2),st,ed);
+            var VA = Axis.Intersect(new Line2D(A2 + LinA.Direction * (-2 * LinA.Length), A2), st, ed);
+            var VB = Axis.Intersect(new Line2D(B2 + LinB.Direction * (-2 * LinB.Length), B2), st, ed);
 
-            var A3 = Get3PointReal(VA.X, Vector2D.XAxis.AngleTo(A2 - OA).Degrees)[0];
-            var B3 = Get3PointReal(VB.X, Vector2D.XAxis.AngleTo(B2 - OB).Degrees)[2];
+            var A3 = Get3PointReal(VA.X, Vector2D.XAxis.SignedAngleBetween(A2 - OA) / Math.PI * 180.0)[0];
+            var B3 = Get3PointReal(VB.X, Vector2D.XAxis.SignedAngleBetween(B2 - OB) / Math.PI * 180.0)[2];
 
             var MemberA = new Member(0, new Line2D(OA, A3), sect, eMemberType.TriWeb);
             MemberA.StartDatum = fromDatum;
@@ -1139,10 +1138,12 @@ namespace Model
         {
             using (StreamWriter sw = new StreamWriter(filepath))
             {
+                sw.WriteLine("(setvar 'osmode 0)");
                 foreach (var item in MemberTable)
                 {
                     sw.WriteLine(item.Lisp);
                 }
+                sw.WriteLine("(setvar 'osmode 1)");
             }
 
         }
@@ -1415,7 +1416,7 @@ namespace Model
                 f = (x) => ((-TargetDir).SignedAngleBetween((get_3pt(x)[0] - Axis.GetCenter(x0))));
                 x_new = x0 > 0 ? Bisection.FindRoot(f, 0, Axis.L1 * 3, 1e-6) : Bisection.FindRoot(f, -3 * Axis.L1, 0, 1e-6);
             }
-          
+
             Upper = get_3pt(x_new)[0];
 
             f = (x) => ((TargetDir).SignedAngleBetween((get_3pt(x)[2] - Axis.GetCenter(x0))));

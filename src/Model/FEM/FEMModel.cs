@@ -239,14 +239,14 @@ namespace Model
                 from e in theArch.MemberTable
                 where e.ElemType == eMemberType.MainWeb || e.ElemType == eMemberType.SubWeb || e.ElemType == eMemberType.InstallWeb
                 select e).ToList();
-            var ColumnX = (from e in RelatedArchBridge.ColumnList select e.X).ToList();
+            var ColumnX = (from e in RelatedArchBridge.ColumnList select e.X).ToList(); // 立柱坐标列表
             List<double> MidColumnList = new List<double>();
 
             double xloc = 0;
             var selX = (
     from e in theArch.MemberTable
     where e.ElemType == eMemberType.MainWeb
-    select e.Line.MiddlePoint().X).ToList();
+    select e.Line.MiddlePoint().X).ToList(); // 提取主腹杆坐标
             for (int i = 0; i < ColumnX.Count + 1; i++)
             {
                 if (i == 0)
@@ -256,6 +256,12 @@ namespace Model
                 else if (i == ColumnX.Count)
                 {
                     xloc = ColumnX.Last() + 14;
+                }
+                else if (i == 6)
+                {
+                    MidColumnList.Add(-0.5 * theArch.InstallDist);
+                    MidColumnList.Add(0.5 * theArch.InstallDist);
+                    continue;
                 }
                 else
                 {
@@ -268,9 +274,6 @@ namespace Model
 
             }
 
-
-
-
             foreach (var elem in eleSelected)
             {
                 var ni = NodeList.Find(x => x.Match(elem.Line.StartPoint));
@@ -279,14 +282,14 @@ namespace Model
                 int sen = theArch.GetTubeProperty(xmid, elem.ElemType).Section.SECN;
                 if (ni == null || nj == null)
                 {
-                    Debug.Write(elem.ToString());
+                    // Debug.Write(elem.ToString());
                     continue;
                 }
-                ElementList.Add(new FEMElement(0, ni.ID, nj.ID, sen));
+                ElementList.Add(new FEMElement(0, ni.ID, nj.ID, sen));                  // 竖腹杆
                 ElementList.Add(new FEMElement(0, ni.ID + 10000, nj.ID + 10000, sen));
                 ElementList.Add(new FEMElement(0, ni.ID + 20000, nj.ID + 20000, sen));
                 ElementList.Add(new FEMElement(0, ni.ID + 30000, nj.ID + 30000, sen));
-                if (elem.ElemType == eMemberType.MainWeb)
+                if (elem.ElemType == eMemberType.MainWeb || elem.ElemType == eMemberType.InstallWeb)
                 {
                     if (Contains(ref ColumnX, elem.Line.StartPoint.X, 1e-3))
                     {
@@ -294,7 +297,7 @@ namespace Model
                         MakeCrossBeam(ni.ID + 10000, ni.ID + 20000, nj.ID + 10000, nj.ID + 20000);
 
                     }
-                    if (Contains(ref MidColumnList, elem.Line.MiddlePoint().X, 0.80))
+                    if (Contains(ref MidColumnList, elem.Line.MiddlePoint().X, 1e-3))
                     {
                         // 横撑
                         MakeCrossBeam(ni.ID + 10000, ni.ID + 20000, nj.ID + 10000, nj.ID + 20000);
@@ -583,6 +586,7 @@ namespace Model
 
         private void MakeMCross(bool AddI)
         {
+
             int secn = RelatedArchBridge.GetTubeProperty(0, eMemberType.WindBracing).Section.SECN;
             var mpt = (from n in NodeList where n.ID > 70000 select n).ToList();
 
@@ -629,7 +633,7 @@ namespace Model
                 {
                     ;
                 }
-                var Except = new int[] { 117, 118, 231, 4, 5, 230, 157, 78 };
+                var Except = new int[] { 122, 123 }; // 反向不再加斜撑的frame编号
                 var reverse = new int[] { };
                 if (Except.Contains(frame))
                 {
@@ -838,206 +842,6 @@ namespace Model
             nodeID = curID;
 
         }
-
-        #region 写出Ansys输入文件
-        public void WriteAnsys(string dirPath)
-        {
-            var cwd = Directory.CreateDirectory(dirPath);
-
-            WriteMainInp(Path.Combine(cwd.FullName, "Main.inp"));
-            WriteMaterial(Path.Combine(cwd.FullName, "material.inp"));
-            WriteSection(Path.Combine(cwd.FullName, "section.inp"));
-            WriteNode(Path.Combine(cwd.FullName, "node.inp"));
-            WriteElem(Path.Combine(cwd.FullName, "element.inp"));
-            WriteSolu(Path.Combine(cwd.FullName, "solu.inp"));
-        }
-
-        private void WriteNode(string filepath)
-        {
-            using (StreamWriter sw = new StreamWriter(filepath, false))
-            {
-                sw.WriteLine("/prep7");
-                foreach (var item in NodeList)
-                {
-                    sw.WriteLine("n,{0},{1:F8},{2:F8},{3:F8}", item.ID, item.X * 1000, item.Y * 1000, item.Z * 1000);
-                }
-            }
-        }
-
-        private void WriteElem(string filepath)
-        {
-            using (StreamWriter sw = new StreamWriter(filepath, false))
-            {
-                sw.WriteLine("/prep7");
-                var secn_list = (from FEMElement e in ElementList select e.Secn).ToList();
-                secn_list = secn_list.Distinct().ToList();
-                foreach (var secnn in secn_list)
-                {
-                    sw.WriteLine("secn,{0}", secnn);
-                    sw.WriteLine("mat,{0}", 100 + secnn);
-                    var eles = (from e in ElementList where e.Secn == secnn select e).ToList();
-                    foreach (var item in eles)
-                    {
-                        sw.WriteLine("e,{0},{1}", item.Ni, item.Nj);
-                    }
-                }
-
-                foreach (var item in RigidGroups)
-                {
-                    sw.WriteLine("nsel,s,node,,{0}", item.Item1);
-                    foreach (var slv in item.Item2)
-                    {
-                        sw.WriteLine("nsel,a,node,,{0}", slv);
-                    }
-                    //sw.WriteLine("cerig,{0},all,all",item.Item1);
-                    sw.WriteLine("cp,next,all,all");
-                }
-
-
-            }
-        }
-
-        private void WriteSection(string filepath)
-        {
-
-            var sect = (from e in RelatedArchBridge.PropertyTable select e.Section as TubeSection).ToList();
-
-            sect = sect.Distinct().ToList();
-
-            using (StreamWriter sw = new StreamWriter(filepath))
-            {
-                foreach (var item in sect)
-                {
-                    if (item.IsCFTS)
-                    {
-                        sw.WriteLine("!----------------SECTION{0}----------------", item.SECN);
-                        CFTS PropertyCal = new CFTS(item.Diameter * 1000, item.Thickness * 1000, 80, 420);
-                        sw.WriteLine("MP,EX,{0},{1}", item.SECN + 100, PropertyCal.E);
-                        sw.WriteLine("MP,DENS,{0},{1}", item.SECN + 100, PropertyCal.density);
-                        sw.WriteLine("MP,ALPX,{0},1.2E-5", item.SECN + 100);
-                        sw.WriteLine("MP,NUXY,{0},0.3", item.SECN + 100);
-
-                        sw.WriteLine("SECTYPE,{0},BEAM,CSOLID,Tube{0},0", item.SECN);
-                        sw.WriteLine("SECDATA,{0},0,0,0,0,0,0,0,0,0,0,0", item.Diameter * 1000 * 0.5);
-                    }
-                    else
-                    {
-                        sw.WriteLine("!----------------SECTION{0}----------------", item.SECN);
-                        sw.WriteLine("MP,EX,  {0},205E6", item.SECN + 100);
-                        sw.WriteLine("MP,DENS,{0},7.85e-9", item.SECN + 100);
-                        sw.WriteLine("MP,ALPX,{0},1.2E-5", item.SECN + 100);
-                        sw.WriteLine("MP,NUXY,{0},0.3", item.SECN + 100);
-
-                        sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TubeSection{0},0", item.SECN);
-                        sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0",
-                            item.Diameter * 1000 * 0.5 - item.Thickness * 1000, item.Diameter * 1000 * 0.5);
-                    }
-
-                }
-            }
-        }
-
-        private void WriteMaterial(string filepath)
-        {
-            using (StreamWriter sw = new StreamWriter(filepath))
-            {
-                sw.WriteLine("/prep7");
-                sw.WriteLine("SECTYPE,{0},BEAM,CSOLID,Tube{0},0", 99);
-                sw.WriteLine("SECDATA,{0},0,0,0,0,0,0,0,0,0,0,0", 500);
-                sw.WriteLine("MP,EX,  199,205E16");
-                sw.WriteLine("MP,DENS,199,7.85e-19");
-                sw.WriteLine("MP,ALPX,199,1.2E-5");
-                sw.WriteLine("MP,NUXY,199,0.3");
-                sw.WriteLine("et,1,188");
-            }
-        }
-
-        private void WriteMainInp(string filepath)
-        {
-            using (StreamWriter sw = new StreamWriter(filepath))
-            {
-                sw.WriteLine("finish");
-                sw.WriteLine("/CLEAR,START");
-                sw.WriteLine("/TITLE,YunNanProject");
-                sw.WriteLine("/CWD,'C:\\Users\\IBD2\\AnsysBin'");
-                sw.WriteLine("/input,material,inp");
-                sw.WriteLine("/input,section,inp");
-                sw.WriteLine("/input,node,inp");
-                sw.WriteLine("/input,element,inp");
-                sw.WriteLine("/input,solu,inp");
-                sw.WriteLine("eplot");
-            }
-        }
-        private void WriteSolu(string filepath)
-        {
-            var nd = NodeList.FindLast((x) => x.ID <= 11999);
-            List<int> idlist = new List<int>();
-            for (int i = 0; i < 4; i++)
-            {
-                for (int j = 0; j < 2; j++)
-                {
-                    for (int k = 0; k < 2; k++)
-                    {
-                        var num = (i + 1) * 10000 + (j + 1) * 1000 + k;
-                        idlist.Add(num);
-                        num = (i + 1) * 10000 + (j + 1) * 1000 + (nd.ID - 11000 - k);
-                        idlist.Add(num);
-                    }
-
-                }
-
-            }
-
-            using (StreamWriter sw = new StreamWriter(filepath))
-            {
-
-                sw.WriteLine("/SOL");
-
-                foreach (var item in idlist)
-                {
-                    var ch = "a";
-                    if (item == idlist[0])
-                    {
-                        ch = "s";
-                    }
-                    sw.WriteLine(string.Format("nsel,{0},node,,{1}", ch, item));
-                }
-                sw.WriteLine("d,all,all");
-                double L1X = RelatedArchBridge.Axis.L1 * 1000;
-                double L1Y = RelatedArchBridge.Axis.GetCenter(RelatedArchBridge.Axis.L1).Y * 1000;
-                sw.WriteLine("nsel,s,loc,x,{0},{1}", L1X - 1, L1X + 1);
-                sw.WriteLine("nsel,r,loc,y,{0},{1}", L1Y - 1, L1Y + 1);
-                sw.WriteLine("d,all,all");
-                sw.WriteLine("nsel,s,loc,x,{0},{1}", -L1X - 1, -L1X + 1);
-                sw.WriteLine("nsel,r,loc,y,{0},{1}", L1Y - 1, L1Y + 1);
-                sw.WriteLine("d,all,all");
-
-                sw.WriteLine("allsel");
-                sw.WriteLine("antype,0");
-                //sw.WriteLine("NLGEOM,1");
-                //sw.WriteLine("PSTRES,1");
-                sw.WriteLine("allsel");
-                sw.WriteLine("acel,0,9800,0");
-                sw.WriteLine("NSUBST,1");
-                sw.WriteLine("OUTRES,ERASE");
-                sw.WriteLine("OUTRES,ALL,LAST");
-                sw.WriteLine("time,1");
-                sw.WriteLine("solve");
-
-            }
-        }
-        #endregion
-
-
-        #region 写出OpenSEES模型
-
-        #endregion
-
-
-        #region 写出midas命令
-
-        #endregion
-
 
         public double GetElementLength(FEMElement elem)
         {
