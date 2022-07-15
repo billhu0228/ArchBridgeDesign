@@ -2,6 +2,13 @@
 
 namespace Model
 {
+    public class Shell
+    {
+        public int ID;
+        public Section Sect;
+        public
+    }
+
     /// <summary>
     /// 构件
     /// </summary>
@@ -21,7 +28,7 @@ namespace Model
             ElemType = et;
         }
 
-        public Member(int id, Point2D pSt,Point2D pEd, Section sect, eMemberType et)
+        public Member(int id, Point2D pSt, Point2D pEd, Section sect, eMemberType et)
         {
             Line = new Line2D(pSt, pEd);
             ID = id;
@@ -31,7 +38,7 @@ namespace Model
 
         public override string ToString()
         {
-            return string.Format("{0} (ID={1}, Section={2})", EnumHelper.GetDescription(typeof(eMemberType),ElemType), ID, Sect.ToString());
+            return string.Format("{0} (ID={1}, Section={2})", EnumHelper.GetDescription(typeof(eMemberType), ElemType), ID, Sect.ToString());
         }
 
         public string Lisp

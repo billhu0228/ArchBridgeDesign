@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Model
 {
-    public partial class FEMModel
+    public class FEMModel
     {
         public List<FEMNode> NodeList;
         public List<FEMElement> ElementList;

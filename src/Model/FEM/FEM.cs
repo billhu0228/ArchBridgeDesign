@@ -37,6 +37,18 @@ namespace Model
         }
     }
 
+
+    public class FEMElement4 : FEMElement
+    {
+        public int Nk, Nl;
+        public FEMElement4(int iD, int ni, int nj, int nk, int nl, int secn) : base(iD, ni, nj, secn)
+        {
+            Nk = nk;
+            Nl = nl;
+        }
+    }
+
+
     public class FEMElement
     {
         public int ID;
@@ -51,6 +63,12 @@ namespace Model
             Secn = secn;
         }
 
+        /// <summary>
+        /// 在线上且不在端点上。
+        /// </summary>
+        /// <param name="nd"></param>
+        /// <param name="locTable"></param>
+        /// <returns></returns>
         public bool Include(FEMNode nd, ref List<FEMNode> locTable)
         {
             FEMNode A = locTable.Find(x => x.ID == Ni);
@@ -59,7 +77,7 @@ namespace Model
             var pt = theLine.ClosestPointTo(nd.location, true);
             if (pt.DistanceTo(nd.location) < 1e-4)
             {
-                if (pt.DistanceTo(A.location)>1e-3 && pt.DistanceTo(B.location)>1e-3)
+                if (pt.DistanceTo(A.location) > 1e-3 && pt.DistanceTo(B.location) > 1e-3)
                 {
                     return true;
                 }
@@ -76,6 +94,10 @@ namespace Model
         {
             return string.Format("{0}-{1}-{2}", Ni, Nj, Secn);
         }
+
+
+
+
     }
 
 }

@@ -55,6 +55,7 @@
     <Compile Include="FEM\FEMExtensions.cs" />
     <Compile Include="Arch\Arch.cs" />
     <Compile Include="Arch\ArchAxis.cs" />
+    <Compile Include="FEM\FEMDeck.cs" />
     <Compile Include="Material\CFTS.cs" />
     <Compile Include="FEM\FEM.cs" />
     <Compile Include="FEM\FEMModel.cs" />
