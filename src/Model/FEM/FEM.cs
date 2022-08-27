@@ -46,6 +46,10 @@ namespace Model
             Nk = nk;
             Nl = nl;
         }
+        public override string ToString()
+        {
+            return string.Format("{0}-{1}-{2}-{3}:{4}", Ni, Nj,Nk,Nl, Secn);
+        }
     }
 
 

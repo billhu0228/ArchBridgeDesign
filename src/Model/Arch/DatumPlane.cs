@@ -15,7 +15,7 @@ namespace Model
     {
         public int ID;
         public Point2D Center,RefPoint;
-        public Angle Angle0;
+        public Angle Angle0; // 值域0~360
         public Vector2D Direction;
         public eDatumType DatumType;
 

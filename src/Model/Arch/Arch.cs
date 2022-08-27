@@ -1379,22 +1379,63 @@ namespace Model
         /// 获取曲线拱任意方向三个轴点
         /// </summary>
         /// <param name="x0"></param>
-        /// <param name="ang_deg"></param>
+        /// <param name="ang_deg">值域0~360</param>
         /// <param name="Upper"></param>
         /// <param name="CC"></param>
         /// <param name="Lower"></param>
         public List<Point2D> Get3Point(double x0, double ang_deg)
         {
+            if (ang_deg<0)
+            {
+                throw new Exception("ang_deg 值域应为0~360");
+            }
             Point2D Upper, CC, Lower;
             CC = Axis.GetCenter(x0);
             Angle CutAngle = Angle.FromDegrees(ang_deg);
             Vector2D TargetDir = Vector2D.XAxis.Rotate(CutAngle);
-            Func<double, double> f = (x) => ((get_3pt(x)[0] - Axis.GetCenter(x0)).SignedAngleBetween(TargetDir));
-            double x_new = Bisection.FindRoot(f, x0 - 0.25 * Axis.L1, x0 + 0.25 * Axis.L1, 1e-6);
+            Vector2D TargetDirLow, TargetDirUp;
+            Angle TanAngle= Axis.GetAngle(x0);
+            if (ang_deg>TanAngle.Degrees && ang_deg<=TanAngle.Degrees+180.0)
+            {
+                TargetDirUp = TargetDir;
+                TargetDirLow = TargetDir.Rotate(Angle.FromDegrees(180));
+            }
+            else
+            {
+                TargetDirLow = TargetDir;
+                TargetDirUp = TargetDir.Rotate(Angle.FromDegrees(180));
+            }
+            // Vector2D TargetDirNeg = Vector2D.XAxis.Rotate(CutAngle);
+            double x_new;
+            Func<double, double> f = (x) => ((get_3pt(x)[0] - Axis.GetCenter(x0)).SignedAngleBetween(TargetDirUp));
+            x_new = Bisection.FindRoot(f, x0 - 0.25 * Axis.L1, x0 + 0.25 * Axis.L1, 1e-6);
             Upper = get_3pt(x_new)[0];
-            f = (x) => ((get_3pt(x)[2] - Axis.GetCenter(x0)).SignedAngleBetween(-TargetDir));
+
+            f = (x) => ((get_3pt(x)[2] - Axis.GetCenter(x0)).SignedAngleBetween(TargetDirLow));
             x_new = Bisection.FindRoot(f, x0 - 0.25 * Axis.L1, x0 + 0.25 * Axis.L1, 1e-6);
             Lower = get_3pt(x_new)[2];
+            //if (x0<0)
+            //{
+            //    Func<double, double> f = (x) => ((get_3pt(x)[0] - Axis.GetCenter(x0)).SignedAngleTo(TargetDirLow,false,true).Radians);
+            //    x_new = Bisection.FindRoot(f, x0 - 0.25 * Axis.L1, x0 + 0.25 * Axis.L1, 1e-6);
+            //    Upper = get_3pt(x_new)[0];
+
+            //    f = (x) => ((get_3pt(x)[2] - Axis.GetCenter(x0)).SignedAngleTo(TargetDirUp, false, true).Radians);
+            //    x_new = Bisection.FindRoot(f, x0 - 0.25 * Axis.L1, x0 + 0.25 * Axis.L1, 1e-6);
+            //    Lower = get_3pt(x_new)[2];
+            //}
+            //else
+            //{
+            //    Func<double, double> f = (x) => ((get_3pt(x)[0] - Axis.GetCenter(x0)).SignedAngleTo(TargetDirUp, false, true).Radians);
+            //    x_new = Bisection.FindRoot(f, x0 - 0.25 * Axis.L1, x0 + 0.25 * Axis.L1, 1e-6);
+            //    Upper = get_3pt(x_new)[0];
+
+            //    f = (x) => ((get_3pt(x)[2] - Axis.GetCenter(x0)).SignedAngleTo(TargetDirLow, false, true).Radians);
+            //    x_new = Bisection.FindRoot(f, x0 - 0.25 * Axis.L1, x0 + 0.25 * Axis.L1, 1e-6);
+            //    Lower = get_3pt(x_new)[2];
+            //}
+
+
 
             return new List<Point2D>() { Upper, CC, Lower };
         }

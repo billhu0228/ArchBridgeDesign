@@ -13,6 +13,8 @@ namespace Model
         public List<FEMElement> ElementList;
         public Arch RelatedArchBridge;
         public List<Tuple<int, List<int>>> RigidGroups;
+        public CrossArrangement RelatedDeck;
+        public double DeckDistance;
 
 
         public FEMModel()
@@ -21,14 +23,18 @@ namespace Model
             ElementList = new List<FEMElement>();
             RigidGroups = new List<Tuple<int, List<int>>>();
             RelatedArchBridge = null;
+            RelatedDeck = null;
+            DeckDistance = 0;
         }
 
-        public FEMModel(ref Arch theArch)
+        public FEMModel(ref Arch theArch,ref CrossArrangement theCross,double deckDist)
         {
             NodeList = new List<FEMNode>();
             ElementList = new List<FEMElement>();
             RigidGroups = new List<Tuple<int, List<int>>>();
             RelatedArchBridge = theArch;
+            RelatedDeck = theCross;
+            DeckDistance = deckDist;
 
             GenerateRib();
 
@@ -54,6 +60,45 @@ namespace Model
             int secnColMain;// = RelatedArchBridge.GetTubeProperty(0, eMemberType.ColumnMain).Section.SECN;
             int secnColCross;// = RelatedArchBridge.GetTubeProperty(0, eMemberType.ColumnCrossW).Section.SECN;
             int secnColWeb;// = RelatedArchBridge.GetTubeProperty(0, eMemberType.ColumnCrossW).Section.SECN;
+            var wi = RelatedArchBridge.WidthInside;
+            var wo = RelatedArchBridge.WidthOutside;
+
+            List<double> cbZlist = new List<double>() { 0,0.5*DeckDistance};
+            for (int i = 0; i < RelatedDeck.GriderArr.Count; i++)
+            {
+                var item = RelatedDeck.GriderArr[i];
+                if (i== RelatedDeck.GriderArr.Count-1)
+                {
+                    continue;
+                }
+                cbZlist.Add(cbZlist.Last() + item);
+            }
+            cbZlist.Remove(0.5 * DeckDistance);
+
+            List<double> cbZlist2 = new List<double>() { -0.5 * DeckDistance };
+            for (int i = 0; i < RelatedDeck.GriderArr.Count; i++)
+            {
+                var item = RelatedDeck.GriderArr[i];
+                if (i == RelatedDeck.GriderArr.Count - 1)
+                {
+                    continue;
+                }
+                cbZlist2.Add(cbZlist2.Last() - item);
+            }
+            cbZlist2.Remove(-0.5 * DeckDistance);
+            cbZlist.AddRange(cbZlist2.ToArray());
+            cbZlist2 = new List<double>() {
+             (-0.5 * wi - wo-1),
+             (-0.5 * wi - wo),
+              (-0.5 * wi),
+              0,
+              (+0.5 * wi),
+              (+0.5 * wi + wo),
+              (+0.5 * wi + wo+1)
+            };
+            cbZlist.AddRange(cbZlist2.ToArray());
+            cbZlist = cbZlist.Distinct().ToList() ;
+            cbZlist.Sort();
 
             foreach (var col in RelatedArchBridge.ColumnList)
             {
@@ -62,8 +107,7 @@ namespace Model
                 secnColWeb = RelatedArchBridge.GetTubeProperty(col.X, eMemberType.ColumnWeb).Section.SECN;
 
                 int baseID = col.ID * 1000 + 100000;
-                var wi = RelatedArchBridge.WidthInside;
-                var wo = RelatedArchBridge.WidthOutside;
+ 
                 var x0 = col.X;
                 List<double> ylist = new List<double>();
                 ylist.Add(col.Z2);
@@ -91,31 +135,29 @@ namespace Model
                     if (yi == ylist.First())
                     {
                         // 盖梁
-                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, (-0.5 * wi - wo))));
-                        baseID += 1;
-                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, (-0.5 * wi))));
-                        baseID += 1;
-                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, 0)));
-                        baseID += 1;
-                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, (+0.5 * wi))));
-                        baseID += 1;
-                        NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, (0.5 * wi + wo))));
-                        baseID += 1;
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 0, baseID - 5 + 1, 99));
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 1, baseID - 5 + 2, 99));
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 2, baseID - 5 + 3, 99));
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 3, baseID - 5 + 4, 99));
+                        int secn;
+                        if (col.L == 4)
+                        {
+                            secn = 66;
+                        }
+                        else
+                        {
+                            secn = 65;
+                        }
+                        foreach (var zi in cbZlist)
+                        {
+                            NodeList.Add(new FEMNode(baseID, new Point3D(x0, yi, zi)));
+                            baseID += 1;
+                            if (zi!=cbZlist.First())
+                            {
+                                ElementList.Add(new FEMElement(0, baseID - 1, baseID -2, secn));
+                            }
+                        }                       
                         // 刚臂
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 0, baseID + 0, 99));
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 0, baseID + 4, 99));
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 1, baseID + 1, 99));
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 1, baseID + 5, 99));
-
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 3, baseID + 2, 99));
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 3, baseID + 6, 99));
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 4, baseID + 3, 99));
-                        ElementList.Add(new FEMElement(0, baseID - 5 + 4, baseID + 7, 99));
-
+                        RigidGroups.Add(new Tuple<int, List<int>>(baseID - 13 + 2, new List<int>() { baseID + 0, baseID + 4 }));
+                        RigidGroups.Add(new Tuple<int, List<int>>(baseID - 13 + 3, new List<int>() { baseID + 1, baseID + 5 }));
+                        RigidGroups.Add(new Tuple<int, List<int>>(baseID - 13 + 9, new List<int>() { baseID + 2, baseID + 6 }));
+                        RigidGroups.Add(new Tuple<int, List<int>>(baseID - 13 + 10, new List<int>() { baseID + 3, baseID + 7 }));
                     }
 
                     foreach (var xi in new double[] { (x0 - col.L * 0.5), (x0 + col.L * 0.5) })

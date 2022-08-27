@@ -12,13 +12,15 @@ namespace Model
         public List<FEMNode> NodeList;
         public List<FEMElement> ElementList;
         public List<Tuple<int, List<int>>> RigidGroups;
+        public List<Tuple<int, int>> LinkGroups;
         public CompositeDeck RelatedDeck;
         List<double> main_xlist;
         List<double> main_ylist;
         List<double> sub_ylist;
         List<double> xlist;
         List<double> ylist;
-        int Nstart;
+        public int Nstart;
+        public int Estart;
 
         double x0;
         double y0;
@@ -31,13 +33,15 @@ namespace Model
         /// 生成组合梁
         /// </summary>
         /// <param name="theDeck"></param>
-        public FEMDeck(ref CompositeDeck theDeck, int nstart, double e_size_x, double e_size_y, double x0, double y0, double z0)
+        public FEMDeck(ref CompositeDeck theDeck, int nstart,int estart, double e_size_x, double e_size_y, double x0, double y0, double z0)
         {
             NodeList = new List<FEMNode>();
             ElementList = new List<FEMElement>();
             RigidGroups = new List<Tuple<int, List<int>>>();
+            LinkGroups = new List<Tuple<int, int>>();
             RelatedDeck = theDeck;
             Nstart = nstart;
+            Estart = estart;
             this.x0 = x0;
             this.y0 = y0;
             this.z0 = z0;
@@ -49,12 +53,62 @@ namespace Model
 
         private void CreateCrossBeam()
         {
-            throw new NotImplementedException();
+            foreach (var xx in main_xlist)
+            {
+                var xi = xx + x0;
+                var res = NodeList.FindAll(delegate (FEMNode nd) { return nd.X == xi; });
+                res.Sort((x, y) => x.Y.CompareTo(y.Y));
+                for (int i = 0; i < res.Count; i++)
+                {
+                    var ny = res[i].Z;
+                    if (ny<=main_ylist[1]+y0||ny>main_ylist[main_ylist.Count-2]+y0)
+                    {
+                        continue;
+                    }
+                    ElementList.Add(new FEMElement(Estart, res[i - 1].ID, res[i].ID, 121));
+                    Estart++;
+                }
+
+            }
+            ;
         }
 
         private void CreateGirder()
         {
-            throw new NotImplementedException();
+            foreach (var yy in main_ylist)
+            {
+                var yi = yy + y0;
+                if (yy != main_ylist.First() && yy != main_ylist.Last())
+                {
+                    var res = NodeList.FindAll(delegate (FEMNode nd) { return nd.Z == yi; });
+                    res.Sort((x, y) => x.X.CompareTo(y.X));
+                    for (int i = 0; i < res.Count; i++)
+                    {
+                        if (i!=0)
+                        {
+                            ElementList.Add(new FEMElement(Estart, res[i - 1].ID, res[i].ID, 101));
+                            Estart++;
+                        }
+                    }                    
+                }
+            }
+            foreach (var yy in sub_ylist)
+            {
+                var yi = yy + y0;
+                if (yy != sub_ylist.First() && yy != sub_ylist.Last())
+                {
+                    var res = NodeList.FindAll(delegate (FEMNode nd) { return nd.Z == yi; });
+                    res.Sort((x, y) => x.X.CompareTo(y.X));
+                    for (int i = 0; i < res.Count; i++)
+                    {
+                        if (i != 0)
+                        {
+                            ElementList.Add(new FEMElement(Estart, res[i - 1].ID, res[i].ID, 111));
+                            Estart++;
+                        }
+                    }
+                }
+            }
         }
 
         private void CreatePlate()
@@ -64,11 +118,55 @@ namespace Model
             {
                 foreach (var x in xlist)
                 {
-                    NodeList.Add(new FEMNode(n, new Point3D(x0 + x, y0 + y, z0)));
+                    NodeList.Add(new FEMNode(n, new Point3D(x0 + x,  z0, y0 + y)));
                     n++;
+                    if (RelatedDeck.spans.Contains(x) && main_ylist.Contains(y))
+                    {
+                        int iix = RelatedDeck.spans.IndexOf(x);
+                        int iiy = main_ylist.IndexOf(y);
+                        if (RelatedDeck.ColumnIDList[iix]<0 || iiy==0|| iiy==main_ylist.Count-1)
+                        {
+                            continue;
+
+                        }
+                        int nj;
+                        if (y0 + y > 0)
+                        {
+                            if (iiy==1)
+                            {
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 7;
+                            }
+                            else if (iiy==2)
+                            {
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 8;
+                            }
+                            else
+                            {
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 +11;
+                            }
+                       
+                        }
+                        else
+                        {
+                            if (iiy == 1)
+                            {
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 1;
+                            }
+                            else if (iiy == 2)
+                            {
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 4;
+                            }
+                            else
+                            {
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 5;
+                            }
+                        }
+                        LinkGroups.Add(new Tuple<int, int>(n-1,nj) );
+                        
+                    }
                 }
             }
-
+           
             int kk = (n - Nstart - 1) / ylist.Count;
             for (int ny = 0; ny < ylist.Count - 1; ny++)
             {
@@ -78,12 +176,13 @@ namespace Model
                     int B = A + 1;
                     int C = B + kk;
                     int D = C - 1;
-                    List<int> ns = new List<int>() { };
-
+                    List<int> ns = new List<int>() { A, B, C, D };
+                    ElementList.Add(new FEMElement4(Estart, A, B, C, D, 1));
+                    Estart++;
                 }
 
             }
-            throw new NotImplementedException();
+
         }
 
         /// <summary>

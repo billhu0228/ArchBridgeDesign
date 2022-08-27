@@ -31,6 +31,21 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="accoremgd, Version=22.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\accoremgd.dll</HintPath>
+    </Reference>
+    <Reference Include="AcCui, Version=22.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\AcCui.dll</HintPath>
+    </Reference>
+    <Reference Include="acdbmgd, Version=22.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\acdbmgd.dll</HintPath>
+    </Reference>
+    <Reference Include="acmgd, Version=22.0.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\acmgd.dll</HintPath>
+    </Reference>
+    <Reference Include="AdWindows, Version=2016.11.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\AdWindows.dll</HintPath>
+    </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\MathNet.Numerics.5.0.0-alpha02\lib\net461\MathNet.Numerics.dll</HintPath>
     </Reference>
@@ -56,6 +71,7 @@
     <Compile Include="Arch\Arch.cs" />
     <Compile Include="Arch\ArchAxis.cs" />
     <Compile Include="FEM\FEMDeck.cs" />
+    <Compile Include="FEM\Shell.cs" />
     <Compile Include="Material\CFTS.cs" />
     <Compile Include="FEM\FEM.cs" />
     <Compile Include="FEM\FEMModel.cs" />

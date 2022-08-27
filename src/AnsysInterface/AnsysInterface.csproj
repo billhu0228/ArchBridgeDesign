@@ -52,6 +52,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="MidasDeckExt.cs" />
     <Compile Include="MidasExt.cs" />
     <Compile Include="AnsysExt.cs" />
     <Compile Include="Program.cs" />
