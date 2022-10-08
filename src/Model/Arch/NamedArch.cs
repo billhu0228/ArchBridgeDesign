@@ -23,7 +23,7 @@ namespace Model
         /// </summary>
         /// <param name="theArchAxis"></param>
         /// <returns></returns>
-        public static Arch PhoenixModelV4(out ArchAxis theArchAxis, double m, double f, double halfD = 0.6)
+        public static Arch PhoenixModelV4(out ArchAxis theArchAxis, double m, double f,double H_foot,double H_top, double halfD = 0.6)
         {
             Arch archModel;
 
@@ -34,15 +34,20 @@ namespace Model
 
             #region 1. 设置拱系
             theArchAxis = new ArchAxis(f, m, L);
-            archModel = new Arch(theArchAxis, 8.5, 17, 14, 4);
-            //archModel = new Arch(theArchAxis,9.0, 17, 14, 4);
+            // archModel = new Arch(theArchAxis, 6.0, 14.5, 14, 4);
+            // archModel = new Arch(theArchAxis, 7.0, 15.5, 14, 4);
+            // archModel = new Arch(theArchAxis, 8.5, 17.0, 14, 4);
+            archModel = new Arch(theArchAxis, H_top, H_foot, 14, 4);
             archModel.SetFootLevel(1270 + 11.3);
             //archModel.SetFootLevel(1270);
             #endregion
 
             #region  2. 配置截面            
-            var CFTS1500S35 = new TubeSection(11, 1.4, 0.035, true);
-            var CFTS1500S28 = new TubeSection(12, 1.4, 0.028, true);
+            var CFTS1400S25 = new TubeSection(1, 1.4, 0.025, true);
+            var CFTS1400S28 = new TubeSection(2, 1.4, 0.028, true);
+            var CFTS1400S32 = new TubeSection(3, 1.4, 0.032, true);
+            var CFTS1400S38 = new TubeSection(4, 1.4, 0.038, true);
+            var CFTS1400S40 = new TubeSection(5, 1.4, 0.040, true);
 
             var T900S20A = new TubeSection(21, 0.90, 0.020);
             var T800S16A = new TubeSection(22, 0.80, 0.016);
@@ -63,13 +68,23 @@ namespace Model
             var T300S10C = new TubeSection(64, 0.30, 0.010);
 
 
-            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1500S28, double.NegativeInfinity, -49);
-            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1500S35, -49, 49);
-            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1500S28, 49, double.PositiveInfinity);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S40, double.NegativeInfinity, -244.5);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S38, -244.5, -224.5);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S25, -224.5, -70);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S32, -70, 70);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S25, 70, 224.5);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S38, 224.5, 244.5);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S40, 244.5, double.PositiveInfinity);
 
-            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1500S35, double.NegativeInfinity, -154);
-            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1500S28, -154, 154);
-            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1500S35, 154, double.PositiveInfinity);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S40, double.NegativeInfinity, -234.9);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S38, -234.9, -196);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S32, -196, -154);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S28, -154, -70);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S25, -70, 70);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S28, 70, 154);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S32, 154, 196);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S38, 196, 234.9);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S40, 234.9, double.PositiveInfinity);
 
             archModel.AssignProperty(eMemberType.MainWeb, T900S20A, double.NegativeInfinity, -220);
             archModel.AssignProperty(eMemberType.MainWeb, T800S16A, -220, 220);

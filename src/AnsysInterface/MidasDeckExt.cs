@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Model;
 
 namespace AnsysInterface
@@ -24,11 +25,20 @@ namespace AnsysInterface
             WriteMCTMat(ref sw);
             WriteMCTNode(ref sw);
             WrietMCTElement(ref sw);
+            WrietMCTLoad(ref sw);
 
             sw.Flush();
 
             sw.Close();
             Console.WriteLine("MCT写出完成...");
+        }
+
+        private void WrietMCTLoad(ref StreamWriter sw)
+        {
+            sw.WriteLine("*USE-STLD, 二期");
+            sw.WriteLine("*PRESSURE");
+            var e4 = (from e in theFEMModel.ElementList where e.GetType() == typeof(FEMElement4) select e).ToList();
+            sw.WriteLine(" {0}to{1}, PRES , PLATE, FACE, LZ, 0, 0, 0, NO, -0.0032669, 0, 0, 0, 0, ",e4.First().ID,e4.Last().ID);
         }
 
         private void WriteMCTHead(ref StreamWriter sw)
@@ -52,7 +62,7 @@ namespace AnsysInterface
             sw.WriteLine("   1, VALUE, 1, YES, 250, 0, YES, 1, 125");
             sw.WriteLine("*SECTION");
             sw.WriteLine("101,SOD,主梁,CT,0,1,0,0,1,-50,YES,NO,SOD-I");
-            sw.WriteLine("YES,300,300,400,400,1800,32,32,25,100,0");
+            sw.WriteLine("YES,300,300,400,400,2000,32,32,25,100,0");
             sw.WriteLine("1,WL,0,250,25,0,0,0,0,0,0");
             sw.WriteLine("1,1,0,腹板,0,2,2,YES,500,WL,2,W1,YES,1000,WL,2,W2");
             sw.WriteLine("111,SOD,小纵梁,CT,0,1,0,0,1,-50,YES,NO,SOD-I");

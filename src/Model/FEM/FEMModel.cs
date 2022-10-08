@@ -112,7 +112,7 @@ namespace Model
                 List<double> ylist = new List<double>();
                 ylist.Add(col.Z2);
                 ylist.Add(col.Z2 - 2.0);
-                bool AddDiag = col.ID <= 2 || col.ID >= 11 ? true : false;
+                bool AddDiag = col.ID <= 2 || col.ID >= 9 ? true : false;
 
 
                 for (int i = 0; i < col.M; i++)
@@ -380,7 +380,7 @@ namespace Model
             {
                 var ni = NodeList.Find(x => x.Match(elem.Line.StartPoint));
                 var frameID = ni.ID % 10000 % 1000;
-                Console.WriteLine(frameID.ToString());
+                // Console.WriteLine(frameID.ToString());
                 MakeDiagramV2(frameID);
             }
 

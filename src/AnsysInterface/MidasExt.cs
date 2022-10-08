@@ -38,11 +38,12 @@ namespace AnsysInterface
         private void WrietMCTLoad(ref StreamWriter sw)
         {
             sw.WriteLine("*CONSTRAINT  ");
-            sw.WriteLine("11000to41000by10000 11245to41245by10000 12000to42000by10000 , 111111, ");
-            sw.WriteLine("12245to42245by10000 80000to80003 80012to80015, 111111, ");
+            sw.WriteLine("11000to41000by10000 11245to41245by10000 12000to42000by10000 , 111000, ");
+            sw.WriteLine("12245to42245by10000 80000to80003 80012to80015, 111000, ");
             sw.WriteLine("*STLDCASE");
-            sw.WriteLine("恒载, USER,");
-            sw.WriteLine("*USE-STLD, 恒载");
+            sw.WriteLine("自重, USER,");
+            sw.WriteLine("二期, USER,");
+            sw.WriteLine("*USE-STLD, 自重");
             sw.WriteLine("*SELFWEIGHT");
             sw.WriteLine("0, 0, -1,");
         }
@@ -80,9 +81,9 @@ namespace AnsysInterface
             sw.WriteLine("15,CONC,CFST-1500*40 , 0, 0, , C,YES, 0.05, 2, 5.5442e+04, 0.2, 1.0208e-05, 2.9962e-05, 3.0554e-09");
             sw.WriteLine("21, STEEL, Q345D  , 0.06, 0, , C, NO, 0.02, 1, GB 50917-13(S),           , Q345          , NO, 206000");
             sw.WriteLine("22, STEEL, Q420D  , 0.06, 0, , C, NO, 0.02, 1, GB50017-17(S),            , Q420          , NO, 206000");
-            sw.WriteLine("34, CONC , C40               , 0, 0, , C, NO, 0.05, 1, JTG3362-18(RC),            , C40           , NO, 32500");
-            sw.WriteLine("35, CONC , C50               , 0, 0, , C, NO, 0.05, 1, JTG3362-18(RC),            , C50           , NO, 34500");           
-            sw.WriteLine("37, CONC , C70               , 0, 0, , C, NO, 0.05, 1, JTG3362-18(RC),            , C70           , NO, 37000");
+            sw.WriteLine("34, CONC , C40       , 0, 0, , C, NO, 0.05, 2, 3.2500e+004,   0.2, 1.0000e-005, 2.7e-005,  0");
+            sw.WriteLine("35, CONC , C50       , 0, 0, , C, NO, 0.05, 2, 3.4500e+004,   0.2, 1.0000e-005, 2.7e-005,  0");
+            sw.WriteLine("37, CONC , C70       , 0, 0, , C, NO, 0.05, 2, 3.7000e+004,   0.2, 1.0000e-005, 2.7e-005,  0");
             sw.WriteLine("41, STEEL, 钢绞线1860        , 0, 0, , C, NO, 0.02, 1, JTG3362-18(S),            , Strand1860    , NO, 195000");                    
            
             sw.WriteLine("*SECTION   ");          
@@ -139,8 +140,16 @@ namespace AnsysInterface
         {
             Dictionary<int, int> SecnID = new Dictionary<int, int>()
             {
+                {1,1 },
+                {2,2 },
+                {3,3 },
+                {4,4 },
+                {5,5 },
                 {11,11 },
                 {12,12 },
+                {13,13 },
+                {14,14 },
+                {15,15 },
                 {21,21 },
                 {22,22 },
                 {23,23 },
@@ -165,7 +174,7 @@ namespace AnsysInterface
                 //{
                 //    continue;
                 //}
-                int matid = item.Secn <20 ? item.Secn : 21;
+                int matid = item.Secn <20 ? SecnID[item.Secn] : 21;
 
                 sw.WriteLine(" {0},BEAM,{4},{3},{1},{2},0,0", elemid, item.Ni, item.Nj, SecnID[item.Secn], matid);
                 elemid++;
@@ -182,6 +191,9 @@ namespace AnsysInterface
                 }
             }
 
+            sw.WriteLine("*GROUP");
+            sw.WriteLine(" 上弦,,1to980 2969to2972 2977to2980,0");
+            sw.WriteLine(" 下弦,,981to1960 2973to2976 2981to2984,0");
             sw.Flush();
         }
 

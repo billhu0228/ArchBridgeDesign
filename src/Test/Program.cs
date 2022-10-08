@@ -36,7 +36,7 @@ namespace Test
 
             ArchAxis ax;
             Arch theArchModel;
-            theArchModel = NamedArch.PhoenixModelV4(out ax, m, 518 / (f));
+            theArchModel = NamedArch.PhoenixModelV4(out ax, m, 518 / (f),14,6.5);
 
             // 写出基准面
             // string name = "PhoenixModel";

@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31825.309
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30907.101
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "src\Model\Model.csproj", "{A99B69DE-7742-4C47-8BE3-C01A29D374F5}"
 EndProject
@@ -17,6 +17,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AnsysInterface", "src\AnsysInterface\AnsysInterface.csproj", "{B45566D1-B232-43F9-8672-C6DDAC916009}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WGUI", "src\WGUI\WGUI.csproj", "{222B0169-0BEC-4D11-90C6-ECA804A23406}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Research", "src\Research\Research.csproj", "{20A05B72-866A-4848-94D8-7C760B735A6C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +50,10 @@ Global
 		{222B0169-0BEC-4D11-90C6-ECA804A23406}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{222B0169-0BEC-4D11-90C6-ECA804A23406}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{222B0169-0BEC-4D11-90C6-ECA804A23406}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20A05B72-866A-4848-94D8-7C760B735A6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20A05B72-866A-4848-94D8-7C760B735A6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20A05B72-866A-4848-94D8-7C760B735A6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20A05B72-866A-4848-94D8-7C760B735A6C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
