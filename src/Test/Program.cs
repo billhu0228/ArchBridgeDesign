@@ -22,8 +22,12 @@ namespace Test
             var fstr = Console.ReadLine();
             Console.WriteLine("\n请输入m，按enter继续...");
             var mstr = Console.ReadLine();
+            Console.WriteLine("\n请输入Hfoot，按enter继续...");
+            var hfstr = Console.ReadLine();
+            Console.WriteLine("\n请输入Htop，按enter继续...");
+            var htstr = Console.ReadLine();
 
-            Console.WriteLine("\n已输入：f={0:F2}，m={1:F2}", fstr, mstr);
+            Console.WriteLine("\n已输入：f={0:F2}，m={1:F2},拱脚高度={2:F1}m，拱顶高度={3:F1}m", fstr, mstr,hfstr,htstr);
 
             Console.WriteLine("\n请输入名称，按enter继续...");
             string name = Console.ReadLine();
@@ -33,10 +37,12 @@ namespace Test
 
             double f = double.Parse(fstr);
             double m = double.Parse(mstr);
+            double hf = double.Parse(hfstr);
+            double ht = double.Parse(htstr);
 
             ArchAxis ax;
             Arch theArchModel;
-            theArchModel = NamedArch.PhoenixModelV4(out ax, m, 518 / (f),14,6.5);
+            theArchModel = NamedArch.PhoenixModelV6(out ax, m, 518 / (f),hf,ht);
 
             // 写出基准面
             // string name = "PhoenixModel";

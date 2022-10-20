@@ -165,7 +165,7 @@ namespace Model
         {
             //首先判断参数合理性
             double La = nexI.Center.X - curI.Center.X;
-            Debug.Assert(dist.Sum() == La);
+            Debug.Assert(Math.Abs(dist.Sum() -La) < 1e-3);
             Debug.Assert(dist.Length == ang_degList.Length + 1);
             Debug.Assert(is_dia.Length == dist.Length);
 

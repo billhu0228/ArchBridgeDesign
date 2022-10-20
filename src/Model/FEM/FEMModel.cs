@@ -112,7 +112,7 @@ namespace Model
                 List<double> ylist = new List<double>();
                 ylist.Add(col.Z2);
                 ylist.Add(col.Z2 - 2.0);
-                bool AddDiag = col.ID <= 2 || col.ID >= 9 ? true : false;
+                bool AddDiag = col.ID <= 1 || col.ID >= 8 ? true : false;
 
 
                 for (int i = 0; i < col.M; i++)
@@ -293,13 +293,15 @@ namespace Model
             {
                 if (i == 0)
                 {
+                    MidColumnList.Add(selX[0]);
                     xloc = ColumnX[0] - 14;
                 }
                 else if (i == ColumnX.Count)
                 {
                     xloc = ColumnX.Last() + 14;
+                    MidColumnList.Add(selX.Last());
                 }
-                else if (i == 6)
+                else if (i == 5)
                 {
                     MidColumnList.Add(-0.5 * theArch.InstallDist);
                     MidColumnList.Add(0.5 * theArch.InstallDist);
@@ -307,12 +309,13 @@ namespace Model
                 }
                 else
                 {
-                    xloc = ColumnX[i - 1] + 21;
+                    xloc = ColumnX[i - 1] + (ColumnX[1]-ColumnX[0])*0.5;
                 }
                 var deltabs = (from x in selX select Math.Abs(x - xloc)).ToList();
                 int idx = deltabs.FindIndex((e) => e == deltabs.Min());
                 double xreal = selX[idx];
                 MidColumnList.Add(xreal);
+                MidColumnList.Sort();
 
             }
 
@@ -646,21 +649,31 @@ namespace Model
                 {
                     if (GetNode(item.ID).X > 0)
                     {
-                        ElementList.Add(new FEMElement(0, item.ID, item.ID - 50000 + 3, secn));
-                        ElementList.Add(new FEMElement(0, item.ID, item.ID - 40000 + 3, secn));
+                        int step = 3;
+                        if (!NodeList.Exists(x => x.ID == item.ID - 50000 + 3))
+                        {
+                            step = 2;
+                        }
+                        ElementList.Add(new FEMElement(0, item.ID, item.ID - 50000 + step, secn));
+                        ElementList.Add(new FEMElement(0, item.ID, item.ID - 40000 + step, secn));
                         if (AddI)
                         {
-                            ElementList.Add(new FEMElement(0, item.ID - 50000 + 3, item.ID - 40000 + 3, secn));
+                            ElementList.Add(new FEMElement(0, item.ID - 50000 + step, item.ID - 40000 + step, secn));
                         }
 
                     }
                     else
                     {
-                        ElementList.Add(new FEMElement(0, item.ID, item.ID - 50000 - 3, secn));
-                        ElementList.Add(new FEMElement(0, item.ID, item.ID - 40000 - 3, secn));
+                        int step = 3;
+                        if (!NodeList.Exists(x => x.ID == item.ID - 50000 - 3))
+                        {
+                            step = 2;
+                        }
+                        ElementList.Add(new FEMElement(0, item.ID, item.ID - 50000 - step, secn));
+                        ElementList.Add(new FEMElement(0, item.ID, item.ID - 40000 - step, secn));
                         if (AddI)
                         {
-                            ElementList.Add(new FEMElement(0, item.ID - 50000 - 3, item.ID - 40000 - 3, secn));
+                            ElementList.Add(new FEMElement(0, item.ID - 50000 - step, item.ID - 40000 - step, secn));
                         }
                     }
                 }
@@ -675,7 +688,7 @@ namespace Model
                 {
                     ;
                 }
-                var Except = new int[] { 122, 123 }; // 反向不再加斜撑的frame编号
+                var Except = new int[] { 105, 106 }; // 反向不再加斜撑的frame编号
                 var reverse = new int[] { };
                 if (Except.Contains(frame))
                 {

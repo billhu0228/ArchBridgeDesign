@@ -220,12 +220,8 @@ namespace AnsysInterface
                 sw.WriteLine("/input,section,inp");
                 sw.WriteLine("/input,node,inp");
                 sw.WriteLine("/input,element,inp");
-                sw.WriteLine("/input,DeckA1,inp");
-                sw.WriteLine("/input,DeckA2,inp");
-                sw.WriteLine("/input,DeckA3,inp");
-                sw.WriteLine("/input,DeckB1,inp");
-                sw.WriteLine("/input,DeckB2,inp");
-                sw.WriteLine("/input,DeckB3,inp");
+                sw.WriteLine("/input,DeckA,inp");              
+                sw.WriteLine("/input,DeckB,inp");
                 sw.WriteLine("/input,constraint,inp");
                 sw.WriteLine("/input,solve,inp");
             }
@@ -240,8 +236,12 @@ namespace AnsysInterface
                 sw.WriteLine("acel,0,9800,0");
                 sw.WriteLine("solve");
                 sw.WriteLine("/post26");
+                sw.WriteLine("nsel,s,node,,12000");
+                sw.WriteLine("esln,s");
+                sw.WriteLine("*GET,low,ELEM, 0,num,max");
+                sw.WriteLine("allsel");
                 sw.WriteLine("esol,2, 1,11000,smisc,1,TopCoord");
-                sw.WriteLine("esol,3,73,12000,smisc,1,BotCoord");
+                sw.WriteLine("esol,3,low,12000,smisc,1,BotCoord");
                 sw.WriteLine("PrVAR,2,3");
             }
         }
@@ -263,21 +263,36 @@ namespace AnsysInterface
                 sw.WriteLine("nsel,a,node,,80002");
                 sw.WriteLine("nsel,a,node,,80003");
                 sw.WriteLine("cm,footA,node");
-                sw.WriteLine("nsel,s,node,,11245");
-                sw.WriteLine("nsel,a,node,,12245");
-                sw.WriteLine("nsel,a,node,,21245");
-                sw.WriteLine("nsel,a,node,,22245");
-                sw.WriteLine("nsel,a,node,,31245");
-                sw.WriteLine("nsel,a,node,,32245");
-                sw.WriteLine("nsel,a,node,,41245");
-                sw.WriteLine("nsel,a,node,,42245");
+                sw.WriteLine("nsel,s,node,,11211");
+                sw.WriteLine("nsel,a,node,,12211");
+                sw.WriteLine("nsel,a,node,,21211");
+                sw.WriteLine("nsel,a,node,,22211");
+                sw.WriteLine("nsel,a,node,,31211");
+                sw.WriteLine("nsel,a,node,,32211");
+                sw.WriteLine("nsel,a,node,,41211");
+                sw.WriteLine("nsel,a,node,,42211");
                 sw.WriteLine("nsel,a,node,,80012");
                 sw.WriteLine("nsel,a,node,,80013");
                 sw.WriteLine("nsel,a,node,,80014");
                 sw.WriteLine("nsel,a,node,,80015");
                 sw.WriteLine("cm,footB,node");
                 sw.WriteLine("cmsel,a,footA");
-                sw.WriteLine("d,all,all");
+                sw.WriteLine("d,all,ux,0");
+                sw.WriteLine("d,all,uy,0");
+                sw.WriteLine("d,all,uz,0");
+                sw.WriteLine("nsel,s,node,,200112");
+                sw.WriteLine("nsel,a,node,,200334");
+                sw.WriteLine("nsel,a,node,,200556");
+                sw.WriteLine("nsel,a,node,,200222");
+                sw.WriteLine("nsel,a,node,,200444");
+                sw.WriteLine("nsel,a,node,,200666");
+                sw.WriteLine("nsel,a,node,,300112");
+                sw.WriteLine("nsel,a,node,,300334");
+                sw.WriteLine("nsel,a,node,,300556");
+                sw.WriteLine("nsel,a,node,,300222");
+                sw.WriteLine("nsel,a,node,,300444");
+                sw.WriteLine("nsel,a,node,,300666");
+                sw.WriteLine("d,all,uy,0");
             }
         }
         private void WriteSolu(string filepath)

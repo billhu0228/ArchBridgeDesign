@@ -38,8 +38,8 @@ namespace AnsysInterface
         private void WrietMCTLoad(ref StreamWriter sw)
         {
             sw.WriteLine("*CONSTRAINT  ");
-            sw.WriteLine("11000to41000by10000 11245to41245by10000 12000to42000by10000 , 111000, ");
-            sw.WriteLine("12245to42245by10000 80000to80003 80012to80015, 111000, ");
+            sw.WriteLine("11000to41000by10000 11211to41211by10000 12000to42000by10000 , 111000, ");
+            sw.WriteLine("12211to42211by10000 80000to80003 80012to80015, 111000, ");
             sw.WriteLine("*STLDCASE");
             sw.WriteLine("自重, USER,");
             sw.WriteLine("二期, USER,");

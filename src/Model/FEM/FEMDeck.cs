@@ -198,7 +198,7 @@ namespace Model
             {
                 tmp.AddRange(more_value(RelatedDeck.spans[i], RelatedDeck.spans[i + 1], RelatedDeck.crossDist));
             }
-            main_xlist = tmp.Distinct().ToList();
+            main_xlist = tmp.Distinct(new AproxiComparer()).ToList();
             main_xlist.Sort();
 
             tmp = new List<double>();
@@ -239,7 +239,7 @@ namespace Model
 
         private IEnumerable<double> more_value(double start, double end, double apx_dist)
         {
-            var npts = (int)(Math.Round((end - start) / apx_dist, 0));
+            int npts = (int)(Math.Round((end - start) / apx_dist, 0));
             return Linspace(start, end, npts + 1);
         }
 
@@ -249,9 +249,26 @@ namespace Model
             double step = (end - start) / (v - 1);
             for (int i = 0; i < v; i++)
             {
-                res.Add(start + i * step);
+                res.Add(Math.Round(start + i * step,6));
             }
             return res;
+        }
+    }
+
+    class AproxiComparer : IEqualityComparer<double>
+    {
+        // Products are equal if their names and product numbers are equal.
+        public bool Equals(double x, double y)
+        {
+            return Math.Abs(x-y)<1e-3;
+        }
+
+        // If Equals() returns true for a pair of objects
+        // then GetHashCode() must return the same value for these objects.
+
+        public int GetHashCode(double x)
+        {
+            return 0;        
         }
     }
 

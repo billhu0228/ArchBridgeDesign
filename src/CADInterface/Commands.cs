@@ -55,7 +55,7 @@ namespace CADInterface
 
             //archModel = Arch.PreliminaryDesignModel(out theArchAxis);
             //archModel = Arch.PreliminaryDesignModelV2(out theArchAxis);
-            archModel = NamedArch.PhoenixModelV3(out theArchAxis, 2.0, 518 / 4.5, 0.75);
+            archModel = NamedArch.PhoenixModelV6(out theArchAxis, 2.0, 518 / 4.5, 15.5,7.0,0.75);
         }
 
         [CommandMethod("ArchDraw")]

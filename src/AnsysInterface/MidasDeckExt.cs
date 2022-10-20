@@ -26,9 +26,8 @@ namespace AnsysInterface
             WriteMCTNode(ref sw);
             WrietMCTElement(ref sw);
             WrietMCTLoad(ref sw);
-
+            WriteConstraint(ref sw);
             sw.Flush();
-
             sw.Close();
             Console.WriteLine("MCT写出完成...");
         }
@@ -40,7 +39,13 @@ namespace AnsysInterface
             var e4 = (from e in theFEMModel.ElementList where e.GetType() == typeof(FEMElement4) select e).ToList();
             sw.WriteLine(" {0}to{1}, PRES , PLATE, FACE, LZ, 0, 0, 0, NO, -0.0032669, 0, 0, 0, 0, ",e4.First().ID,e4.Last().ID);
         }
-
+        private void WriteConstraint(ref StreamWriter sw)
+        {
+            int NN = theFEMModel.NodeList[0].ID / 100000* 100000;
+            sw.WriteLine("*CONSTRAINT");
+            sw.WriteLine(" {0} {1} {2} {3} {4} {5}, 011000, ", NN+112,NN+222,NN+334,NN+444,NN+556,NN+666);
+            sw.Flush();
+        }
         private void WriteMCTHead(ref StreamWriter sw)
         {
             sw.WriteLine("*UNIT");
