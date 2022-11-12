@@ -721,49 +721,13 @@ namespace CADInterface.API
             #endregion
 
             #region 下风撑
-            // 内横隔
-
-            var ColumnX = (from e in theArch.ColumnList select e.X).ToList();
-            List<double> MidColumnList = new List<double>();
-
-            double xloc = 0;
-            var selX = (
-    from e in theArch.MemberTable
-    where e.ElemType == eMemberType.MainWeb
-    select e.Line.MiddlePoint().X).ToList();
-            for (int i = 0; i < ColumnX.Count + 1; i++)
-            {
-                if (i == 0)
-                {
-                    xloc = ColumnX[0] - 14;
-                }
-                else if (i == ColumnX.Count)
-                {
-                    xloc = ColumnX.Last() + 14;
-                }
-                else
-                {
-                    xloc = ColumnX[i - 1] + 21;
-                }
-                var deltabs = (from x in selX select Math.Abs(x - xloc)).ToList();
-                int idx = deltabs.FindIndex((e) => e == deltabs.Min());
-                double xreal = selX[idx];
-                MidColumnList.Add(xreal);
-
-            }
-
-
             var eleSelected = (from e in theArch.MemberTable where e.ElemType == eMemberType.MainWeb select e).ToList();
             List<DatumPlane> carry = new List<DatumPlane>();
             foreach (var item in theArch.MainDatum)
             {
-                if (item.DatumType == eDatumType.ColumnDatum || item.DatumType == eDatumType.VerticalDatum || item.DatumType == eDatumType.NormalDatum)
+                if (item.DatumType==eDatumType.ControlDatum || item.DatumType == eDatumType.DoubleDatum || item.DatumType == eDatumType.VerticalDatum || item.DatumType == eDatumType.NormalDatum)
                 {
                     if (item.Center.X > 0)
-                    {
-                        continue;
-                    }
-                    if (Math.Abs(item.Center.X - (-236.6)) < 0.1)
                     {
                         continue;
                     }
@@ -772,107 +736,84 @@ namespace CADInterface.API
             }
             carry.Sort(new DatumPlane());
             carry.Reverse();
-            DBObjectCollection beforeBar = new DBObjectCollection();
-            int WindBraceCount = 0;
+            // CrossBeamIdx 横梁位置
+            List<int> CrossBeamIdx = new List<int>()
+            {
+                0,3,7,11,15,19,23,27,31,35,39,41
+            };
+            // carry 为所有半侧控制面板；
             for (int i = 0; i < carry.Count; i++)
             {
 
                 var item = carry[i];
                 double xi = theArch.Get3PointReal(item)[2].X;
                 var p0 = new Point2d(xi, 0);
-
-                var curBar = MLPloter.AddTube(p0.Convert2D(0, -0.5 * theArch.WidthInside + 0.5 * theArch.MainTubeDiameter),
-                    p0.Convert2D(0, 0), theArch.CrossBracingDiameter, 0, "H细线", null, null);// 横隔
-                obj.Add(curBar);
-
-                if (i != 0 && Math.Abs(theArch.Get3PointReal(carry[i - 1])[0].X - theArch.Get3PointReal(carry[i])[0].X) > 2)
+                if (CrossBeamIdx.Contains(i))
                 {
-                    // 平联
-                    if (WindBraceCount % 2 == 0)
+                    var curBar = MLPloter.AddTube(p0.Convert2D(0, -0.5 * theArch.WidthInside + 0.5 * theArch.MainTubeDiameter),
+                        p0.Convert2D(0, 0), theArch.CrossBracingDiameter, 0, "H细线", null, null);// 横梁
+                    obj.Add(curBar);
+
+                    var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i])[2].X, -0.3), new Point2d(theArch.Get3PointReal(carry[i+1])[2].X, -0.5 * theArch.WidthInside),
+                        theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)curBar[0], (Curve)archRib[3][0]);
+                    obj.Add(dd);
+                    if (i!=0)
                     {
-                        var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[2].X, 0), new Point2d(theArch.Get3PointReal(carry[i])[2].X, -0.5 * theArch.WidthInside),
-                            theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)beforeBar[0], (Curve)archRib[3][0]);
-                        obj.Add(dd);
-                        WindBraceCount += 1;
-                    }
-                    else
-                    {
-                        var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[2].X, -0.5 * theArch.WidthInside), new Point2d(theArch.Get3PointReal(carry[i])[2].X, 0),
-                            theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)archRib[3][0], (Curve)curBar[2]);
-                        obj.Add(dd);
-                        WindBraceCount += 1;
+                        var dd2 = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i])[2].X, -0.3), new Point2d(theArch.Get3PointReal(carry[i - 1])[2].X, -0.5 * theArch.WidthInside),
+                            theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)curBar[2], (Curve)archRib[3][0]);
+                        obj.Add(dd2);
                     }
 
                 }
-
-                //下平面
-                obj.Add(MLPloter.AddTube(p0.Convert2D(0, -0.5 * theArch.WidthInside - theArch.WidthOutside + 0.5 * theArch.MainTubeDiameter),
-                    p0.Convert2D(0, -0.5 * theArch.WidthInside - 0.5 * theArch.MainTubeDiameter), theArch.CrossBracingDiameter, 0, "细线", null, null));
-                beforeBar.Clear();
-                foreach (DBObject kk in curBar)
+                //下平面,内横隔
+                double dia = theArch.CrossBracingDiameter;
+                if (item.DatumType==eDatumType.DoubleDatum)
                 {
-                    beforeBar.Add(kk);
+                    dia = 0.6;
                 }
-
+                if (item.DatumType != eDatumType.ControlDatum && i!=34)
+                {
+                    obj.Add(MLPloter.AddTube(p0.Convert2D(0, -0.5 * theArch.WidthInside - theArch.WidthOutside + 0.5 * theArch.MainTubeDiameter),
+                        p0.Convert2D(0, -0.5 * theArch.WidthInside - 0.5 * theArch.MainTubeDiameter), dia, 0, "细线", null, null));
+                }
             }
 
             #endregion
 
             #region 上风撑
-            carry = new List<DatumPlane>();
-            foreach (var item in theArch.MainDatum)
-            {
-                if (item.DatumType == eDatumType.ColumnDatum || item.DatumType == eDatumType.VerticalDatum || item.DatumType == eDatumType.NormalDatum)
-                {
-                    if (item.Center.X > 0)
-                    {
-                        continue;
-                    }
-                    carry.Add(item);
-                }
-            }
-            carry.Sort(new DatumPlane());
-            carry.Reverse();
-            beforeBar = new DBObjectCollection();
-            WindBraceCount = 0;
             for (int i = 0; i < carry.Count; i++)
             {
                 var item = carry[i];
                 double xi = theArch.Get3PointReal(item)[0].X;
                 var p0 = new Point2d(xi, 0);
-                var curBar = MLPloter.AddTube(p0.Convert2D(0, 0),
-                    p0.Convert2D(0, 0.5 * theArch.WidthInside - 0.5 * theArch.MainTubeDiameter), theArch.CrossBracingDiameter, 0, "H细线", null, null);
-                obj.Add(curBar);
-                if (i != 0 && Math.Abs(theArch.Get3PointReal(carry[i - 1])[0].X - theArch.Get3PointReal(carry[i])[0].X) > 2)
+                if (CrossBeamIdx.Contains(i))
                 {
-                    if (WindBraceCount % 2 == 0)
+                    var curBar = MLPloter.AddTube(p0.Convert2D(0, 0),
+                    p0.Convert2D(0, 0.5 * theArch.WidthInside - 0.5 * theArch.MainTubeDiameter), theArch.CrossBracingDiameter, 0, "H细线", null, null);
+                    obj.Add(curBar); // 横梁
+                    var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i])[0].X, 0.3), new Point2d(theArch.Get3PointReal(carry[i + 1])[0].X, 0.5 * theArch.WidthInside),
+                        theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)curBar[0], (Curve)archRib[1][2]);
+                    obj.Add(dd);
+                    if (i != 0)
                     {
-                        var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[0].X, 0), new Point2d(theArch.Get3PointReal(carry[i])[0].X, 0.5 * theArch.WidthInside),
-                            theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)beforeBar[0], (Curve)archRib[1][2]);
-                        obj.Add(dd);
-                        WindBraceCount += 1;
+                        var dd2 = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i])[0].X, 0.3), new Point2d(theArch.Get3PointReal(carry[i - 1])[0].X, 0.5 * theArch.WidthInside),
+                                     theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)curBar[2], (Curve)archRib[1][2]);
+                        obj.Add(dd2);
                     }
-                    else
-                    {
-                        var dd = MLPloter.AddTube(new Point2d(theArch.Get3PointReal(carry[i - 1])[0].X, 0.5 * theArch.WidthInside), new Point2d(theArch.Get3PointReal(carry[i])[0].X, 0),
-                            theArch.GetTubeProperty(item.Center.X, eMemberType.WindBracing).Section.Diameter, 0, "H细线", (Curve)archRib[1][2], (Curve)curBar[2]);
-                        obj.Add(dd);
-                        WindBraceCount += 1;
-                    }
-
                 }
                 //上平面
-                obj.Add(MLPloter.AddTube(p0.Convert2D(0, +0.5 * theArch.WidthInside + theArch.WidthOutside - 0.5 * theArch.MainTubeDiameter),
-                    p0.Convert2D(0, +0.5 * theArch.WidthInside + 0.5 * theArch.MainTubeDiameter), theArch.CrossBracingDiameter, 0, "H细线", null, null));
-                beforeBar.Clear();
-                foreach (DBObject kk in curBar)
+                double dia = theArch.CrossBracingDiameter;
+                if (item.DatumType == eDatumType.DoubleDatum)
                 {
-                    beforeBar.Add(kk);
+                    dia = 0.6;
                 }
-
+                if (item.DatumType != eDatumType.ControlDatum)
+                {
+                    obj.Add(MLPloter.AddTube(p0.Convert2D(0, +0.5 * theArch.WidthInside + theArch.WidthOutside - 0.5 * theArch.MainTubeDiameter),
+                        p0.Convert2D(0, +0.5 * theArch.WidthInside + 0.5 * theArch.MainTubeDiameter), dia, 0, "H细线", null, null));
+                }
             }
             #endregion
-
 
             #region 安装阶段
             List<Point3d> ptForDim = new List<Point3d>();
@@ -911,7 +852,6 @@ namespace CADInterface.API
 
             #endregion
 
-
             #region 立柱
 
             foreach (Model.Column item in theArch.ColumnList)
@@ -929,11 +869,8 @@ namespace CADInterface.API
                 if (item.X < 0)
                 {
                     item.DrawPlan(cc, out exi);
-
                 }
-
             }
-
             #endregion
 
             #region 总体标注
@@ -969,7 +906,6 @@ namespace CADInterface.API
 
 
             #endregion
-
 
             #region 输出
 

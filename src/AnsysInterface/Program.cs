@@ -27,7 +27,6 @@ namespace AnsysInterface
                 Path.Combine("E:\\20210717 黑慧江拱桥两阶段设计\\", "051 CFD计算")).FullName, -259, 0,-259,0);
 
         }
-
         static void TrussProcedure()
         {
             var Hts = Generate.LinearSpaced(9, 5, 9);
@@ -44,7 +43,6 @@ namespace AnsysInterface
 
             }
         }
-
         static void ANewModel(double m,double f,double Hfoot,double Htop)
         {
             #region 上部结构
@@ -116,56 +114,32 @@ namespace AnsysInterface
             FEMDeck theFEMDeckA2 = new FEMDeck(ref DeckB, 300000, 300000, 5, 2.5, 0, -12.76, DeckElevation);
             #endregion
 
-            //#region 上部结构V5
-            //CompositeDeck DeckA1, DeckA2, DeckA3;
-            //CompositeDeck DeckB1, DeckB2, DeckB3;
-
-
-            //List<double> g1 = new List<double>() { 1.275, 5, 5, 1.275 };
-            //List<double> g2 = new List<double>() { 3.775, 5, 3.775 };
-            //CrossArrangement ca = new CrossArrangement(g1.Sum(), 0.25, 0.05, 0.3, 0, g1, g2);
-            //List<double> sps1 = new List<double>() { -273, -231, -189, -147, -105 };
-            //List<double> sps2 = new List<double>() { -105, -63, -21, 21, 63, 105 };
-            //List<double> sps3 = new List<double>() { 105, 147, 189, 231, 273 };
-            //DeckA1 = new CompositeDeck(sps1, ca, new List<int>() { -1, 0, 1, 2, 3 }, 6);
-            //DeckA2 = new CompositeDeck(sps2, ca, new List<int>() { 3, 4, 5, 6, 7, 8 }, 6);
-            //DeckA3 = new CompositeDeck(sps3, ca, new List<int>() { 8, 9, 10, 11, -1 }, 6);
-            //DeckB1 = new CompositeDeck(sps1, ca, new List<int>() { -1, 0, 1, 2, 3 }, 6);
-            //DeckB2 = new CompositeDeck(sps2, ca, new List<int>() { 3, 4, 5, 6, 7, 8 }, 6);
-            //DeckB3 = new CompositeDeck(sps3, ca, new List<int>() { 8, 9, 10, 11, -1 }, 6);
-            //var Decks = new List<CompositeDeck>() { DeckA1, DeckA2, DeckA3, DeckB1, DeckB2, DeckB3 };
-            //foreach (var item in Decks)
-            //{
-            //    item.AddSection("MGider", new HSection(1, 0.6, 0.6, 2.0, 0.060, 0.060, 0.020));
-            //    item.AddSection("SGider", new HSection(1, 0.3, 0.3, 0.3, 0.010, 0.010, 0.008));
-            //    item.AddSection("EndBeam", new HSection(1, 0.3, 0.3, 0.8, 0.020, 0.020, 0.015));
-            //    item.AddSection("UpBeam", new HSection(1, 0.3, 0.3, 0.8, 0.020, 0.020, 0.015));
-            //}
-
-            //double DeckElevation = 11.0;
-            //FEMDeck theFEMDeckA1 = new FEMDeck(ref DeckA1, 200000, 200000, 6, 2.5, 0, 0.2, DeckElevation);
-            //FEMDeck theFEMDeckA2 = new FEMDeck(ref DeckA2, 300000, 300000, 6, 2.5, 0, 0.2, DeckElevation);
-            //FEMDeck theFEMDeckA3 = new FEMDeck(ref DeckA3, 400000, 400000, 6, 2.5, 0, 0.2, DeckElevation);
-            //FEMDeck theFEMDeckB1 = new FEMDeck(ref DeckA1, 500000, 500000, 6, 2.5, 0, -12.76, DeckElevation);
-            //FEMDeck theFEMDeckB2 = new FEMDeck(ref DeckA2, 600000, 600000, 6, 2.5, 0, -12.76, DeckElevation);
-            //FEMDeck theFEMDeckB3 = new FEMDeck(ref DeckA3, 700000, 700000, 6, 2.5, 0, -12.76, DeckElevation);
-
-            //#endregion
-
             ArchAxis ax;
             Arch theArchModel;
-            theArchModel = NamedArch.PhoenixModelV4(out ax, 2.0, 518 / 4.5,15.5,7);
+            double Hfoot = 15.5;
+            double Htop = 7.0;
+            theArchModel = NamedArch.PhoenixModelV6(out ax, 2.0, 518 / 4.5,Hfoot,Htop);
             FEMModel theFem = new FEMModel(ref theArchModel, ref ca, 0.4);
             AnsysExt ansysExt = new AnsysExt(theFem);
-            ansysExt.WriteAnsys(Directory.CreateDirectory(Path.Combine("E:\\20210717 黑慧江拱桥两阶段设计\\05 Ansys\\", "AnsysBin")).FullName);
+
+
+            string AnsysPathName = "E:\\20210717 黑慧江拱桥两阶段设计\\05 Ansys\\AnsysBin\\";
+            string CaseFolder = string.Format("{0:F1}-{1:F1}", Hfoot, Htop);
+            string FullPath = Path.Combine(AnsysPathName, CaseFolder);
+            if (Directory.Exists(FullPath))
+            {
+                Directory.Delete(FullPath, true);
+            }
+
+            ansysExt.WriteAnsys(Directory.CreateDirectory(Path.Combine(FullPath)).FullName);
 
             AnsysDeckExt ansysDeck = new AnsysDeckExt(theFEMDeckA1);
-            ansysDeck.WriteAnsys("E:\\20210717 黑慧江拱桥两阶段设计\\05 Ansys\\AnsysBin", "DeckA.inp");
+            ansysDeck.WriteAnsys(FullPath, "DeckA.inp");
             ansysDeck = new AnsysDeckExt(theFEMDeckA2);
-            ansysDeck.WriteAnsys("E:\\20210717 黑慧江拱桥两阶段设计\\05 Ansys\\AnsysBin", "DeckB.inp");
+            ansysDeck.WriteAnsys(FullPath, "DeckB.inp");
+            Console.WriteLine("Ansys Procedure Finish!\nPress any key to Exit.");
             Console.ReadKey();
         }
-
         static void MidasProcedure()
         {
             #region 上部结构
@@ -196,7 +170,7 @@ namespace AnsysInterface
             double Hf, Ht,m;
             Hf = 15.5;
             Ht = 7.0;
-            m = 2.0;
+            m = 1.6;
             theArchModel = NamedArch.PhoenixModelV6(out ax, m, 518 / 4.5, Hf, Ht);
             
             // theArchModel = NamedArch.PhoenixModelV3(out ax, 2.0, 518 /4.5); //初设模型
@@ -211,7 +185,7 @@ namespace AnsysInterface
                 Directory.Delete(savePath, true);
             }
             Directory.CreateDirectory(savePath);
-            midasExt.WriteMidas(Path.Combine(savePath,string.Format( "Arch-1400-20-45-{0:F1}-{1:F1}.mct",Hf,Ht)));
+            midasExt.WriteMidas(Path.Combine(savePath,string.Format("Arch-1400-{0:F1}-{1:F1}-{2:F1}.mct", m, Hf,Ht)));
             MidasDeckExt midasDeckExt = new MidasDeckExt(theFEMDeckA1);
             midasDeckExt.WriteMidas(Path.Combine(savePath, "DeckA.mct"));
             midasDeckExt = new MidasDeckExt(theFEMDeckA2);
@@ -220,9 +194,9 @@ namespace AnsysInterface
         }
         static void Main(string[] args)
         {
-            //SpaceClaimProcedure();
-            // AnsysProcedure();
-            MidasProcedure();
+            // SpaceClaimProcedure();
+            AnsysProcedure();
+            // MidasProcedure();
             // TrussProcedure();
         }
     }

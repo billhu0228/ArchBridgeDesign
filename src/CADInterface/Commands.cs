@@ -15,6 +15,8 @@ using Autodesk.AutoCAD.EditorInput;
 using MathNet.Spatial.Units;
 using MathNet.Spatial.Euclidean;
 using System.Xml;
+using System.Collections.Generic;
+using System.Linq;
 
 [assembly: CommandClass(typeof(CADInterface.Commands))]
 namespace CADInterface
@@ -22,7 +24,7 @@ namespace CADInterface
     public class Commands
     {
         ArchAxis theArchAxis;
-        Arch archModel;
+        Arch archModel;     
         ArchBridgeParametersDialog properDia = new ArchBridgeParametersDialog();
 
         [CommandMethod("init")]
@@ -51,11 +53,7 @@ namespace CADInterface
             Database db = HostApplicationServices.WorkingDatabase;
             Editor ed = db.GetEditor();
             ed.WriteMessage("\\n初始化模型..");
-            // properDia.ShowDialog();
-
-            //archModel = Arch.PreliminaryDesignModel(out theArchAxis);
-            //archModel = Arch.PreliminaryDesignModelV2(out theArchAxis);
-            archModel = NamedArch.PhoenixModelV6(out theArchAxis, 2.0, 518 / 4.5, 15.5,7.0,0.75);
+            archModel = NamedArch.PhoenixModelV6(out theArchAxis, 2.0, 518 / 4.5, 15.5,7.0,0.75);            
         }
 
         [CommandMethod("ArchDraw")]

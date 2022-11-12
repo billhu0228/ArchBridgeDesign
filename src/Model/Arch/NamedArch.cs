@@ -411,19 +411,19 @@ namespace Model
             double[] Ls = new double[] { 4, 4, 2, 2, 2, 2, 2, 2, 4, 4 };
             double[] H2S = new double[]
             {
-                1403.714000,1403.966000,1404.218000,1404.464375,1404.640775,1404.728975,
-                1404.728975,1404.640775,1404.464375,1404.218000,1403.966000,1403.714000,
+               1403.463500,1403.760500,1404.057500,1404.302173,1404.424686,
+                1404.424686,1404.302174,1404.057500,1403.760500,1403.463500,
             };
             for (int i = 0; i < 10; i++)
             {
                 var xi = xx + i * 49.5;
-                archModel.AddColumn(0, xi, 1404.7 - archModel.FootLevel, Ls[i], 2.8, 3.0, 3, 1, 1, Ls[i] + 1.5, 0.8);
+                archModel.AddColumn(0, xi, H2S[i] - archModel.FootLevel, Ls[i], 2.8, 3.0, 3, 1, 1, Ls[i] + 1.5, 0.8);
             }
             archModel.GenerateColumn();
             #endregion
 
             #region 7. 交界墩
-            double P2H2 = 1413.676000;
+            double P2H2 = 1403.166500;
             double RtZ0 = -106;
             double RtZ1 = -archModel.Axis.f + (P2H2 - archModel.FootLevel) - 2;
             double wratio = 0.0125;
