@@ -20,25 +20,24 @@ namespace BOQInterface
 
         //}
 
-        public static void CastBOQTable(this FEMModel theFEM,ref BOQTable outTable)
+        public static void CastBOQTable(this FEMModel theFEM, ref BOQTable outTable)
         {
             #region 输出所有杆件
-            
+
             foreach (var item in theFEM.ElementList)
             {
                 double len = theFEM.GetElementLength(item);
                 int secn = item.Secn;
-                if (secn==99)
+                if (secn == 99)
                 {
                     continue;
                 }
-                var prop=theFEM.RelatedArchBridge.PropertyTable.Find(p => p.Section.SECN == secn);
+                var prop = theFEM.RelatedArchBridge.PropertyTable.Find(p => p.Section.SECN == secn);
 
                 var sec = (TubeSection)prop.Section;
 
                 eMaterial mt;
-
-                if (secn<=20)
+                if (secn <= 20)
                 {
                     mt = eMaterial.Q420D_T;
                 }
@@ -47,30 +46,42 @@ namespace BOQInterface
                     mt = eMaterial.Q345D_T;
                 }
 
-                if (secn<=19)
+                if (secn <= 19)
                 {
-                    outTable.AddItem(eMemberType.UpperCoord,mt, 1, len*sec.Area*7.85,len);
-                    outTable.AddItem(eMemberType.UpperCoord,eMaterial.C80SCC, 1, len*Math.Pow(sec.Diameter-2*sec.Thickness,2)*Math.PI*0.25,1);
+                    outTable.AddItem(eMemberType.UpperCoord, mt, 1, len * sec.Area * 7.85, len);
+                    outTable.AddItem(eMemberType.UpperCoord, eMaterial.COAT_E, 1, len * sec.CircumferenceE, len);
+                    outTable.AddItem(eMemberType.UpperCoord, eMaterial.COAT_I, 1, len * sec.CircumferenceI, len);
+                    outTable.AddItem(eMemberType.UpperCoord, eMaterial.C80SCC, 1, len * Math.Pow(sec.Diameter - 2 * sec.Thickness, 2) * Math.PI * 0.25, 1);
                 }
-                else if (secn<=29)
+                else if (secn <= 29)
                 {
                     outTable.AddItem(eMemberType.MainWeb, mt, 1, len * sec.Area * 7.85, len);
+                    outTable.AddItem(eMemberType.MainWeb, eMaterial.COAT_E, 1, len * sec.CircumferenceE, len);
+                    outTable.AddItem(eMemberType.MainWeb, eMaterial.COAT_I, 1, len * sec.CircumferenceI, len);
                 }
                 else if (secn <= 39)
                 {
                     outTable.AddItem(eMemberType.DiaphragmCoord, mt, 1, len * sec.Area * 7.85, len);
+                    outTable.AddItem(eMemberType.DiaphragmCoord, eMaterial.COAT_E, 1, len * sec.CircumferenceE, len);
+                    outTable.AddItem(eMemberType.DiaphragmCoord, eMaterial.COAT_I, 1, len * sec.CircumferenceI, len);
                 }
                 else if (secn <= 49)
                 {
                     outTable.AddItem(eMemberType.CrossCoord, mt, 1, len * sec.Area * 7.85, len);
+                    outTable.AddItem(eMemberType.CrossCoord, eMaterial.COAT_E, 1, len * sec.CircumferenceE, len);
+                    outTable.AddItem(eMemberType.CrossCoord, eMaterial.COAT_I, 1, len * sec.CircumferenceI, len);
                 }
                 else if (secn <= 59)
                 {
                     outTable.AddItem(eMemberType.WindBracing, mt, 1, len * sec.Area * 7.85, len);
+                    outTable.AddItem(eMemberType.WindBracing, eMaterial.COAT_E, 1, len * sec.CircumferenceE, len);
+                    outTable.AddItem(eMemberType.WindBracing, eMaterial.COAT_I, 1, len * sec.CircumferenceI, len);
                 }
                 else if (secn <= 69)
                 {
                     outTable.AddItem(eMemberType.ColumnCapBeam, mt, 1, len * sec.Area * 7.85, len);
+                    outTable.AddItem(eMemberType.ColumnCapBeam, eMaterial.COAT_E, 1, len * sec.CircumferenceE, len);
+                    outTable.AddItem(eMemberType.ColumnCapBeam, eMaterial.COAT_I, 1, len * sec.CircumferenceI, len);
                 }
                 else
                 {
@@ -86,8 +97,14 @@ namespace BOQInterface
             {
                 double As = item.L == 4 ? TubeSection.GetAs(0.8, 0.016) : TubeSection.GetAs(0.7, 0.016);
                 double Ac = item.L == 4 ? Math.PI * (0.4 - 0.016) * (0.4 - 0.016) : 0;
+                double CI = item.L == 4 ? Math.PI * (0.8 - 0.0032) : (Math.PI * 0.7 - 0.0032);
+                double CE = item.L == 4 ? Math.PI * 0.8 : Math.PI * 0.7;
                 //柱脚
                 outTable.AddItem(eMemberType.ColumnMain, eMaterial.Q345D_T, 8, (item.Z1 - item.Z0) * As * 7.85, (item.Z1 - item.Z0));
+                outTable.AddItem(eMemberType.ColumnMain, eMaterial.COAT_E, 8, (item.Z1 - item.Z0) * CE, (item.Z1 - item.Z0));
+                outTable.AddItem(eMemberType.ColumnMain, eMaterial.COAT_I, 8, (item.Z1 - item.Z0) * CI, (item.Z1 - item.Z0));
+
+
                 double footAs = (item.FootL + item.FootW) * 2 * 0.010;
                 double footAc = (item.FootL * item.FootW);
                 outTable.AddItem(eMemberType.ColumnMain, eMaterial.Q345D_P, 4, (item.Z1 - item.Z0) * footAs * 7.85, (item.Z1 - item.Z0));
@@ -95,7 +112,7 @@ namespace BOQInterface
 
 
                 //盖梁
-                outTable.AddItem(eMemberType.ColumnMain, eMaterial.Q345D_P, 1, 55.0,1);
+                outTable.AddItem(eMemberType.ColumnMain, eMaterial.Q345D_P, 1, 55.0, 1);
 
                 ;
             }

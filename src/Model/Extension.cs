@@ -45,7 +45,7 @@ namespace Model
         /// <returns></returns>
         public static double SignedAngleBetween(this Vector2D vv, Vector2D vto)
         {
-            var ang = vv.SignedAngleTo(vto);
+            var ang = vv.SignedAngleTo(vto);// 双否参数，默认值域（0~360）,后来发现不可用
 
             if (ang.Radians < -Math.PI)
             {

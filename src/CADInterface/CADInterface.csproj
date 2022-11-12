@@ -32,58 +32,71 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="accoremgd, Version=22.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\accoremgd.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\accoremgd.dll</HintPath>
     </Reference>
     <Reference Include="AcCui, Version=22.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\AcCui.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AcCui.dll</HintPath>
     </Reference>
     <Reference Include="acdbmgd, Version=22.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\acdbmgd.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\acdbmgd.dll</HintPath>
     </Reference>
-    <Reference Include="acdbmgdbrep">
-      <HintPath>..\AcadLibs\23.1\acdbmgdbrep.dll</HintPath>
+    <Reference Include="acdbmgdbrep, Version=23.1.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\acdbmgdbrep.dll</HintPath>
     </Reference>
-    <Reference Include="AcDx">
-      <HintPath>..\AcadLibs\23.1\AcDx.dll</HintPath>
+    <Reference Include="AcDx, Version=23.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AcDx.dll</HintPath>
     </Reference>
-    <Reference Include="AcDxPublishUi">
-      <HintPath>..\AcadLibs\23.1\AcDxPublishUi.dll</HintPath>
+    <Reference Include="AcDxPublishUi, Version=23.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AcDxPublishUi.dll</HintPath>
     </Reference>
     <Reference Include="acmgd, Version=22.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\acmgd.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\acmgd.dll</HintPath>
     </Reference>
-    <Reference Include="AcMNUParser">
-      <HintPath>..\AcadLibs\23.1\AcMNUParser.dll</HintPath>
+    <Reference Include="AcMNUParser, Version=23.1.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AcMNUParser.dll</HintPath>
     </Reference>
-    <Reference Include="AcMr">
-      <HintPath>..\AcadLibs\23.1\AcMr.dll</HintPath>
+    <Reference Include="AcMr, Version=23.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AcMr.DLL</HintPath>
     </Reference>
-    <Reference Include="AcTcMgd">
-      <HintPath>..\AcadLibs\23.1\AcTcMgd.dll</HintPath>
+    <Reference Include="AcTcMgd, Version=23.1.0.0, Culture=neutral, processorArchitecture=AMD64">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AcTcMgd.dll</HintPath>
     </Reference>
-    <Reference Include="AcWindows">
-      <HintPath>..\AcadLibs\23.1\AcWindows.dll</HintPath>
+    <Reference Include="AcWindows, Version=23.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AcWindows.dll</HintPath>
     </Reference>
-    <Reference Include="AdUIMgd">
-      <HintPath>..\AcadLibs\23.1\AdUIMgd.dll</HintPath>
+    <Reference Include="AdUIMgd, Version=23.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AdUIMgd.dll</HintPath>
     </Reference>
-    <Reference Include="AdUiPalettes">
-      <HintPath>..\AcadLibs\23.1\AdUiPalettes.dll</HintPath>
+    <Reference Include="AdUiPalettes, Version=23.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AdUiPalettes.dll</HintPath>
     </Reference>
     <Reference Include="AdWindows, Version=2016.11.2.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\ModPlus.AutoCAD.API.2018.1.0.0\lib\AdWindows.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\AcadLibs\24.1\AdWindows.dll</HintPath>
     </Reference>
     <Reference Include="Autodesk.AutoCAD.Interop">
-      <HintPath>..\AcadLibs\23.1\Autodesk.AutoCAD.Interop.dll</HintPath>
+      <HintPath>..\AcadLibs\24.1\Autodesk.AutoCAD.Interop.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
     <Reference Include="Autodesk.AutoCAD.Interop.Common">
-      <HintPath>..\AcadLibs\23.1\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
+      <HintPath>..\AcadLibs\24.1\Autodesk.AutoCAD.Interop.Common.dll</HintPath>
       <EmbedInteropTypes>True</EmbedInteropTypes>
     </Reference>
-    <Reference Include="HPDI.DrawingStandard, Version=1.0.0.5, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\HPDIDrawingStandard\HpdiDrawingStandard\HPDI.DrawingStandard\HPDI.DrawingStandard\bin\Debug\net47\HPDI.DrawingStandard.dll</HintPath>
+    <Reference Include="HPDI.DrawingStandard, Version=1.0.1.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\HPDI.DrawingStandard.1.0.1.4\lib\net47\HPDI.DrawingStandard.dll</HintPath>
     </Reference>
     <Reference Include="MathNet.Numerics, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\..\packages\MathNet.Numerics.5.0.0-alpha02\lib\net461\MathNet.Numerics.dll</HintPath>
