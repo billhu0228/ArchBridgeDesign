@@ -15,7 +15,7 @@ namespace Model
         public List<Tuple<int, List<int>>> RigidGroups;
         public CrossArrangement RelatedDeck;
         public double DeckDistance;
-
+        public int MaxFrameID;
 
         public FEMModel()
         {
@@ -252,7 +252,7 @@ namespace Model
                 ls = (ls.Concat(kk0)).ToList();
                 ls = ls.Distinct().ToList();
                 ls.Sort((x, y) => x.X.CompareTo(y.X));
-
+                MaxFrameID = ls.Count - 1;
                 int mID = 1;
                 double baseZ = theArch.WidthOutside + theArch.WidthInside * 0.5;
                 foreach (double z0 in new double[] { -baseZ, -baseZ + theArch.WidthOutside, +baseZ - theArch.WidthOutside, baseZ })
@@ -827,13 +827,25 @@ namespace Model
             ElementList.Add(new FEMElement(0, p2 + 30000, p4 + 30000, vertSecn));
 
         }
-        private Point3D GetPoint(int p1)
+        public Point3D GetPoint(int p1)
         {
             return NodeList.Find(x => x.ID == p1).location;
         }
-        private FEMNode GetNode(int p1)
+        public FEMNode GetNode(int p1)
         {
             return NodeList.Find(x => x.ID == p1);
+        }
+        /// <summary>
+        /// 判断节点是否大于轴线高度
+        /// </summary>
+        /// <param name="p1"></param>
+        /// <returns>ture 如果大于</returns>
+        public bool IsNodeInUpper(int p1)
+        {
+            double z = GetPoint(p1).Y;
+            double x = GetPoint(p1).X;
+            double z0 = RelatedArchBridge.Axis.GetZ(x);
+            return z > z0;
         }
 
         private bool Contains(ref List<double> theList, double val, double tol)
@@ -906,6 +918,7 @@ namespace Model
             return nodeA.location.DistanceTo(nodeB.location);
 
         }
+
     }
 
 }

@@ -30,11 +30,11 @@ namespace WGUI
 
         public List<double> paras;
 
-        public DialogResult ShowInput()
-        {
-            Show();
+        //public DialogResult ShowInput()
+        //{
+        //    Show();
 
-        }
+        //}
 
         private void btnOK_Click(object sender, RoutedEventArgs e)
         {

@@ -42,8 +42,9 @@ namespace AnsysInterface
         private void WriteConstraint(ref StreamWriter sw)
         {
             int NN = theFEMModel.NodeList[0].ID / 100000* 100000;
+            int npts = theFEMModel.NPTS;
             sw.WriteLine("*CONSTRAINT");
-            sw.WriteLine(" {0} {1} {2} {3} {4} {5}, 011000, ", NN+112,NN+222,NN+334,NN+444,NN+556,NN+666);
+            sw.WriteLine(" {0} {1} {2} {3} {4} {5}, 011000, ", NN + npts + 1, NN + npts * 3 + 1, NN + npts * 5 + 1, NN + npts * 2, NN + npts * 4, NN + npts * 6);
             sw.Flush();
         }
         private void WriteMCTHead(ref StreamWriter sw)
@@ -67,7 +68,10 @@ namespace AnsysInterface
             sw.WriteLine("   1, VALUE, 1, YES, 250, 0, YES, 1, 125");
             sw.WriteLine("*SECTION");
             sw.WriteLine("101,SOD,主梁,CT,0,1,0,0,1,-50,YES,NO,SOD-I");
-            sw.WriteLine("YES,300,300,400,400,2000,32,32,25,100,0");
+            HSection mg = (HSection)theFEMModel.RelatedDeck.SectionList["MGider"];
+            HSection sg = (HSection)theFEMModel.RelatedDeck.SectionList["EndBeam"];
+            sw.WriteLine("YES,{0:G},{1:G},{2:G},{3:G},{4:G},{5:G},{6:G},{7:G},0,0",
+                mg.W2 * 1000 * 0.5, mg.W2 * 1000 * 0.5, mg.W1 * 1000 * 0.5, mg.W1 * 1000 * 0.5, mg.W3 * 1000, mg.t2 * 1000, mg.t1 * 1000, mg.t3 * 1000);
             sw.WriteLine("1,WL,0,250,25,0,0,0,0,0,0");
             sw.WriteLine("1,1,0,腹板,0,2,2,YES,500,WL,2,W1,YES,1000,WL,2,W2");
             sw.WriteLine("111,SOD,小纵梁,CT,0,1,0,0,1,-50,YES,NO,SOD-I");
@@ -75,7 +79,8 @@ namespace AnsysInterface
             sw.WriteLine("0");
             sw.WriteLine("0");
             sw.WriteLine("121,SOD,横梁,CT,0,1,0,0,1,-350,YES,NO,SOD-I");
-            sw.WriteLine("YES,150,150,150,150,700,25,25,18,0,0");
+            sw.WriteLine("YES,{0:G},{1:G},{2:G},{3:G},{4:G},{5:G},{6:G},{7:G},0,0",
+                sg.W2 * 1000 * 0.5, sg.W2 * 1000 * 0.5, sg.W1 * 1000 * 0.5, sg.W1 * 1000 * 0.5, sg.W3 * 1000, sg.t2 * 1000, sg.t1 * 1000, sg.t3 * 1000);
             sw.WriteLine("1,WL,0,250,25,0,0,0,0,0,0");
             sw.WriteLine("0");
             sw.Flush();
@@ -109,6 +114,8 @@ namespace AnsysInterface
             }
             sw.Flush();
         }
+
+        
 
         #endregion
     }

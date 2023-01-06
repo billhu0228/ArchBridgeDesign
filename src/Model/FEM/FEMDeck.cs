@@ -21,7 +21,7 @@ namespace Model
         List<double> ylist;
         public int Nstart;
         public int Estart;
-
+        public int NPTS;
         double x0;
         double y0;
         double z0;
@@ -161,8 +161,7 @@ namespace Model
                                 nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 5;
                             }
                         }
-                        LinkGroups.Add(new Tuple<int, int>(n-1,nj) );
-                        
+                        LinkGroups.Add(new Tuple<int, int>(n-1,nj) );                        
                     }
                 }
             }
@@ -234,7 +233,7 @@ namespace Model
                 tmp.AddRange(more_value(kp_y[i], kp_y[i + 1], e_size_y));
             }
             ylist = tmp.Distinct().ToList();
-            ;
+            NPTS = xlist.Count();
         }
 
         private IEnumerable<double> more_value(double start, double end, double apx_dist)
