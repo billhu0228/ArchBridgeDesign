@@ -18,6 +18,9 @@ namespace Test
     {
         static void Main(string[] args)
         {
+            ArchAxis theArchAxis;
+            var archModel = NamedArch.PhoenixModelV42(out theArchAxis, 2.0, 518 / 4.5, 17.0, 8.5, 0.6);
+
             Console.WriteLine("请输入f，按enter继续...");
             var fstr = Console.ReadLine();
             Console.WriteLine("\n请输入m，按enter继续...");

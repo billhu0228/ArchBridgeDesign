@@ -25,13 +25,13 @@ namespace Model
         /// </summary>
         /// <param name="theArchAxis"></param>
         /// <returns></returns>
-        public static Arch PhoenixModelV6(out ArchAxis theArchAxis, double m, double f, double H_foot, double H_top, double halfD = 0.6)
+        public static Arch PhoenixModelV6(out ArchAxis theArchAxis, double m, double f, double H_foot, double H_top, double halfD = 0.75)
         {
             Arch archModel;
 
             #region 基本步骤
             double L = 518.0;
-            double e = 0.060;
+            double e = 0.06;
             #endregion
 
             #region 1. 设置拱系
@@ -189,10 +189,21 @@ namespace Model
                         }
                         else
                         {
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { halfD, Cell - halfD, Cell, Cell, Cell - halfD, halfD },
-                                new double[] { 90, 90, 90, 90, 90 },
-                                new bool[] { false, true, true, true, true, false }, 0.060);
+                            double CenterHalfD = 1.0;
+                            if (CurI.RefPoint.X<0)
+                            {
+                                archModel.CreateInstallSegment(CurI, NexI,
+                                    new double[] { halfD, Cell - halfD, Cell, Cell, Cell - CenterHalfD, CenterHalfD },
+                                    new double[] { 90, 90, 90, 90, 90 },
+                                    new bool[] { false, true, true, true, true, false }, 0.060);
+                            }
+                            else
+                            {
+                                archModel.CreateInstallSegment(CurI, NexI,
+                                    new double[] { CenterHalfD, Cell - CenterHalfD, Cell, Cell, Cell - halfD, halfD },
+                                    new double[] { 90, 90, 90, 90, 90 },
+                                    new bool[] { false, true, true, true, true, false }, 0.060);
+                            }
                         }
                     }
                     else
@@ -859,6 +870,418 @@ namespace Model
             return archModel;
         }
 
+        /// <summary>
+        /// 彩凤模型V4-1.5m管径
+        /// </summary>
+        /// <param name="theArchAxis"></param>
+        /// <returns></returns>
+        public static Arch PhoenixModelV42(out ArchAxis theArchAxis, double m, double f, double H_foot, double H_top, double halfD = 0.6)
+        {
+            Arch archModel;
+
+            #region 基本步骤
+            double L = 518.0;
+            double e = 0.060;
+            #endregion
+
+            #region 1. 设置拱系
+            theArchAxis = new ArchAxis(f, m, L);
+            // archModel = new Arch(theArchAxis, 6.0, 14.5, 14, 4);
+            // archModel = new Arch(theArchAxis, 7.0, 15.5, 14, 4);
+            // archModel = new Arch(theArchAxis, 8.5, 17.0, 14, 4);
+            archModel = new Arch(theArchAxis, H_top, H_foot, 14, 4);
+            archModel.SetFootLevel(1270 + 11.3);
+            //archModel.SetFootLevel(1270);
+            #endregion
+
+            #region  2. 配置截面            
+            var CFTS1400S25 = new TubeSection(1, 1.5, 0.025, true);
+            var CFTS1400S28 = new TubeSection(2, 1.5, 0.028, true);
+            var CFTS1400S32 = new TubeSection(3, 1.5, 0.032, true);
+            var CFTS1400S38 = new TubeSection(4, 1.5, 0.038, true);
+            var CFTS1400S40 = new TubeSection(5, 1.5, 0.040, true);
+
+            var T900S20A = new TubeSection(21, 0.90, 0.020);
+            var T800S16A = new TubeSection(22, 0.80, 0.016);
+            var T600S12A = new TubeSection(23, 0.60, 0.012);
+
+
+            var T800S16D = new TubeSection(31, 0.80, 0.016);
+            var T300S10D = new TubeSection(32, 0.30, 0.010);
+
+            var T800S16B = new TubeSection(41, 0.80, 0.016);
+            var T500S10B = new TubeSection(42, 0.50, 0.010);
+
+            var T600S16W = new TubeSection(51, 0.60, 0.016);
+
+            var T800S16C = new TubeSection(61, 0.80, 0.016);
+            var T700S16C = new TubeSection(62, 0.70, 0.016);
+            var T450S10C = new TubeSection(63, 0.45, 0.010);
+            var T300S10C = new TubeSection(64, 0.30, 0.010);
+
+
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S40, double.NegativeInfinity, -244.5);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S38, -244.5, -224.5);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S25, -224.5, -70);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S32, -70, 70);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S25, 70, 224.5);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S38, 224.5, 244.5);
+            archModel.AssignProperty(eMemberType.UpperCoord, CFTS1400S40, 244.5, double.PositiveInfinity);
+
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S40, double.NegativeInfinity, -234.9);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S38, -234.9, -196);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S32, -196, -154);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S28, -154, -70);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S25, -70, 70);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S28, 70, 154);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S32, 154, 196);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S38, 196, 234.9);
+            archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S40, 234.9, double.PositiveInfinity);
+
+            archModel.AssignProperty(eMemberType.MainWeb, T900S20A, double.NegativeInfinity, -220);
+            archModel.AssignProperty(eMemberType.MainWeb, T800S16A, -220, 220);
+            archModel.AssignProperty(eMemberType.MainWeb, T900S20A, 220, double.PositiveInfinity);
+
+            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, double.NegativeInfinity, -220);
+            archModel.AssignProperty(eMemberType.SubWeb, T800S16A, -220, 220);
+            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, 220, double.PositiveInfinity);
+
+            archModel.AssignProperty(eMemberType.InstallWeb, T600S12A);
+            archModel.AssignProperty(eMemberType.TriWeb, T900S20A);
+
+            archModel.AssignProperty(eMemberType.DiaphragmCoord, T800S16D);
+            archModel.AssignProperty(eMemberType.DiaphragmWeb, T300S10D);
+
+            archModel.AssignProperty(eMemberType.CrossCoord, T800S16B);
+            archModel.AssignProperty(eMemberType.CrossVerical, T500S10B);
+            archModel.AssignProperty(eMemberType.CrossWeb, T500S10B);
+
+            archModel.AssignProperty(eMemberType.WindBracing, T600S16W);
+
+            archModel.AssignProperty(eMemberType.ColumnMain, T800S16C, double.NegativeInfinity, -175);
+            archModel.AssignProperty(eMemberType.ColumnMain, T700S16C, -175, 175);
+            archModel.AssignProperty(eMemberType.ColumnMain, T800S16C, 175, double.PositiveInfinity);
+            archModel.AssignProperty(eMemberType.ColumnCrossL, T450S10C);
+            archModel.AssignProperty(eMemberType.ColumnCrossW, T450S10C);
+            archModel.AssignProperty(eMemberType.ColumnWeb, T300S10C);
+
+
+            #endregion
+
+            #region 3. 切割拱圈
+            // double halfD = 0.75;
+            double LastV = 196.0;
+            double C10V = 231;
+            // 法向控制位置
+            // KP0: 第一个法向面 
+            // KP1: C10立柱控制位置
+            // KP2: 拱脚
+            // CTL0: 第1个法向安装面
+            // CTL1: 第2个法向安装面
+            // CTL2: 第3个法向安装面
+
+            Point2D KP0 = archModel.CreatNormalDatumByVertical(
+                new DatumPlane(0, theArchAxis.GetCenter(LastV + halfD),
+                Angle.FromDegrees(90.0), eDatumType.VerticalDatum), false, false, 0.06).Center;
+            Point2D KP1 = theArchAxis.IntersectV2(archModel.Get7Point(C10V, 90.0)[1]);
+            Point2D KP2 = theArchAxis.GetCenter(theArchAxis.L1);
+            // C10控制位置
+
+            var LA = theArchAxis.GetLength(KP1.X) - theArchAxis.GetLength(KP0.X);
+            double DL1 = LA / 4;
+            var CTL0 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1 * 3);
+
+            var LB = theArchAxis.GetLength(KP2.X) - theArchAxis.GetLength(KP1.X);
+            double DL2 = LB / 5;
+            var CTL1 = theArchAxis.GetX0(theArchAxis.GetLength(KP1.X) + DL2 * 2);
+
+            List<double> xs = new List<double>() {
+                -CTL1, -CTL0, CTL1,CTL0,
+                -196, -175, -154, -133, -112, -91, -70, -49, -28, 0,
+                 196,  175,  154,  133,  112,  91,  70,  49,  28,
+                };
+
+            xs.Sort();
+
+            foreach (var x0 in xs)
+            {
+                if (Math.Abs(x0) >= CTL0)
+                {
+                    archModel.AddDatum(0, x0, eDatumType.InstallDatum);
+                }
+                else
+                {
+                    archModel.AddDatum(0, x0, eDatumType.InstallDatum, 90);
+                }
+            }
+            #endregion
+
+            #region 4. 布置主平面，生成骨架
+
+            for (int i = 0; i < archModel.InstallDatum.Count - 1; i++)
+            {
+                var CurI = archModel.InstallDatum[i];
+                var NexI = archModel.InstallDatum[i + 1];
+                if (CurI.Angle0 == Angle.FromDegrees(90.0))
+                {
+                    // 起终点为垂直面
+                    if (NexI.Angle0 == Angle.FromDegrees(90))
+                    {
+                        if (NexI.Center.X - CurI.Center.X == 21)
+                        {
+                            archModel.CreateInstallSegment(CurI, NexI,
+                                new double[] { halfD, 7 - halfD, 7, 7 - halfD, halfD },
+                                new double[] { 90, 90, 90, 90 },
+                                new bool[] { false, true, true, true, false }, 0.060);
+                        }
+                        else if (NexI.Center.X - CurI.Center.X == 14)
+                        {
+                            archModel.CreateInstallSegment(CurI, NexI,
+                                new double[] { halfD, 7 - halfD, 7 - halfD, halfD },
+                                new double[] { 90, 90, 90 },
+                                new bool[] { false, true, true, false }, 0.060);
+                        }
+                        else
+                        {
+                            archModel.CreateInstallSegment(CurI, NexI,
+                                new double[] { halfD, 7 - halfD, 7, 7, 7 - halfD, halfD },
+                                new double[] { 90, 90, 90, 90, 90 },
+                                new bool[] { false, true, true, true, true, false }, 0.060);
+                        }
+                    }
+                    else
+                    {
+                        // 起点垂直，终点法向                                                            
+                        var CTLx1 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1);
+                        var CTLx2 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1 + DL1);
+
+                        Line2D theCutLineEd = NexI.Line;
+                        theCutLineEd = theCutLineEd.Offset(halfD);
+                        var cced = theArchAxis.Intersect(theCutLineEd);
+
+                        archModel.CreateInstallSegment(CurI, NexI,
+                            new double[] { halfD, KP0.X - CurI.Center.X - halfD,
+                                CTLx1-KP0.X,
+                                CTLx2-CTLx1,
+                                cced.X - CTLx2, NexI.Center.X - cced.X },
+                            new double[] {
+                                90, theArchAxis.GetNormalAngle(KP0.X).Degrees,
+                                 theArchAxis.GetNormalAngle(CTLx1).Degrees,
+                                 theArchAxis.GetNormalAngle(CTLx2).Degrees,
+                                NexI.Angle0.Degrees },
+                            new bool[] { false, false, true, true, true, false }, 0.060); ;
+                    }
+                }
+                else
+                {
+                    if (NexI.Angle0 == Angle.FromDegrees(90))
+                    {
+                        // 起点为法向面，终点为垂直面
+                        var CTLx1 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1);
+                        var CTLx2 = theArchAxis.GetX0(theArchAxis.GetLength(KP0.X) + DL1 + DL1);
+
+                        Line2D theCutLineEd = CurI.Line;
+                        theCutLineEd = theCutLineEd.Offset(-halfD);
+                        var cced = theArchAxis.Intersect(theCutLineEd);
+                        var d1 = cced.X - CurI.Center.X;
+                        archModel.CreateInstallSegment(CurI, NexI,
+                            new double[] {  d1,
+                            (-CTLx2) - CurI.Center.X - d1,
+                            (-CTLx1) - (-CTLx2),
+                            (-KP0.X)-(-CTLx1),
+                            NexI.Center.X- (-KP0.X)-halfD,
+                                halfD},
+                            new double[] { CurI.Angle0.Degrees,
+                                theArchAxis.GetNormalAngle(-CTLx2).Degrees,
+                                theArchAxis.GetNormalAngle(-CTLx1).Degrees,
+                                theArchAxis.GetNormalAngle(-KP0.X).Degrees, 90, },
+                            new bool[] { false, true, true, true, false, false }, 0.060); ;
+
+                    }
+                    else
+                    {
+                        // 均为法向面
+
+                        if (CurI.Center.X == -theArchAxis.L1)
+                        {
+                            var locs = EquallyLengthCut(ref theArchAxis, CurI, NexI, 3);
+
+
+                            Line2D theCutLineEd = NexI.Line;
+                            theCutLineEd = theCutLineEd.Offset(halfD);
+                            var c2 = theArchAxis.Intersect(theCutLineEd);
+                            var d2 = NexI.Center.X - c2.X;
+
+                            archModel.CreateInstallSegment(CurI, NexI,
+                                new double[] { locs[0] - CurI.Center.X, locs[1] - locs[0], c2.X - locs[1], d2 },
+                                new double[] {
+                                theArchAxis.GetNormalAngle(locs[0]).Degrees,
+                                theArchAxis.GetNormalAngle(locs[1]).Degrees,
+                                NexI.Angle0.Degrees
+                                },
+                                new bool[] { false, true, true, false }, 0.060);
+
+                        }
+                        else if (NexI.Center.X == theArchAxis.L1)
+                        {
+                            var locs = EquallyLengthCut(ref theArchAxis, CurI, NexI, 3);
+
+                            Line2D theCutLineSt = CurI.Line;
+                            theCutLineSt = theCutLineSt.Offset(-halfD);
+                            var c1 = theArchAxis.Intersect(theCutLineSt);
+                            var d1 = c1.X - CurI.Center.X;
+
+
+                            archModel.CreateInstallSegment(CurI, NexI,
+                                new double[] { d1, locs[0] - c1.X, locs[1] - locs[0], NexI.Center.X - locs[1] },
+                                new double[] {
+                                CurI.Angle0.Degrees,
+                                theArchAxis.GetNormalAngle(locs[0]).Degrees,
+                                theArchAxis.GetNormalAngle(locs[1]).Degrees,
+                                },
+                                new bool[] { false, true, true, false }, 0.060);
+
+                        }
+                        else if (CurI.Center.X == -CTL1)
+                        {
+                            List<double> locs = new List<double>()
+                            {
+                                theArchAxis.GetX0(theArchAxis.GetLength(-CTL0)-DL1-DL2),
+                                theArchAxis.GetX0(theArchAxis.GetLength(-CTL0)-DL1),
+                            };
+                            Line2D theCutLineSt = CurI.Line;
+                            theCutLineSt = theCutLineSt.Offset(-halfD);
+                            var c1 = theArchAxis.Intersect(theCutLineSt);
+                            var d1 = c1.X - CurI.Center.X;
+
+                            Line2D theCutLineEd = NexI.Line;
+                            theCutLineEd = theCutLineEd.Offset(halfD);
+                            var c2 = theArchAxis.Intersect(theCutLineEd);
+                            var d2 = NexI.Center.X - c2.X;
+
+                            archModel.CreateInstallSegment(CurI, NexI,
+                                new double[] { d1, locs[0] - c1.X, locs[1] - locs[0], c2.X - locs[1], d2 },
+                                new double[] {
+                                CurI.Angle0.Degrees,
+                                theArchAxis.GetNormalAngle(locs[0]).Degrees,
+                                theArchAxis.GetNormalAngle(locs[1]).Degrees,
+                                NexI.Angle0.Degrees
+                                },
+                                new bool[] { false, true, true, true, false }, 0.060);
+                        }
+                        else if (CurI.Center.X == CTL0)
+                        {
+                            List<double> locs = new List<double>()
+                            {
+                                theArchAxis.GetX0(theArchAxis.GetLength(CTL0)+DL1),
+                                theArchAxis.GetX0(theArchAxis.GetLength(CTL0)+DL1+DL2),
+                            };
+                            Line2D theCutLineSt = CurI.Line;
+                            theCutLineSt = theCutLineSt.Offset(-halfD);
+                            var c1 = theArchAxis.Intersect(theCutLineSt);
+                            var d1 = c1.X - CurI.Center.X;
+
+                            Line2D theCutLineEd = NexI.Line;
+                            theCutLineEd = theCutLineEd.Offset(halfD);
+                            var c2 = theArchAxis.Intersect(theCutLineEd);
+                            var d2 = NexI.Center.X - c2.X;
+
+                            archModel.CreateInstallSegment(CurI, NexI,
+                                new double[] { d1, locs[0] - c1.X, locs[1] - locs[0], c2.X - locs[1], d2 },
+                                new double[] {
+                                CurI.Angle0.Degrees,
+                                theArchAxis.GetNormalAngle(locs[0]).Degrees,
+                                theArchAxis.GetNormalAngle(locs[1]).Degrees,
+                                NexI.Angle0.Degrees
+                                },
+                                new bool[] { false, true, true, true, false }, 0.060);
+                        }
+                        else
+                        {
+                            throw new Exception();
+                            var locs = EquallyLengthCut(ref theArchAxis, CurI, NexI, 3);
+
+                            Line2D theCutLineSt = CurI.Line;
+                            theCutLineSt = theCutLineSt.Offset(-halfD);
+                            var c1 = theArchAxis.Intersect(theCutLineSt);
+                            var d1 = c1.X - CurI.Center.X;
+
+                            Line2D theCutLineEd = NexI.Line;
+                            theCutLineEd = theCutLineEd.Offset(halfD);
+                            var c2 = theArchAxis.Intersect(theCutLineEd);
+                            var d2 = NexI.Center.X - c2.X;
+
+                            archModel.CreateInstallSegment(CurI, NexI,
+                                new double[] { d1, locs[0] - c1.X, locs[1] - locs[0], c2.X - locs[1], d2 },
+                                new double[] {
+                                CurI.Angle0.Degrees,
+                                theArchAxis.GetNormalAngle(locs[0]).Degrees,
+                                theArchAxis.GetNormalAngle(locs[1]).Degrees,
+                                NexI.Angle0.Degrees
+                                },
+                                new bool[] { false, true, true, true, false }, 0.060);
+                        }
+
+
+                    }
+
+
+                }
+            }
+
+            archModel.AddDatum(0, -theArchAxis.L1, eDatumType.ControlDatum);
+            archModel.AddDatum(0, theArchAxis.L1, eDatumType.ControlDatum);
+
+            archModel.AddDatum(0, -theArchAxis.L1 - 2, eDatumType.ControlDatum);
+            archModel.AddDatum(0, theArchAxis.L1 + 2, eDatumType.ControlDatum);
+            archModel.GenerateSkeleton();
+            #endregion
+
+            #region 5. 生成模型
+            archModel.GenerateArch();
+            // 5.1 增加三角斜腹杆
+            int num = archModel.MainDatum.Count;
+            archModel.AddTriWeb(archModel.GetMainDatum(1), archModel.GetMainDatum(2), e);
+            archModel.AddTriWeb(archModel.GetMainDatum(num - 2), archModel.GetMainDatum(num - 3), e);
+            #endregion
+
+            #region 6. 立柱建模
+            double xx = -231;
+            double[] Ls = new double[] { 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4 };
+            //double[] H2S = new double[]
+            //{
+            //    1403.714000,1403.966000,1404.218000,1404.464375,1404.640775,1404.728975,
+            //    1404.728975,1404.640775,1404.464375,1404.218000,1403.966000,1403.714000,
+            //};
+            double[] H2S = new double[]
+            {
+                1400.705,1400.957,1401.209,1401.455,1401.631,1401.719,
+                1401.719,1401.631,1401.455,1401.208,1400.956,1400.704,
+            };
+            for (int i = 0; i < 12; i++)
+            {
+                var xi = xx + i * 42;
+                archModel.AddColumn(0, xi, H2S[i] - archModel.FootLevel, Ls[i], 2.8, 3.0, 3, 1, 1, Ls[i] + 1.5, 0.8);
+            }
+            archModel.GenerateColumn();
+            #endregion
+
+            #region 7. 交界墩
+            double P2H2 = 1413.676000;
+            double RtZ0 = -106;
+            double RtZ1 = -archModel.Axis.f + (P2H2 - archModel.FootLevel) - 2;
+            double wratio = 0.0125;
+            RectSection S1 = new RectSection(0, 6, 3);
+            RectSection S2 = new RectSection(0, 7, 3);
+            RectSection S0 = new RectSection(0, 6 + 2 * wratio * (RtZ1 - RtZ0), 3 + 2 * wratio * (RtZ1 - RtZ0));
+            archModel.AddColumn(0, -273, new RCColumn(0, RtZ0, RtZ1, RtZ1 + 2, S0, S1, S2));
+            archModel.AddColumn(0, 273, new RCColumn(0, RtZ0, RtZ1, RtZ1 + 2, S0, S1, S2));
+            #endregion
+
+            archModel.InstallDist = 2 * halfD;
+            return archModel;
+        }
+
 
         /// <summary>
         /// 彩凤模型V4-1.4m管径
@@ -1238,10 +1661,15 @@ namespace Model
             #region 6. 立柱建模
             double xx = -231;
             double[] Ls = new double[] { 4, 4, 2, 2, 2, 2, 2, 2, 2, 2, 4, 4 };
+            //double[] H2S = new double[]
+            //{
+            //    1403.714000,1403.966000,1404.218000,1404.464375,1404.640775,1404.728975,
+            //    1404.728975,1404.640775,1404.464375,1404.218000,1403.966000,1403.714000,
+            //};
             double[] H2S = new double[]
             {
-                1403.714000,1403.966000,1404.218000,1404.464375,1404.640775,1404.728975,
-                1404.728975,1404.640775,1404.464375,1404.218000,1403.966000,1403.714000,
+                1400.453,1400.705,1400.957,1401.209,1401.455,1401.631,1401.719,
+                1401.719,1401.631,1401.455,1401.208,1400.956,1400.704,1400.452,
             };
             for (int i = 0; i < 12; i++)
             {
