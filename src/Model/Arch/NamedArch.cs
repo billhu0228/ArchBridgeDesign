@@ -189,10 +189,21 @@ namespace Model
                         }
                         else
                         {
-                            archModel.CreateInstallSegment(CurI, NexI,
-                                new double[] { halfD, Cell - halfD, Cell, Cell, Cell - halfD, halfD },
-                                new double[] { 90, 90, 90, 90, 90 },
-                                new bool[] { false, true, true, true, true, false }, 0.060);
+                            double CenterHalfD = 1.0;
+                            if (CurI.RefPoint.X<0)
+                            {
+                                archModel.CreateInstallSegment(CurI, NexI,
+                                    new double[] { halfD, Cell - halfD, Cell, Cell, Cell - CenterHalfD, CenterHalfD },
+                                    new double[] { 90, 90, 90, 90, 90 },
+                                    new bool[] { false, true, true, true, true, false }, 0.060);
+                            }
+                            else
+                            {
+                                archModel.CreateInstallSegment(CurI, NexI,
+                                    new double[] { CenterHalfD, Cell - CenterHalfD, Cell, Cell, Cell - halfD, halfD },
+                                    new double[] { 90, 90, 90, 90, 90 },
+                                    new bool[] { false, true, true, true, true, false }, 0.060);
+                            }
                         }
                     }
                     else

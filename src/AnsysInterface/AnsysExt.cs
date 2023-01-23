@@ -31,6 +31,99 @@ namespace AnsysInterface
             WriteSolu(Path.Combine(cwd.FullName, "solu.inp"));
             WriteSolve(Path.Combine(cwd.FullName, "solve.inp"));
             WriteConstraint(Path.Combine(cwd.FullName, "constraint.inp"));
+            WriteRemoval(cwd.FullName);
+            WriteTubeSection(Path.Combine(cwd.FullName, "tube-section.inp"));
+        }
+
+        private void WriteTubeSection(string filepath)
+        {
+            using (StreamWriter sw = new StreamWriter(filepath, false))
+            {
+                sw.WriteLine("/prep7");
+                sw.WriteLine("SECTYPE,  1,BEAM,CTUBE,14*25,0");
+                sw.WriteLine("SECDATA,675,700,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECTYPE,  2,BEAM,CTUBE,14*28,0");
+                sw.WriteLine("SECDATA,672,700,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECTYPE,  3,BEAM,CTUBE,14*32,0");
+                sw.WriteLine("SECDATA,668,700,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECTYPE,  4,BEAM,CTUBE,14*38,0");
+                sw.WriteLine("SECDATA,662,700,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECTYPE,  5,BEAM,CTUBE,14*40,0");
+                sw.WriteLine("SECDATA,660,700,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECTYPE, 11,BEAM,CTUBE,15*25,0");
+                sw.WriteLine("SECDATA,725,750,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECTYPE, 12,BEAM,CTUBE,15*28,0");
+                sw.WriteLine("SECDATA,722,750,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECTYPE, 13,BEAM,CTUBE,15*32,0");
+                sw.WriteLine("SECDATA,718,750,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECTYPE, 14,BEAM,CTUBE,15*38,0");
+                sw.WriteLine("SECDATA,712,750,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECTYPE, 15,BEAM,CTUBE,15*40,0");
+                sw.WriteLine("SECDATA,710,750,32,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("/prep7");
+                sw.WriteLine("MP,EX,   1,2.06e+05");
+                sw.WriteLine("MP,DENS, 1,7.85e-09");
+                sw.WriteLine("MP,ALPX, 1,1.2e-05");
+                sw.WriteLine("MP,NUXY, 1,0.2");
+                sw.WriteLine("MP,EX,   2,2.06e+05");
+                sw.WriteLine("MP,DENS, 2,7.85e-09");
+                sw.WriteLine("MP,ALPX, 2,1.2e-05");
+                sw.WriteLine("MP,NUXY, 2,0.2");
+                sw.WriteLine("MP,EX,   3,2.06e+05");
+                sw.WriteLine("MP,DENS, 3,7.85e-09");
+                sw.WriteLine("MP,ALPX, 3,1.2e-05");
+                sw.WriteLine("MP,NUXY, 3,0.2");
+                sw.WriteLine("MP,EX,   4,2.06e+05");
+                sw.WriteLine("MP,DENS, 4,7.85e-09");
+                sw.WriteLine("MP,ALPX, 4,1.2e-05");
+                sw.WriteLine("MP,NUXY, 4,0.2");
+                sw.WriteLine("MP,EX,   5,2.06e+05");
+                sw.WriteLine("MP,DENS, 5,7.85e-09");
+                sw.WriteLine("MP,ALPX, 5,1.2e-05");
+                sw.WriteLine("MP,NUXY, 5,0.2");
+            }
+        }
+
+        private void WriteRemoval(string v)
+        {
+            using (StreamWriter sw = new StreamWriter(Path.Combine(v,"RemoveDeck.inp"), false))
+            {
+                sw.WriteLine("/prep7");
+                sw.WriteLine("esel,s,type,,2");
+                sw.WriteLine("esel,a,secn,,101");
+                sw.WriteLine("esel,a,secn,,111");
+                sw.WriteLine("esel,a,secn,,121");
+                sw.WriteLine("esel,a,type,,141,143");
+                sw.WriteLine("edele,all,all ! remove deck");
+            }
+            using (StreamWriter sw = new StreamWriter(Path.Combine(v, "RemoveColumn.inp"), false))
+            {
+                sw.WriteLine("/prep7");
+                sw.WriteLine("esel,s,secn,,61,69");
+                sw.WriteLine("esel,a,mat,,99");
+                sw.WriteLine("edele,all,all ! remove column");
+            }   
+            using (StreamWriter sw = new StreamWriter(Path.Combine(v, "RemoveCP.inp"), false))
+            {
+                sw.WriteLine("/prep7");
+                sw.WriteLine("cpdele,all,all");
+            }
+            using (StreamWriter sw = new StreamWriter(Path.Combine(v, "RemoveFreeNodes.inp"), false))
+            {
+                sw.WriteLine("/prep7");
+                sw.WriteLine("allsel");
+                sw.WriteLine("ndele,all,all");
+            }
+            using (StreamWriter sw = new StreamWriter(Path.Combine(v, "RemoveLeft.inp"), false))
+            {
+                sw.WriteLine("/prep7");
+                sw.WriteLine("allsel");
+                sw.WriteLine("nsel,s,loc,x,0,1000000");
+                sw.WriteLine("esln,s,0");
+                sw.WriteLine("edele,all,all");
+                sw.WriteLine("allsel");
+                sw.WriteLine("ndele,all,all");
+            }
         }
 
         private void WriteNode(string filepath)
@@ -93,49 +186,39 @@ namespace AnsysInterface
             {
                 sw.WriteLine("/prep7");
                 sw.WriteLine("SECTYPE,  1,BEAM,CSOLID,CFST-1400*25,0");
-                sw.WriteLine("SECDATA,700,0,0,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECDATA,700,24,0,0,0,0,0,0,0,0,0,0");
                 sw.WriteLine("SECTYPE,  2,BEAM,CSOLID,CFST-1400*28,0");
-                sw.WriteLine("SECDATA,700,0,0,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECDATA,700,24,0,0,0,0,0,0,0,0,0,0");
                 sw.WriteLine("SECTYPE,  3,BEAM,CSOLID,CFST-1400*32,0");
-                sw.WriteLine("SECDATA,700,0,0,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECDATA,700,24,0,0,0,0,0,0,0,0,0,0");
                 sw.WriteLine("SECTYPE,  4,BEAM,CSOLID,CFST-1400*38,0");
-                sw.WriteLine("SECDATA,700,0,0,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECDATA,700,24,0,0,0,0,0,0,0,0,0,0");
                 sw.WriteLine("SECTYPE,  5,BEAM,CSOLID,CFST-1400*40,0");
-                sw.WriteLine("SECDATA,700,0,0,0,0,0,0,0,0,0,0,0");
-                sw.WriteLine("SECTYPE, 11,BEAM,CSOLID,CFST-1500*25,0");
-                sw.WriteLine("SECDATA,750,0,0,0,0,0,0,0,0,0,0,0");
-                sw.WriteLine("SECTYPE, 12,BEAM,CSOLID,CFST-1500*28,0");
-                sw.WriteLine("SECDATA,750,0,0,0,0,0,0,0,0,0,0,0");
-                sw.WriteLine("SECTYPE, 13,BEAM,CSOLID,CFST-1500*32,0");
-                sw.WriteLine("SECDATA,750,0,0,0,0,0,0,0,0,0,0,0");
-                sw.WriteLine("SECTYPE, 14,BEAM,CSOLID,CFST-1500*38,0");
-                sw.WriteLine("SECDATA,750,0,0,0,0,0,0,0,0,0,0,0");
-                sw.WriteLine("SECTYPE, 15,BEAM,CSOLID,CFST-1500*40,0");
-                sw.WriteLine("SECDATA,750,0,0,0,0,0,0,0,0,0,0,0");
+                sw.WriteLine("SECDATA,700,24,0,0,0,0,0,0,0,0,0,0");
                 sw.WriteLine("SECTYPE, 21,BEAM,CTUBE,TUBE-900*20 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (900 - 20 * 2), 0.5 * 900);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (900 - 20 * 2), 0.5 * 900);
                 sw.WriteLine("SECTYPE, 22,BEAM,CTUBE,TUBE-800*16 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
                 sw.WriteLine("SECTYPE, 23,BEAM,CTUBE,TUBE-600*12 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (600 - 12 * 2), 0.5 * 600);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (600 - 12 * 2), 0.5 * 600);
                 sw.WriteLine("SECTYPE, 31,BEAM,CTUBE,TUBE-800*16 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
                 sw.WriteLine("SECTYPE, 32,BEAM,CTUBE,TUBE-300*10 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (300 - 10 * 2), 0.5 * 300);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (300 - 10 * 2), 0.5 * 300);
                 sw.WriteLine("SECTYPE, 41,BEAM,CTUBE,TUBE-800*16 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
                 sw.WriteLine("SECTYPE, 42,BEAM,CTUBE,TUBE-500*10 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (500 - 10 * 2), 0.5 * 500);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (500 - 10 * 2), 0.5 * 500);
                 sw.WriteLine("SECTYPE, 51,BEAM,CTUBE,TUBE-600*16 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (600 - 16 * 2), 0.5 * 600);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (600 - 16 * 2), 0.5 * 600);
                 sw.WriteLine("SECTYPE, 61,BEAM,CTUBE,TUBE-900*20 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
                 sw.WriteLine("SECTYPE, 62,BEAM,CTUBE,TUBE-800*16 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (700 - 16 * 2), 0.5 * 700);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (700 - 16 * 2), 0.5 * 700);
                 sw.WriteLine("SECTYPE, 63,BEAM,CTUBE,TUBE-600*12 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (450 - 10 * 2), 0.5 * 450);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (450 - 10 * 2), 0.5 * 450);
                 sw.WriteLine("SECTYPE, 64,BEAM,CTUBE,TUBE-600*12 ,0");
-                sw.WriteLine("SECDATA,{0},{1},36,0,0,0,0,0,0,0,0,0", 0.5 * (300 - 10 * 2), 0.5 * 300);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (300 - 10 * 2), 0.5 * 300);
             }
         }
 
@@ -196,7 +279,10 @@ namespace AnsysInterface
                 sw.WriteLine("MP,DENS,37,2.7e-09");
                 sw.WriteLine("MP,ALPX,37,1.2e-05");
                 sw.WriteLine("MP,NUXY,37,0.2");
-
+                sw.WriteLine("MP,EX,  1860,1.95e+05");
+                sw.WriteLine("MP,DENS,1860,7.85e-09");
+                sw.WriteLine("MP,ALPX,1860,1.2e-05");
+                sw.WriteLine("MP,NUXY,1860,0.2");
                 sw.WriteLine("SECTYPE,{0},BEAM,CSOLID,Tube{0},0", 99);
                 sw.WriteLine("SECDATA,{0},0,0,0,0,0,0,0,0,0,0,0", 500);
                 sw.WriteLine("MP,EX,  99,205E16");
@@ -205,6 +291,8 @@ namespace AnsysInterface
                 sw.WriteLine("MP,NUXY,99,0.3");
                 sw.WriteLine("et,1,188");
                 sw.WriteLine("et,2,181");
+                sw.WriteLine("ET,40,LINK180");
+                sw.WriteLine("ET,41,LINK180");
             }
         }
 

@@ -341,7 +341,7 @@ namespace AnsysInterface
             gp = Classify(t);
             sw.WriteLine(" 下弦,,{0},0",gp);
         }
-        internal void WriteLoads(string filepath, ref FEMDeck deck1, ref FEMDeck deck2)
+        public void WriteLoads(string filepath, ref FEMDeck deck1, ref FEMDeck deck2)
         {
             StreamWriter sw = new StreamWriter(filepath, false,Encoding.Default);
             WriteLoadHeader(ref sw);
@@ -399,7 +399,7 @@ namespace AnsysInterface
             }
    
         }
-        internal void WriteLiveLoad(string filepath, ref FEMDeck leftDeck, ref FEMDeck rightDeck)
+        public void WriteLiveLoad(string filepath, ref FEMDeck leftDeck, ref FEMDeck rightDeck)
         {
             StreamWriter sw = new StreamWriter(filepath, false, System.Text.Encoding.Default);
             sw.WriteLine("*UNIT");

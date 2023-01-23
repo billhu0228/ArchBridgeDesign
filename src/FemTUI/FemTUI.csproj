@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B45566D1-B232-43F9-8672-C6DDAC916009}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <RootNamespace>AnsysInterface</RootNamespace>
-    <AssemblyName>AnsysInterface</AssemblyName>
+    <ProjectGuid>{B3DC13A4-EC38-4E09-AFD4-5B329D35650C}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>FemTUI</RootNamespace>
+    <AssemblyName>FemTUI</AssemblyName>
     <TargetFrameworkVersion>v4.7</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -22,7 +22,6 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -32,9 +31,6 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartupObject />
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MathNet.Numerics, Version=4.9.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -55,11 +51,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AnsysDeckExt.cs" />
-    <Compile Include="SpaceClaimExt.cs" />
-    <Compile Include="MidasDeckExt.cs" />
-    <Compile Include="MidasExt.cs" />
-    <Compile Include="AnsysExt.cs" />
+    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -67,6 +59,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AnsysInterface\AnsysInterface.csproj">
+      <Project>{b45566d1-b232-43f9-8672-c6ddac916009}</Project>
+      <Name>AnsysInterface</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{a99b69de-7742-4c47-8be3-c01a29d374f5}</Project>
       <Name>Model</Name>
