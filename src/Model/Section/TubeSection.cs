@@ -11,12 +11,16 @@ namespace Model
     {
         public double Area;
         public bool IsCFTS;
-        public TubeSection(int id, double dia, double th, bool isCFTS = false) : base(id)
+        public TubeSection(int id, double dia, double th, bool isCFTS = false,string name="") : base(id, name,eSection.Tube)
         {
             Thickness = th;
             Diameter = dia;
             Area = Math.PI * (Math.Pow((dia * 0.5), 2) - Math.Pow((dia * 0.5 - th), 2));
             IsCFTS = isCFTS;
+            if (isCFTS)
+            {
+                Type = eSection.CFST;
+            }
         }
 
         public override string ToString()

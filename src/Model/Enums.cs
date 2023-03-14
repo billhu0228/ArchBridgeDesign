@@ -110,6 +110,17 @@ namespace Model
 
     }
 
+    public enum eSection
+    {
+        [Description("CFST截面")]
+        CFST=101,
+        [Description("圆环截面")]
+        Tube =102,
+        [Description("工形截面")]
+        HSection =103,
+        [Description("矩形截面")]
+        Rect =104,
+    }
 
     public enum eMaterial
     {

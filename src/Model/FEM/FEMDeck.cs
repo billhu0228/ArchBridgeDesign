@@ -252,6 +252,11 @@ namespace Model
             }
             return res;
         }
+
+        public Point3D GetPoint(int p1)
+        {
+            return NodeList.Find(x => x.ID == p1).location;
+        }
     }
 
     class AproxiComparer : IEqualityComparer<double>
