@@ -37,7 +37,7 @@ namespace Model
         public double ElevationOfTop;
         public DataTable ColumnTable;
         double HeightOrder;
-        public double InstallDist;
+        public double InstallDist, MidInstallDist;
         double footLevel;
 
 
@@ -73,6 +73,7 @@ namespace Model
             ElevationOfTop = elevationOfTop;
             footLevel = elevationOfTop - ax.f;
             InstallDist = 1.2;
+            MidInstallDist = 2;
         }
 
 
@@ -151,6 +152,8 @@ namespace Model
             PropertyTable.Add(new MemberPropertyRecord(idx, sect, MT, from, to));
         }
 
+
+
         /// <summary>
         /// 生成通用安装节段
         /// </summary>
@@ -165,7 +168,7 @@ namespace Model
         {
             //首先判断参数合理性
             double La = nexI.Center.X - curI.Center.X;
-            Debug.Assert(Math.Abs(dist.Sum() -La) < 1e-3);
+            Debug.Assert(Math.Abs(dist.Sum() - La) < 1e-3);
             Debug.Assert(dist.Length == ang_degList.Length + 1);
             Debug.Assert(is_dia.Length == dist.Length);
 
@@ -264,6 +267,122 @@ namespace Model
                 {
                     if (is_dia[i])
                     {
+                        var dia = CreatDiagonalDatum(newMainDatum[i - 1], newMainDatum[i], e, DiaDirect);
+                        var a = (newMainDatum[i - 1].Angle0.Degrees + newMainDatum[i].Angle0.Degrees) * 0.5;
+                        SecondaryDatum.Add(new DatumPlane(0, dia.Center, Angle.FromDegrees(a), eDatumType.MiddleDatum));
+                        newDiaDatum.Add(dia);
+                    }
+                }
+            }
+
+            foreach (var item in newMainDatum)
+            {
+                MainDatum.Add(item);
+            }
+            foreach (var item in newDiaDatum)
+            {
+                DiagonalDatum.Add(item);
+            }
+            MainDatum.MySort();
+            DiagonalDatum.MySort();
+            SecondaryDatum.MySort();
+        }
+
+
+
+        /// <summary>
+        /// 生成通用安装节段,新版，支持定义次腹杆方向
+        /// </summary>
+        /// <param name="curI"></param>
+        /// <param name="nexI"></param>
+        /// <param name="vs1"></param>
+        /// <param name="vs2"></param>
+        /// <param name="vs3"></param>
+        public void CreateInstallSegmentNew(DatumPlane curI, DatumPlane nexI,
+            double[] dist, double[] ang_degList,
+            bool[] is_dia, double e,bool[] dia_direct)
+        {
+            //首先判断参数合理性
+            double La = nexI.Center.X - curI.Center.X;
+            Debug.Assert(Math.Abs(dist.Sum() -La) < 1e-3);
+            Debug.Assert(dist.Length == ang_degList.Length + 1);
+            Debug.Assert(is_dia.Length == dist.Length);
+            Debug.Assert(dia_direct.Length == dist.Length);
+
+            List<eDatumType> Dtlist = new List<eDatumType>();
+            //List<double> ang_degList = new List<double>();
+
+
+            for (int i = 0; i < dist.Count() - 1; i++)
+            {
+                if (i == 0)
+                {
+                    if (Math.Abs(dist[i]) <= 2)
+                    {
+                        Dtlist.Add(eDatumType.DoubleDatum);
+                    }
+                    else
+                    {
+                        if (ang_degList[i] == 90)
+                        {
+                            Dtlist.Add(eDatumType.VerticalDatum);
+                        }
+                        else
+                        {
+                            Dtlist.Add(eDatumType.NormalDatum);
+                        }
+                    }
+                }
+                else if (i == ang_degList.Length - 1)
+                {
+                    if (dist.Last() <= 2)
+                    {
+                        Dtlist.Add(eDatumType.DoubleDatum);
+                    }
+                    else
+                    {
+                        if (ang_degList[i] == 90)
+                        {
+                            Dtlist.Add(eDatumType.VerticalDatum);
+                        }
+                        else
+                        {
+                            Dtlist.Add(eDatumType.NormalDatum);
+                        }
+                    }
+                }
+                else
+                {
+                    if (ang_degList[i] == 90)
+                    {
+                        Dtlist.Add(eDatumType.VerticalDatum);
+                    }
+                    else
+                    {
+                        Dtlist.Add(eDatumType.NormalDatum);
+                    }
+                }
+                //double xi = curI.Center.X + dist.ToList().GetRange(0, i + 1).Sum();
+
+            }
+            List<DatumPlane> newMainDatum = new List<DatumPlane>();
+            List<DatumPlane> newDiaDatum = new List<DatumPlane>();
+            // 判断斜腹杆方向
+            bool GreaterThanZero = 0.5 * (curI.Center.X + nexI.Center.X) > 0;
+            bool AnyNorm = curI.Angle0.Degrees != 90.0 || nexI.Angle0.Degrees != 90;
+            bool DiaDirect;
+            // 判断斜腹杆方向
+            for (int i = 0; i < dist.Length - 1; i++)
+            {
+                double xi = curI.Center.X + dist.ToList().GetRange(0, i + 1).Sum();
+                Point2D cc = new Point2D(xi, Axis.GetZ(xi));
+                double ang = ang_degList[i];
+                newMainDatum.Add(new DatumPlane(0, cc, Angle.FromDegrees(ang), Dtlist[i]));
+                if (i != 0)
+                {
+                    if (is_dia[i])
+                    {
+                        DiaDirect = dia_direct[i];
                         var dia = CreatDiagonalDatum(newMainDatum[i - 1], newMainDatum[i], e, DiaDirect);
                         var a = (newMainDatum[i - 1].Angle0.Degrees + newMainDatum[i].Angle0.Degrees) * 0.5;
                         SecondaryDatum.Add(new DatumPlane(0, dia.Center, Angle.FromDegrees(a), eDatumType.MiddleDatum));
@@ -1158,6 +1277,16 @@ namespace Model
 
             }
             var prop = PropertyTable.FindLast((pp) => pp.CheckProperty(x, member));
+            return prop;
+        }
+
+        public List<MemberPropertyRecord> GetTubeProperties(double x, eMemberType member)
+        {
+            if (member == eMemberType.Virtual)
+            {
+
+            }
+            var prop = PropertyTable.FindAll((pp) => pp.CheckProperty(x, member));
             return prop;
         }
 

@@ -19,7 +19,7 @@ namespace Test
         static void Main(string[] args)
         {
             ArchAxis theArchAxis;
-            var archModel = NamedArch.PhoenixModelV42(out theArchAxis, 2.0, 518 / 4.5, 17.0, 8.5, 0.6);
+            // var archModel = NamedArch.PhoenixModelV63(out theArchAxis, 2.0, 518 / 4.5, 15.5, 7.0);
 
             Console.WriteLine("请输入f，按enter继续...");
             var fstr = Console.ReadLine();
@@ -35,9 +35,6 @@ namespace Test
             Console.WriteLine("\n请输入名称，按enter继续...");
             string name = Console.ReadLine();
 
-            //ArchAxis bx = new ArchAxis(518 / 4.5, 2, 518);
-            //var re= bx.Intersect(new Point2D(55, -10));
-
             double f = double.Parse(fstr);
             double m = double.Parse(mstr);
             double hf = double.Parse(hfstr);
@@ -45,7 +42,7 @@ namespace Test
 
             ArchAxis ax;
             Arch theArchModel;
-            theArchModel = NamedArch.PhoenixModelV6(out ax, m, 518 / (f),hf,ht);
+            theArchModel = NamedArch.PhoenixModelV63(out ax, m, 518 / (f),hf,ht);
 
             // 写出基准面
             // string name = "PhoenixModel";

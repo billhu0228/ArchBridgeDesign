@@ -54,7 +54,7 @@ namespace CADInterface
             Editor ed = db.GetEditor();
             ed.WriteMessage("\\n初始化模型..");
             // archModel = NamedArch.PhoenixModelV42(out theArchAxis, 2.0, 518 / 4.5, 17.0,8.5,0.6);            
-            archModel = NamedArch.PhoenixModelV6(out theArchAxis, 2.0, 518 / 4.5, 15.5,7.0,0.75);            
+            archModel = NamedArch.PhoenixModelV63(out theArchAxis, 2.0, 518 / 4.5, 15.5,7.0,0.75);            
         }
 
         [CommandMethod("ArchDraw")]

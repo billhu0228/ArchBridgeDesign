@@ -11,8 +11,10 @@ namespace Model
     {
         public List<FEMNode> NodeList;
         public List<FEMElement> ElementList;
+        public List<NLBearing> Bearings;
         public List<Tuple<int, List<int>>> RigidGroups;
         public List<Tuple<int, int>> LinkGroups;
+        public List<LinkGroup> LinkGroups2;
         public CompositeDeck RelatedDeck;
         List<double> main_xlist;
         List<double> main_ylist;
@@ -37,18 +39,37 @@ namespace Model
         {
             NodeList = new List<FEMNode>();
             ElementList = new List<FEMElement>();
+            Bearings = new List<NLBearing>();
             RigidGroups = new List<Tuple<int, List<int>>>();
             LinkGroups = new List<Tuple<int, int>>();
+            LinkGroups2 = new List<LinkGroup>();
+
             RelatedDeck = theDeck;
             Nstart = nstart;
             Estart = estart;
             this.x0 = x0;
             this.y0 = y0;
             this.z0 = z0;
+            CreateBearingType();
             CreateCoord(e_size_x, e_size_y);
             CreatePlate();
             CreateGirder();
             CreateCrossBeam();
+        }
+
+        private void CreateBearingType()
+        {
+            Link Fix = new Link(1000000000);
+            NolinearLink R1 =  new NolinearLink(26002, 26002, 78000, 0.001, 50, 0.5, 0.5);
+            NolinearLink R2 =  new NolinearLink(2600.2, 26002, 78000, 0.001, 50, 0.5, 0.5);
+            NolinearLink R3 = new NolinearLink(5590.9, 55909, 168000, 0.001, 50, 0.5, 0.5);
+            NolinearLink R4 = new NolinearLink(28496, 28496, 85000, 0.001, 50, 0.5, 0.5);
+            NLBearing Bdouble = new NLBearing("GQZ-SX(双向)",Fix, R1, R2);
+            NLBearing Blong = new NLBearing("GQZ-DX(顺向)", Fix, Fix, R3);
+            NLBearing Btrans = new NLBearing("GQZ-DY(横向)", Fix, R4, Fix);
+            Bearings.Add(Bdouble);
+            Bearings.Add(Blong);
+            Bearings.Add(Btrans);
         }
 
         private void CreateCrossBeam()
@@ -124,7 +145,8 @@ namespace Model
                     {
                         int iix = RelatedDeck.spans.IndexOf(x);
                         int iiy = main_ylist.IndexOf(y);
-                        if (RelatedDeck.ColumnIDList[iix]<0 || iiy==0|| iiy==main_ylist.Count-1)
+                        int iib = 0;
+                        if (iiy==0|| iiy==main_ylist.Count-1)
                         {
                             continue;
 
@@ -132,36 +154,123 @@ namespace Model
                         int nj;
                         if (y0 + y > 0)
                         {
-                            if (iiy==1)
+                            if (RelatedDeck.ColumnIDList[iix] < 0)
+                            {
+                                if (iix==0)
+                                {
+                                    if (iiy == 1)
+                                    {
+                                        nj = 111007;
+                                    }
+                                    else if (iiy == 2)
+                                    {
+                                        nj = 111009;
+                                    }
+                                    else
+                                    {
+                                        nj = 111012;
+                                    }
+                                }
+                                else
+                                {
+                                    if (iiy == 1)
+                                    {
+                                        nj = 112007;
+                                    }
+                                    else if (iiy == 2)
+                                    {
+                                        nj = 112009;
+                                    }
+                                    else
+                                    {
+                                        nj = 112012;
+                                    }
+                                }
+                                ;
+                            }
+                            else if (iiy==1)
                             {
                                 nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 7;
                             }
                             else if (iiy==2)
                             {
-                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 8;
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 9;
                             }
                             else
                             {
-                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 +11;
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 +12;
                             }
                        
                         }
                         else
                         {
-                            if (iiy == 1)
+                            if (RelatedDeck.ColumnIDList[iix] < 0)
                             {
-                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 1;
+                                if (iix == 0)
+                                {
+                                    if (iiy == 1)
+                                    {
+                                        nj = 111000;
+                                    }
+                                    else if (iiy == 2)
+                                    {
+                                        nj = 111003;
+                                    }
+                                    else
+                                    {
+                                        nj = 111005;
+                                    }
+                                }
+                                else
+                                {
+                                    if (iiy == 1)
+                                    {
+                                        nj = 112000;
+                                    }
+                                    else if (iiy == 2)
+                                    {
+                                        nj = 112003;
+                                    }
+                                    else
+                                    {
+                                        nj = 112005;
+                                    }
+                                }
+    ;
+                            }
+                            else if (iiy == 1)
+                            {
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 0;
                             }
                             else if (iiy == 2)
                             {
-                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 4;
+                                nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 3;
                             }
                             else
                             {
                                 nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 5;
                             }
                         }
-                        LinkGroups.Add(new Tuple<int, int>(n-1,nj) );                        
+
+                        if (iix == 1|| iix == 2 || iix == 9 || iix == 10)
+                        {
+                            // 高墩
+                            iib = iiy == 2 ? 3 : 2;
+                        }
+                        else
+                        {
+                            // 一般
+                            iib = iiy == 2 ? 1 : 0;
+                        }
+                        if (iib == 3)
+                        {
+                            LinkGroups.Add(new Tuple<int, int>(n - 1, nj));
+                        }
+                        else
+                        {
+                            LinkGroups2.Add(new LinkGroup(1, n - 1, nj, Bearings[iib]));
+                        }
+          
                     }
                 }
             }

@@ -26,18 +26,39 @@ namespace AnsysInterface
             WriteMCTNode(ref sw);
             WrietMCTElement(ref sw);
             WrietMCTLoad(ref sw);
-            WriteConstraint(ref sw);
+            // WriteConstraint(ref sw);
             sw.Flush();
             sw.Close();
             Console.WriteLine("MCT写出完成...");
         }
+        public void WriteMidas2021(string filepath)
+        {
+            StreamWriter sw = new StreamWriter(filepath, false, System.Text.Encoding.Default);
 
-        private void WrietMCTLoad(ref StreamWriter sw)
+            WriteMCTHead(ref sw);
+            WriteMCTMat(ref sw);
+            WriteMCTNode(ref sw);
+            WrietMCTElement(ref sw);
+            WrietMCTLoad(ref sw,true);
+            // WriteConstraint(ref sw);
+            sw.Flush();
+            sw.Close();
+            Console.WriteLine("MCT写出完成...");
+        }
+        private void WrietMCTLoad(ref StreamWriter sw,bool isM2021=false)
         {
             sw.WriteLine("*USE-STLD, 二期");
             sw.WriteLine("*PRESSURE");
             var e4 = (from e in theFEMModel.ElementList where e.GetType() == typeof(FEMElement4) select e).ToList();
-            sw.WriteLine(" {0}to{1}, PRES , PLATE, FACE, LZ, 0, 0, 0, NO, -0.0032669, 0, 0, 0, 0, ",e4.First().ID,e4.Last().ID);
+            if (isM2021)
+            {
+                sw.WriteLine(" {0}to{1}, PRES , PLATE, FACE, LZ, 0, 0, 0, NO, -0.0032669, 0, 0, 0, 0, ,0 ", e4.First().ID, e4.Last().ID);
+            }
+            else
+            {
+                sw.WriteLine(" {0}to{1}, PRES , PLATE, FACE, LZ, 0, 0, 0, NO, -0.0032669, 0, 0, 0, 0, ", e4.First().ID, e4.Last().ID);
+            }
+
         }
         private void WriteConstraint(ref StreamWriter sw)
         {
@@ -105,11 +126,46 @@ namespace AnsysInterface
 
             }
 
+
+            sw.WriteLine("*NL-PROP");
+            foreach (var item in theFEMModel.Bearings)
+            {
+                if (!item.isNL)
+                {
+                    continue;
+                }
+                sw.WriteLine("{0}, FORCE, HS,  0, 0.5, NO, 0, 0.5,  NO, 0.5, 0.5, 0, 0, " , item.Name);
+                var Es=new List<Link>() { item.Ex,item.Ey,item.Ez};
+                foreach (var EE in Es )
+                {
+                    if (EE.GetType() == typeof(Link))
+                    {
+                        sw.WriteLine("  YES, {0}, 0, NO ", EE.K);
+                    }
+                    else
+                    {
+                        var NLe=(NolinearLink)EE;
+                        sw.WriteLine("  YES, {0}, 0, YES, {1}, {2}, {3},{4},{5}, {6}", NLe.K, NLe.Ke, NLe.Fy,NLe.r,NLe.s,NLe.a,NLe.b);
+                    }
+                }
+                sw.WriteLine("  NO, 0, 0, NO");
+                sw.WriteLine("  NO, 0, 0, NO");
+                sw.WriteLine("  NO, 0, 0, NO");
+                sw.WriteLine("  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
+            }
+
             sw.WriteLine("*ELASTICLINK");
             int rigID = 1 + theFEMModel.Estart;
             foreach (var item in theFEMModel.LinkGroups)
             {
                 sw.WriteLine("{0},{1},{2}, GEN  ,0, NO, NO, NO, NO, NO, NO, 1e9, 1e6, 1e6, 0, 0, 0, NO, 0.5, 0.5, ", rigID, item.Item1, item.Item2);
+                rigID++;
+            }
+
+            sw.WriteLine("*NL-LINK ");
+            foreach (var item in theFEMModel.LinkGroups2)
+            {
+                sw.WriteLine("{0},{1},{2},{3}, , 0,     0,",rigID,item.Ni,item.Nj,item.Bearing.Name);
                 rigID++;
             }
             sw.Flush();

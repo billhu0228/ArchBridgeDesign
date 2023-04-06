@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30907.101
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32210.238
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Model", "src\Model\Model.csproj", "{A99B69DE-7742-4C47-8BE3-C01A29D374F5}"
 EndProject
@@ -23,8 +23,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WinFromUI", "src\WinFromUI\WinFromUI.csproj", "{79CFFE16-4FD9-4B7C-A12A-7FE2CD524CCF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FemTUI", "src\FemTUI\FemTUI.csproj", "{B3DC13A4-EC38-4E09-AFD4-5B329D35650C}"
-EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "src\Setup\Setup.vdproj", "{80AF8AA2-F2E5-4983-A212-AAE912E86034}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -144,12 +142,6 @@ Global
 		{B3DC13A4-EC38-4E09-AFD4-5B329D35650C}.Release|x64.Build.0 = Release|Any CPU
 		{B3DC13A4-EC38-4E09-AFD4-5B329D35650C}.Release|x86.ActiveCfg = Release|Any CPU
 		{B3DC13A4-EC38-4E09-AFD4-5B329D35650C}.Release|x86.Build.0 = Release|Any CPU
-		{80AF8AA2-F2E5-4983-A212-AAE912E86034}.Debug|Any CPU.ActiveCfg = Debug
-		{80AF8AA2-F2E5-4983-A212-AAE912E86034}.Debug|x64.ActiveCfg = Debug
-		{80AF8AA2-F2E5-4983-A212-AAE912E86034}.Debug|x86.ActiveCfg = Debug
-		{80AF8AA2-F2E5-4983-A212-AAE912E86034}.Release|Any CPU.ActiveCfg = Release
-		{80AF8AA2-F2E5-4983-A212-AAE912E86034}.Release|x64.ActiveCfg = Release
-		{80AF8AA2-F2E5-4983-A212-AAE912E86034}.Release|x86.ActiveCfg = Release
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

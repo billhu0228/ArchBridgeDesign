@@ -12,4 +12,15 @@
             Thickness = 0;
         }
     }
+
+    public class HRectSection : RectSection
+    {
+        public double ThWidth, ThLength;
+
+        public HRectSection(int id, double w, double l,double tw,double tl) : base(id, w, l)
+        {
+            ThWidth = tw;
+            ThLength = tl;
+        }
+    }
 }
