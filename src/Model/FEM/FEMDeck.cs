@@ -59,17 +59,20 @@ namespace Model
 
         private void CreateBearingType()
         {
-            Link Fix = new Link(1000000000);
-            NolinearLink R1 =  new NolinearLink(26002, 26002, 78000, 0.001, 50, 0.5, 0.5);
-            NolinearLink R2 =  new NolinearLink(2600.2, 26002, 78000, 0.001, 50, 0.5, 0.5);
-            NolinearLink R3 = new NolinearLink(5590.9, 55909, 168000, 0.001, 50, 0.5, 0.5);
-            NolinearLink R4 = new NolinearLink(28496, 28496, 85000, 0.001, 50, 0.5, 0.5);
+            Link Fix = new Link(1e6);
+            NolinearLink R1 =  new NolinearLink(0, 26002, 78000, 0.001, 50, 0.5, 0.5);
+            NolinearLink R2 =  new NolinearLink(0, 26002, 78000, 0.001, 50, 0.5, 0.5);
+            NolinearLink R3 = new NolinearLink(0,  55909, 168000, 0.001, 50, 0.5, 0.5);
+            NolinearLink R4 = new NolinearLink(0, 28496, 85000, 0.001, 50, 0.5, 0.5);
+            NolinearLink R5 = new NolinearLink(1e6, 28496, 85000, 0.001, 50, 0.5, 0.5);
             NLBearing Bdouble = new NLBearing("GQZ-SX(双向)",Fix, R1, R2);
             NLBearing Blong = new NLBearing("GQZ-DX(顺向)", Fix, Fix, R3);
             NLBearing Btrans = new NLBearing("GQZ-DY(横向)", Fix, R4, Fix);
+            NLBearing Bnone = new NLBearing("GQZ-GD(固定)", R5, R5, R5);
             Bearings.Add(Bdouble);
             Bearings.Add(Blong);
             Bearings.Add(Btrans);
+            Bearings.Add(Bnone);
         }
 
         private void CreateCrossBeam()
@@ -264,7 +267,8 @@ namespace Model
                         }
                         if (iib == 3)
                         {
-                            LinkGroups.Add(new Tuple<int, int>(n - 1, nj));
+                            // LinkGroups.Add(new Tuple<int, int>(n - 1, nj));
+                            LinkGroups2.Add(new LinkGroup(1, n - 1, nj, Bearings[iib]));
                         }
                         else
                         {

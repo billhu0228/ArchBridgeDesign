@@ -146,7 +146,7 @@ namespace AnsysInterface
             Arch theArchModel;
             double Hfoot = 15.5;
             double Htop = 7.0;
-            theArchModel = NamedArch.PhoenixModelV62(out ax, 2.0, 518 / 4.5, Hfoot, Htop);
+            theArchModel = NamedArch.PhoenixModelV63(out ax, 2.0, 518 / 4.5, Hfoot, Htop);
             FEMModel theFem = new FEMModel(ref theArchModel, ref ca, 0.4);
             AnsysExt ansysExt = new AnsysExt(theFem);
 

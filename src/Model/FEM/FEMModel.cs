@@ -1329,15 +1329,15 @@ namespace Model
             ElementList.Add(new FEMElement(0, p3 + 50000, p4 + 30000, coordSecn));
             ElementList.Add(new FEMElement(0, p4 + 30000, p4, coordSecn));
             // 交叉
-            //ElementList.Add(new FEMElement(0, p1 + 30000, p4 + 30000, webSecn));
-            //ElementList.Add(new FEMElement(0, p2 + 30000, p3 + 30000, webSecn));
-            //ElementList.Add(new FEMElement(0, p1 + 30000, p3 + 30000, vertSecn));
-            //ElementList.Add(new FEMElement(0, p2 + 30000, p4 + 30000, vertSecn));
-            // V型交叉
-            ElementList.Add(new FEMElement(0, p3 + 30000, p1 + 50000, webSecn));
-            ElementList.Add(new FEMElement(0, p4 + 30000, p1 + 50000, webSecn));
+            ElementList.Add(new FEMElement(0, p1 + 30000, p4 + 30000, webSecn));
+            ElementList.Add(new FEMElement(0, p2 + 30000, p3 + 30000, webSecn));
             ElementList.Add(new FEMElement(0, p1 + 30000, p3 + 30000, vertSecn));
             ElementList.Add(new FEMElement(0, p2 + 30000, p4 + 30000, vertSecn));
+            // V型交叉
+            //ElementList.Add(new FEMElement(0, p3 + 30000, p1 + 50000, webSecn));
+            //ElementList.Add(new FEMElement(0, p4 + 30000, p1 + 50000, webSecn));
+            //ElementList.Add(new FEMElement(0, p1 + 30000, p3 + 30000, vertSecn));
+            //ElementList.Add(new FEMElement(0, p2 + 30000, p4 + 30000, vertSecn));
 
         }
         public Point3D GetPoint(int p1)

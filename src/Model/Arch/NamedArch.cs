@@ -70,8 +70,8 @@ namespace Model
 
             // 立柱
 
-            var T800S16C = new TubeSection(61, 0.80, 0.016);
-            var T700S16C = new TubeSection(62, 0.70, 0.016);
+            var T900S20C = new TubeSection(61, 0.90, 0.020);
+            var T800S16C = new TubeSection(62, 0.80, 0.016);            
             var T450S10C = new TubeSection(63, 0.45, 0.010);
             var T300S10C = new TubeSection(64, 0.30, 0.010);
 
@@ -96,30 +96,31 @@ namespace Model
             archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S38, 180.75, 230.3386);
             archModel.AssignProperty(eMemberType.LowerCoord, CFTS1400S40, 230.3386, double.PositiveInfinity);
 
+            archModel.AssignProperty(eMemberType.MainWeb, T800S16A);
+            archModel.AssignProperty(eMemberType.SubWeb, T800S16A);
 
-
-            List<Tuple<double, double>> WebStrong = new List<Tuple<double, double>>();
-            WebStrong.Add(new Tuple<double, double>(24.75, 41.25));
-            WebStrong.Add(new Tuple<double, double>(74.25, 90.75));
-            WebStrong.Add(new Tuple<double, double>(123.75, 140.25));
-            archModel.AssignProperty(eMemberType.MainWeb, T900S20A, double.NegativeInfinity, -220);
-            archModel.AssignProperty(eMemberType.MainWeb, T800S16A, -220, 220);
-            archModel.AssignProperty(eMemberType.MainWeb, T900S20A, 220, double.PositiveInfinity);
-            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, double.NegativeInfinity, -220);
-            archModel.AssignProperty(eMemberType.SubWeb, T800S16A, -220, -WebStrong[2].Item2);
-            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, -WebStrong[2].Item2, -WebStrong[2].Item1);
-            archModel.AssignProperty(eMemberType.SubWeb, T800S16A, -WebStrong[2].Item1, -WebStrong[1].Item2);
-            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, -WebStrong[1].Item2, -WebStrong[1].Item1);
-            archModel.AssignProperty(eMemberType.SubWeb, T800S16A, -WebStrong[1].Item1, -WebStrong[0].Item2);
-            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, -WebStrong[0].Item2, -WebStrong[0].Item1);
-            archModel.AssignProperty(eMemberType.SubWeb, T800S16A, -WebStrong[0].Item1, WebStrong[0].Item1);//
-            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, WebStrong[0].Item1, WebStrong[0].Item2);
-            archModel.AssignProperty(eMemberType.SubWeb, T800S16A, WebStrong[0].Item2, WebStrong[1].Item1);
-            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, WebStrong[1].Item1, WebStrong[1].Item2);
-            archModel.AssignProperty(eMemberType.SubWeb, T800S16A, WebStrong[1].Item2, WebStrong[2].Item1);
-            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, WebStrong[2].Item1, WebStrong[2].Item2);
-            archModel.AssignProperty(eMemberType.SubWeb, T800S16A, WebStrong[2].Item2, 220);
-            archModel.AssignProperty(eMemberType.SubWeb, T900S20A, 220, double.PositiveInfinity);
+            //List<Tuple<double, double>> WebStrong = new List<Tuple<double, double>>();
+            //WebStrong.Add(new Tuple<double, double>(24.75, 41.25));
+            //WebStrong.Add(new Tuple<double, double>(74.25, 90.75));
+            //WebStrong.Add(new Tuple<double, double>(123.75, 140.25));            
+            //archModel.AssignProperty(eMemberType.MainWeb, T900S20A, double.NegativeInfinity, -220);
+            //archModel.AssignProperty(eMemberType.MainWeb, T800S16A, -220, 220);
+            //archModel.AssignProperty(eMemberType.MainWeb, T900S20A, 220, double.PositiveInfinity);
+            //archModel.AssignProperty(eMemberType.SubWeb, T900S20A, double.NegativeInfinity, -220);
+            //archModel.AssignProperty(eMemberType.SubWeb, T800S16A, -220, -WebStrong[2].Item2);
+            //archModel.AssignProperty(eMemberType.SubWeb, T900S20A, -WebStrong[2].Item2, -WebStrong[2].Item1);
+            //archModel.AssignProperty(eMemberType.SubWeb, T800S16A, -WebStrong[2].Item1, -WebStrong[1].Item2);
+            //archModel.AssignProperty(eMemberType.SubWeb, T900S20A, -WebStrong[1].Item2, -WebStrong[1].Item1);
+            //archModel.AssignProperty(eMemberType.SubWeb, T800S16A, -WebStrong[1].Item1, -WebStrong[0].Item2);
+            //archModel.AssignProperty(eMemberType.SubWeb, T900S20A, -WebStrong[0].Item2, -WebStrong[0].Item1);
+            //archModel.AssignProperty(eMemberType.SubWeb, T800S16A, -WebStrong[0].Item1, WebStrong[0].Item1);//
+            //archModel.AssignProperty(eMemberType.SubWeb, T900S20A, WebStrong[0].Item1, WebStrong[0].Item2);
+            //archModel.AssignProperty(eMemberType.SubWeb, T800S16A, WebStrong[0].Item2, WebStrong[1].Item1);
+            //archModel.AssignProperty(eMemberType.SubWeb, T900S20A, WebStrong[1].Item1, WebStrong[1].Item2);
+            //archModel.AssignProperty(eMemberType.SubWeb, T800S16A, WebStrong[1].Item2, WebStrong[2].Item1);
+            //archModel.AssignProperty(eMemberType.SubWeb, T900S20A, WebStrong[2].Item1, WebStrong[2].Item2);
+            //archModel.AssignProperty(eMemberType.SubWeb, T800S16A, WebStrong[2].Item2, 220);
+            //archModel.AssignProperty(eMemberType.SubWeb, T900S20A, 220, double.PositiveInfinity);
 
             archModel.AssignProperty(eMemberType.InstallWeb, T600S12A);
             archModel.AssignProperty(eMemberType.TriWeb, T900S20A);
@@ -142,9 +143,9 @@ namespace Model
             archModel.AssignProperty(eMemberType.WindBracing, T700S16W, 160.5, double.PositiveInfinity);
             // archModel.AssignProperty(eMemberType.WindBracing, T600S16W);
 
-            archModel.AssignProperty(eMemberType.ColumnMain, T800S16C, double.NegativeInfinity, -175);
-            archModel.AssignProperty(eMemberType.ColumnMain, T700S16C, -175, 175);
-            archModel.AssignProperty(eMemberType.ColumnMain, T800S16C, 175, double.PositiveInfinity);
+            archModel.AssignProperty(eMemberType.ColumnMain, T900S20C, double.NegativeInfinity, -150);
+            archModel.AssignProperty(eMemberType.ColumnMain, T800S16C, -150, 150);
+            archModel.AssignProperty(eMemberType.ColumnMain, T900S20C, 150, double.PositiveInfinity);
             archModel.AssignProperty(eMemberType.ColumnCrossL, T450S10C);
             archModel.AssignProperty(eMemberType.ColumnCrossW, T450S10C);
             archModel.AssignProperty(eMemberType.ColumnWeb, T300S10C);
@@ -220,7 +221,7 @@ namespace Model
                                     new double[] { halfD, Cell - halfD, Cell, Cell - halfD, halfD },
                                     new double[] { 90, 90, 90, 90 },
                                     new bool[] { false, true, true, true, false }, 0.060,
-                                    new bool[] { false, false, true, true, false });
+                                    new bool[] { false, true, true, true, false });
                             }
                             else if (Math.Abs( CurI.Center.X - 57.75) < 1e-3) 
                             {
@@ -228,7 +229,7 @@ namespace Model
                                     new double[] { halfD, Cell - halfD, Cell, Cell - halfD, halfD },
                                     new double[] { 90, 90, 90, 90 },
                                     new bool[] { false, true, true, true, false }, 0.060,
-                                    new bool[] { false, false, false, true, false });
+                                    new bool[] { false, false, false, false, false });
                             }
                             else
                             {
@@ -256,7 +257,7 @@ namespace Model
                                     new double[] { halfD, Cell - halfD, Cell, Cell, Cell - CenterHalfD, CenterHalfD },
                                     new double[] { 90, 90, 90, 90, 90 },
                                     new bool[] { false, true, true, true, true, false }, 0.060,
-                                    new bool[] { false, false, true, true, true, false });
+                                    new bool[] { false, true, true, true, true, false });
                             }
                             else
                             {
@@ -264,7 +265,7 @@ namespace Model
                                     new double[] { CenterHalfD, Cell - CenterHalfD, Cell, Cell, Cell - halfD, halfD },
                                     new double[] { 90, 90, 90, 90, 90 },
                                     new bool[] { false, true, true, true, true, false }, 0.060,
-                                    new bool[] { false, false, false, false, true, false });
+                                    new bool[] { false, false, false, false, false, false });
                             }
                         }
                     }

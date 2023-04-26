@@ -25,7 +25,7 @@ namespace AnsysInterface
             WriteMCTMat(ref sw);
             WriteMCTNode(ref sw);
             WrietMCTElement(ref sw);
-            WrietMCTLoad(ref sw);
+            WrietMCTLoad(ref sw);            
             // WriteConstraint(ref sw);
             sw.Flush();
             sw.Close();
@@ -59,6 +59,16 @@ namespace AnsysInterface
                 sw.WriteLine(" {0}to{1}, PRES , PLATE, FACE, LZ, 0, 0, 0, NO, -0.0032669, 0, 0, 0, 0, ", e4.First().ID, e4.Last().ID);
             }
 
+            sw.WriteLine("*USE-STLD, 摩阻力");
+            sw.WriteLine("*CONLOAD");
+            double Fx = 0.03 * 2500e3;
+            foreach (var item in theFEMModel.LinkGroups2)
+            {
+                if (item.Bearing.Name=="GQZ-SX(双向)"|| item.Bearing.Name == "GQZ-DX(顺向)")
+                {
+                    sw.WriteLine(" {0}, {1}, 0, 0, 0, 0, 0, ", item.Nj, Fx);
+                }                
+            }
         }
         private void WriteConstraint(ref StreamWriter sw)
         {
@@ -154,13 +164,17 @@ namespace AnsysInterface
                 sw.WriteLine("  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0");
             }
 
-            sw.WriteLine("*ELASTICLINK");
             int rigID = 1 + theFEMModel.Estart;
-            foreach (var item in theFEMModel.LinkGroups)
+            if (theFEMModel.LinkGroups.Count!=0)
             {
-                sw.WriteLine("{0},{1},{2}, GEN  ,0, NO, NO, NO, NO, NO, NO, 1e9, 1e6, 1e6, 0, 0, 0, NO, 0.5, 0.5, ", rigID, item.Item1, item.Item2);
-                rigID++;
+                sw.WriteLine("*ELASTICLINK");      
+                foreach (var item in theFEMModel.LinkGroups)
+                {
+                    sw.WriteLine("{0},{1},{2}, GEN  ,0, NO, NO, NO, NO, NO, NO, 1e9, 1e9, 1e9, 0, 0, 0, NO, 0.5, 0.5, ", rigID, item.Item1, item.Item2);
+                    rigID++;
+                }
             }
+
 
             sw.WriteLine("*NL-LINK ");
             foreach (var item in theFEMModel.LinkGroups2)

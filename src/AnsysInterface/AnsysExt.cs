@@ -101,6 +101,7 @@ namespace AnsysInterface
                 sw.WriteLine("/prep7");
                 sw.WriteLine("esel,s,secn,,61,69");
                 sw.WriteLine("esel,a,mat,,99");
+                sw.WriteLine("esel,a,secn,,71,72");
                 sw.WriteLine("edele,all,all ! remove column");
             }   
             using (StreamWriter sw = new StreamWriter(Path.Combine(v, "RemoveCP.inp"), false))
@@ -195,29 +196,38 @@ namespace AnsysInterface
                 sw.WriteLine("SECDATA,700,24,0,0,0,0,0,0,0,0,0,0");
                 sw.WriteLine("SECTYPE,  5,BEAM,CSOLID,CFST-1400*40,0");
                 sw.WriteLine("SECDATA,700,24,0,0,0,0,0,0,0,0,0,0");
-                sw.WriteLine("SECTYPE, 21,BEAM,CTUBE,TUBE-900*20 ,0");
+
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB900*20,0", 21);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (900 - 20 * 2), 0.5 * 900);
-                sw.WriteLine("SECTYPE, 22,BEAM,CTUBE,TUBE-800*16 ,0");
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB800*16,0", 22);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
-                sw.WriteLine("SECTYPE, 23,BEAM,CTUBE,TUBE-600*12 ,0");
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB600*12,0", 23);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (600 - 12 * 2), 0.5 * 600);
-                sw.WriteLine("SECTYPE, 31,BEAM,CTUBE,TUBE-800*16 ,0");
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB800*16,0", 31);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
-                sw.WriteLine("SECTYPE, 32,BEAM,CTUBE,TUBE-300*10 ,0");
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB600*12,0", 32);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (600 - 12 * 2), 0.5 * 600);
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB300*10,0", 33);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (300 - 10 * 2), 0.5 * 300);
-                sw.WriteLine("SECTYPE, 41,BEAM,CTUBE,TUBE-800*16 ,0");
+                sw.WriteLine("SECTYPE, {0},BEAM,CTUBE,TB800*16,0", 41);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
-                sw.WriteLine("SECTYPE, 42,BEAM,CTUBE,TUBE-500*10 ,0");
+                sw.WriteLine("SECTYPE, {0},BEAM,CTUBE,TB500*10,0", 42);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (600 - 12 * 2), 0.5 * 600);
+                sw.WriteLine("SECTYPE, {0},BEAM,CTUBE,TB500*10,0", 43);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (500 - 10 * 2), 0.5 * 500);
-                sw.WriteLine("SECTYPE, 51,BEAM,CTUBE,TUBE-600*16 ,0");
-                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (600 - 16 * 2), 0.5 * 600);
-                sw.WriteLine("SECTYPE, 61,BEAM,CTUBE,TUBE-900*20 ,0");
-                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
-                sw.WriteLine("SECTYPE, 62,BEAM,CTUBE,TUBE-800*16 ,0");
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB600*16,0", 51);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (700 - 16 * 2), 0.5 * 700);
-                sw.WriteLine("SECTYPE, 63,BEAM,CTUBE,TUBE-600*12 ,0");
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB600*16,0", 52);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (600 - 16 * 2), 0.5 * 600);
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB600*16,0", 53);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (500 - 10 * 2), 0.5 * 500);
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB900*20,0", 61);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (900 - 20 * 2), 0.5 * 900);
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB800*16,0", 62);
+                sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (800 - 16 * 2), 0.5 * 800);
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB450*10,0", 63);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (450 - 10 * 2), 0.5 * 450);
-                sw.WriteLine("SECTYPE, 64,BEAM,CTUBE,TUBE-600*12 ,0");
+                sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB600*12,0", 64);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (300 - 10 * 2), 0.5 * 300);
             }
         }

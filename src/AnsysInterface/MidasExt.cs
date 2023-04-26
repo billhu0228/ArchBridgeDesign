@@ -63,6 +63,7 @@ namespace AnsysInterface
             sw.WriteLine("*STLDCASE");
             sw.WriteLine("自重, USER,");
             sw.WriteLine("二期, USER,");
+            sw.WriteLine("摩阻力, USER,");
             sw.WriteLine("*USE-STLD, 自重");
             sw.WriteLine("*SELFWEIGHT");
             sw.WriteLine("0, 0, -1,");
@@ -131,7 +132,7 @@ namespace AnsysInterface
             sw.WriteLine("   53, DBUSER    , 平联-500*10       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 500, 10, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   61, DBUSER    , 立柱-900*20       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 800, 16, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   62, DBUSER    , 立柱-800*16       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 700, 16, 0, 0, 0, 0, 0, 0, 0, 0");
-            sw.WriteLine("   63, DBUSER    , 立柱-600*12       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 450, 10, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   63, DBUSER    , 立柱-450*10       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 450, 10, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   64, DBUSER    , 立柱-600*12       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 300, 10, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   65, DBUSER  , 冒梁-2m, CT, 0, 0, 0, 0, 0, 0, YES, NO, BSTF, 2, 1800, 2000, 22, 20, 400, 200, 16, 435, 200, 16, 4, 3");
             sw.WriteLine("   66, DBUSER  , 冒梁-4m, CT, 0, 0, 0, 0, 0, 0, YES, NO, BSTF, 2, 1800, 4000, 22, 20, 400, 200, 16, 435, 200, 16, 7, 3");
@@ -266,23 +267,49 @@ namespace AnsysInterface
             sw.WriteLine("   W2拱肋横风, USER, ");
             sw.WriteLine("   W2立柱横风, USER, ");
             sw.WriteLine("   W2桥面横风, USER, ");
+            //sw.WriteLine("   W1横风, USER, ");
+            //sw.WriteLine("   W2横风, USER, ");
             sw.WriteLine("   整体升温, USER, ");
             sw.WriteLine("   整体降温, USER, ");
             sw.WriteLine("   梯度升温, USER, ");
             sw.WriteLine("   梯度降温, USER, ");
-            sw.WriteLine("   制动力, USER, ");
+            sw.WriteLine("   制动力L, USER, ");
+            sw.WriteLine("   制动力R, USER, ");
+            sw.WriteLine("   制动力A, USER, ");
+            sw.WriteLine("   摩阻力, USER, ");
         }
         private void WriteBreaking(ref StreamWriter sw, ref FEMDeck DeckA, ref FEMDeck DeckB)
         {
             sw.WriteLine("*UNIT");
             sw.WriteLine(" N , M, KJ, C");
-            sw.WriteLine("*USE-STLD, 制动力");
+            sw.WriteLine("*USE-STLD, 制动力R");
+            sw.WriteLine("*PRESSURE ");
+            foreach (var item in DeckB.ElementList)
+            {
+                if (item.GetType() == typeof(FEMElement4))
+                {
+                    sw.WriteLine("{0,8}, PRES , PLATE, FACE, GX, 0, 0, 0, NO, 208, 0, 0, 0, 0, ", item.ID);
+                }
+            }
+            sw.Flush();
+            sw.WriteLine("*USE-STLD, 制动力L");
             sw.WriteLine("*PRESSURE ");
             foreach (var item in DeckA.ElementList)
             {
                 if (item.GetType() == typeof(FEMElement4))
                 {
-                    sw.WriteLine("{0,8}, PRES , PLATE, FACE, GX, 0, 0, 0, NO, 208, 0, 0, 0, 0, ", item.ID);
+                    sw.WriteLine("{0,8}, PRES , PLATE, FACE, GX, 0, 0, 0, NO, -208, 0, 0, 0, 0, ", item.ID);
+                }
+            }      
+            sw.Flush();
+
+            sw.WriteLine("*USE-STLD, 制动力A");
+            sw.WriteLine("*PRESSURE ");
+            foreach (var item in DeckA.ElementList)
+            {
+                if (item.GetType() == typeof(FEMElement4))
+                {
+                    sw.WriteLine("{0,8}, PRES , PLATE, FACE, GX, 0, 0, 0, NO, -208, 0, 0, 0, 0, ", item.ID);
                 }
             }
             foreach (var item in DeckB.ElementList)
@@ -381,9 +408,9 @@ namespace AnsysInterface
             sw.WriteLine("*SYSTEMPER");
             sw.WriteLine("-26, ");
             sw.WriteLine("*SM-GROUP    ");
-            sw.WriteLine("   FT1,0.050, 11000to41000by10000 12000to42000by10000 80000to80003");
+            sw.WriteLine("   FT1,0.020, 11000to41000by10000 12000to42000by10000 80000to80003 111057 111058");
             int m = theFEMModel.MaxFrameID;
-            sw.WriteLine("   FT2,0.050, {0}to{1}by10000 {2}to{3}by10000 80012to80015", 11000 + m, 41000 + m, 12000 + m, 42000 + m);
+            sw.WriteLine("   FT2,0.020, {0}to{1}by10000 {2}to{3}by10000 80012to80015 112057 112058", 11000 + m, 41000 + m, 12000 + m, 42000 + m);
             sw.WriteLine("*SMLDCASE ");
             sw.WriteLine("   NAME=沉降, 1, 2, 1, ");
             sw.WriteLine("   FT1, FT2");
@@ -406,6 +433,14 @@ namespace AnsysInterface
             WriteColuWind(ref sw, "W2立柱横风", 412, 366, 137);
             WriteDeckWind(ref sw, "W1桥面横风", 300660, 300769, true, 2729);
             WriteDeckWind(ref sw, "W2桥面横风", 300660, 300769, false, 5048);
+
+            //WriteArchWind(ref sw, "W1横风", 486, 228);
+            //WriteColuWind(ref sw, "W1横风", 234, 208, 78);
+            //WriteDeckWind(ref sw, "W1横风", 300660, 300769, true, 2729);            
+            //WriteArchWind(ref sw, "W2横风", 896, 512);            
+            //WriteColuWind(ref sw, "W2横风", 412, 366, 137);            
+            //WriteDeckWind(ref sw, "W2横风", 300660, 300769, false, 5048);
+
             sw.Flush();
             Console.WriteLine("梯度温度荷载MCT写出完成...");
             WriteTempAndFd(ref sw);
