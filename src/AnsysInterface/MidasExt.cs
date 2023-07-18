@@ -64,6 +64,7 @@ namespace AnsysInterface
             sw.WriteLine("自重, USER,");
             sw.WriteLine("二期, USER,");
             sw.WriteLine("摩阻力, USER,");
+            sw.WriteLine("摩阻力(桥面), USER,");
             sw.WriteLine("*USE-STLD, 自重");
             sw.WriteLine("*SELFWEIGHT");
             sw.WriteLine("0, 0, -1,");
@@ -277,6 +278,7 @@ namespace AnsysInterface
             sw.WriteLine("   制动力R, USER, ");
             sw.WriteLine("   制动力A, USER, ");
             sw.WriteLine("   摩阻力, USER, ");
+            sw.WriteLine("   摩阻力(桥面), USER, ");
         }
         private void WriteBreaking(ref StreamWriter sw, ref FEMDeck DeckA, ref FEMDeck DeckB)
         {

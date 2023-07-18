@@ -162,6 +162,31 @@ namespace CADInterface.UI
                 return segBtn;
             }
         }
+
+        private static RibbonButtonEX listBtn;
+        public static RibbonButtonEX ListBtn
+        {
+            get
+            {
+                listBtn = new RibbonButtonEX("导出坐标表", RibbonItemSize.Large, Orientation.Vertical, "ListArch");
+                listBtn.SetImg(Config.CurPath + "Images\\file.png");//设置按钮图片
+                //添加提示对象
+                RibbonToolTip toolTip = new RibbonToolTip();
+                toolTip.Title = "导出坐标表";
+                toolTip.Content = "导出坐标表";
+                toolTip.Command = "ListArch";
+                toolTip.ExpandedContent = "";
+                string imgToolTipFileName = Config.CurPath + "Images\\file.PNG";
+                Uri toolTipUri = new Uri(imgToolTipFileName);
+                BitmapImage toolTipBitmapImge = new BitmapImage(toolTipUri);
+                toolTip.ExpandedImage = toolTipBitmapImge;
+                listBtn.ToolTip = toolTip;
+                //鼠标进入时的图片
+                listBtn.ImgHoverFileName = Config.CurPath + "Images\\cursor-default-click-outline.PNG";
+                return listBtn;
+            }
+        }
+
         #endregion
 
     }

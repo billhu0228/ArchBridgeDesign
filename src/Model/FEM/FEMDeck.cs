@@ -254,8 +254,8 @@ namespace Model
                                 nj = RelatedDeck.ColumnIDList[iix] * 1000 + 100000 + 5;
                             }
                         }
-
-                        if (iix == 1|| iix == 2 || iix == 9 || iix == 10)
+                        List<int> locBR = new List<int> { 1, 2, 9, 10 };
+                        if (locBR.Contains(iix)) // 顺桥向约束的                        
                         {
                             // 高墩
                             iib = iiy == 2 ? 3 : 2;
@@ -265,16 +265,7 @@ namespace Model
                             // 一般
                             iib = iiy == 2 ? 1 : 0;
                         }
-                        if (iib == 3)
-                        {
-                            // LinkGroups.Add(new Tuple<int, int>(n - 1, nj));
-                            LinkGroups2.Add(new LinkGroup(1, n - 1, nj, Bearings[iib]));
-                        }
-                        else
-                        {
-                            LinkGroups2.Add(new LinkGroup(1, n - 1, nj, Bearings[iib]));
-                        }
-          
+                        LinkGroups2.Add(new LinkGroup(1, n - 1, nj, Bearings[iib]));          
                     }
                 }
             }

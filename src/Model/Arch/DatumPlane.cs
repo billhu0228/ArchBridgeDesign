@@ -74,5 +74,22 @@ namespace Model
         {
             return x.Center.X.CompareTo(y.Center.X);
         }
+
+        public DatumPlane offset(double val)
+        {
+            DatumPlane p = new DatumPlane();
+            p.ID = ID;
+
+            p.Direction = Direction;
+      
+            p.Angle0 = Angle0;
+            p.DatumType = DatumType;
+
+            var offsetDir=p.Direction.Rotate(Angle.FromDegrees(90.0));
+            p.Center = Center+offsetDir*val;
+            p.RefPoint = RefPoint + offsetDir * val;
+
+            return p;
+        }
     }
 }

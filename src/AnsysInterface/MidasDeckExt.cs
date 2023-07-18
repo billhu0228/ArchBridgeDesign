@@ -69,6 +69,18 @@ namespace AnsysInterface
                     sw.WriteLine(" {0}, {1}, 0, 0, 0, 0, 0, ", item.Nj, Fx);
                 }                
             }
+
+            sw.WriteLine("*USE-STLD, 摩阻力(桥面)");
+            sw.WriteLine("*CONLOAD");
+            Fx = 0.03 * 2500e3;
+            foreach (var item in theFEMModel.LinkGroups2)
+            {
+                if (item.Bearing.Name == "GQZ-SX(双向)" || item.Bearing.Name == "GQZ-DX(顺向)")
+                {
+                    sw.WriteLine(" {0}, {1}, 0, 0, 0, 0, 0, ", item.Ni, Fx);
+                }
+            }
+
         }
         private void WriteConstraint(ref StreamWriter sw)
         {

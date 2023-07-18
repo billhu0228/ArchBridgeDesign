@@ -258,10 +258,15 @@ namespace CADInterface
             ObjectId LayoutID = db.CreatLayout("S4-06 主拱圈节段一般构造", "block\\TK.dwg");
             Extents2d ext1, ext2, ext3, ext4;
             archModel.DrawingSegment(out ext1, -119, -105);
-
-
-
         }
+
+        [CommandMethod("ListArch")]
+        public void ListArch()
+        {
+            Database db = HostApplicationServices.WorkingDatabase;
+            archModel.ListLeftElevation();
+        }
+
 
 
         [CommandMethod("LockDoc", CommandFlags.Session)]

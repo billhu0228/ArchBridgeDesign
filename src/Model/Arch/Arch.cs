@@ -1267,9 +1267,111 @@ namespace Model
 
         }
 
+
+        public DataTable WirteTable()
+        {
+            DataTable dt=new DataTable("Coordinate Table");
+
+            dt.Columns.Add("控制面", typeof(String));
+            dt.Columns.Add("特征点", typeof(String));
+            dt.Columns.Add("A", typeof(Double));
+            dt.Columns.Add("B", typeof(Double));
+            dt.Columns.Add("C", typeof(Double));
+            dt.Columns.Add("D", typeof(Double));
+            dt.Columns.Add("E", typeof(Double));
+            dt.Columns.Add("F", typeof(Double));
+            dt.Columns.Add("G", typeof(Double));
+
+            DataRow dr;           
+
+            string XZ = "XZ";
+            string ABC = "ABCDEFG";
+            foreach (var item in MainDatum)
+            {
+                if (item.RefPoint.X>0)
+                {
+                    continue;
+                }
+                for (int j = 0; j < 2; j++)
+                {
+                    dr = dt.NewRow();
+                    dr["控制面"] = item.ID;
+                    dr["特征点"] = XZ[j].ToString();
+                    var pts = Get7PointReal(item);
+                    for (int i = 0; i < 7; i++)
+                    {
+                        if (j==0)
+                        {
+                            dr[ABC[i].ToString()] = pts[i].X+Axis.L1;
+                        }
+                        else
+                        {
+                            dr[ABC[i].ToString()] = pts[i].Y+Axis.f;
+                        }
+                        
+                    }
+                    dt.Rows.Add(dr);
+                }
+            }
+            foreach (var item in InstallDatum)
+            {
+                if (item.RefPoint.X > 1||item.ID==0)
+                {
+                    continue;
+                }
+                for (int j = 0; j < 2; j++)
+                {
+                    dr = dt.NewRow();
+                    dr["控制面"] = item.ID;
+                    dr["特征点"] = XZ[j].ToString();
+                    var pts = Get7PointReal(item);
+                    for (int i = 0; i < 7; i++)
+                    {
+                        if (j == 0)
+                        {
+                            dr[ABC[i].ToString()] = pts[i].X + Axis.L1;
+                        }
+                        else
+                        {
+                            dr[ABC[i].ToString()] = pts[i].Y + Axis.f;
+                        }
+
+                    }
+                    dt.Rows.Add(dr);
+                }
+            }
+            DatumPlane p0 = MainDatum[1].offset(4.0);
+            var pts1 = Get7PointReal(MainDatum[1]);
+            var pts2 = Get7PointReal(MainDatum[2]);
+            Line2D LA=new Line2D(pts1[0],pts2[0]);
+            Line2D LB=new Line2D(pts1[1],pts2[1]);
+            Line2D LC=new Line2D(pts1[2],pts2[2]);
+            Line2D LD=new Line2D(pts1[3],pts2[3]);
+            Line2D LE=new Line2D(pts1[4],pts2[4]);
+            Line2D LF=new Line2D(pts1[5],pts2[5]);
+            Line2D LG=new Line2D(pts1[6],pts2[6]);
+            dt.Rows[0]["A"] = ((Point2D)LA.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["B"] = ((Point2D)LB.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["C"] = ((Point2D)LC.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["D"] = ((Point2D)LD.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["E"] = ((Point2D)LE.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["F"] = ((Point2D)LF.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["G"] = ((Point2D)LG.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[1]["A"] = ((Point2D)LA.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["B"] = ((Point2D)LB.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["C"] = ((Point2D)LC.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["D"] = ((Point2D)LD.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["E"] = ((Point2D)LE.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["F"] = ((Point2D)LF.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["G"] = ((Point2D)LG.IntersectWith(p0.Line)).Y + Axis.f;
+
+            return dt;
+        }
+
         #endregion
 
         #region 私有方法
+        
         public MemberPropertyRecord GetTubeProperty(double x, eMemberType member)
         {
             if (member == eMemberType.Virtual)
