@@ -54,7 +54,7 @@ namespace CADInterface
             Editor ed = db.GetEditor();
             ed.WriteMessage("\\n初始化模型..");
             // archModel = NamedArch.PhoenixModelV42(out theArchAxis, 2.0, 518 / 4.5, 17.0,8.5,0.6);            
-            archModel = NamedArch.PhoenixModelV6(out theArchAxis, 2.0, 518 / 4.5, 15.5,7.0,0.75);            
+            archModel = NamedArch.PhoenixModelV63(out theArchAxis, 2.0, 518 / 4.5, 15.5,7.0,0.75);            
         }
 
         [CommandMethod("ArchDraw")]
@@ -258,10 +258,15 @@ namespace CADInterface
             ObjectId LayoutID = db.CreatLayout("S4-06 主拱圈节段一般构造", "block\\TK.dwg");
             Extents2d ext1, ext2, ext3, ext4;
             archModel.DrawingSegment(out ext1, -119, -105);
-
-
-
         }
+
+        [CommandMethod("ListArch")]
+        public void ListArch()
+        {
+            Database db = HostApplicationServices.WorkingDatabase;
+            archModel.ListLeftElevation();
+        }
+
 
 
         [CommandMethod("LockDoc", CommandFlags.Session)]

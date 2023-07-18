@@ -5,7 +5,7 @@
     {
         public double W1, W2, W3, t1, t2, t3;
 
-        public HSection() : base(0)
+        public HSection() : base(0, "", eSection.HSection)
         {
             W1 = 0;
             W2 = 0;
@@ -14,7 +14,8 @@
             t2 = 0;
             t3 = 0;
         }
-        public HSection(int id, double w1, double w2, double w3, double t1, double t2, double t3) : base(id)
+        public HSection(int id, double w1, double w2, double w3, double t1, double t2, double t3,string name="") 
+            : base(id,name,eSection.HSection)
         {
             W1 = w1;
             W2 = w2;

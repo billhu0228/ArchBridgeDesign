@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace WinFromUI
 {
@@ -18,6 +19,7 @@ namespace WinFromUI
             gchX = GCHandle.Alloc(bds, GCHandleType.Pinned);
 
             box.GetBounds(gchX.AddrOfPinnedObject());
+            gchX.Free();
             return bds;
         }
         public static Point3D GetCenter(this vtkBox box)
@@ -54,6 +56,7 @@ namespace WinFromUI
             GCHandle gchX = default(GCHandle);
             gchX = GCHandle.Alloc(bds, GCHandleType.Pinned);
             box.GetBounds(gchX.AddrOfPinnedObject());
+            gchX.Free();
             return bds[1] - bds[0];
         }
 
@@ -63,7 +66,9 @@ namespace WinFromUI
             GCHandle gchX = default(GCHandle);
             gchX = GCHandle.Alloc(bds, GCHandleType.Pinned);
             box.GetBounds(gchX.AddrOfPinnedObject());
+            gchX.Free();
             return bds[3] - bds[2];
+
         }
 
         public static double GetZLength(this vtkBox box)
@@ -72,7 +77,39 @@ namespace WinFromUI
             GCHandle gchX = default(GCHandle);
             gchX = GCHandle.Alloc(bds, GCHandleType.Pinned);
             box.GetBounds(gchX.AddrOfPinnedObject());
+            gchX.Free();
             return bds[5] - bds[4];
+
         }
+
+        
+    }
+
+
+    public static class wfmExts
+    {
+
+        public static TreeNode GetNodeByName(this TreeNodeCollection list,string name)
+        {
+            foreach (TreeNode item in list)
+            {
+                if (item.Nodes.Count!=0)
+                {
+                    return item.Nodes.GetNodeByName(name);
+                }
+                else
+                {
+                    if (item.Name==name)
+                    {
+                        return item;
+                    }
+                }
+            }
+            return null;
+        }
+
+
+
+
     }
 }

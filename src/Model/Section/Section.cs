@@ -8,10 +8,14 @@
         public int SECN;
         public double Diameter;
         public double Thickness;
+        public string Name;
+        public eSection Type;
 
-        public Section(int secnid)
+        public Section(int secnid,string name,eSection type)
         {
             SECN = secnid;
+            Name = name;
+            Type = type;
         }
     }
 }

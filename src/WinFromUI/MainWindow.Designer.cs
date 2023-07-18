@@ -29,6 +29,13 @@ namespace WinFromUI
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("旧参数表");
+            System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("材料");
+            System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("截面");
+            System.Windows.Forms.TreeNode treeNode4 = new System.Windows.Forms.TreeNode("工作树", new System.Windows.Forms.TreeNode[] {
+            treeNode1,
+            treeNode2,
+            treeNode3});
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainWindow));
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.moninter = new System.Windows.Forms.ToolStripStatusLabel();
@@ -39,12 +46,17 @@ namespace WinFromUI
             this.打开OToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.保存SToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.另存为ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.TSI_V6 = new System.Windows.Forms.ToolStripMenuItem();
             this.编辑EToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.截面ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.输出ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ansysToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.midasToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.spaceClaimToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.帮助HToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.关于ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.vtkWindow = new Kitware.VTK.RenderWindowControl();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.paraTree = new System.Windows.Forms.TreeView();
@@ -112,7 +124,9 @@ namespace WinFromUI
             this.新建NToolStripMenuItem,
             this.打开OToolStripMenuItem,
             this.保存SToolStripMenuItem,
-            this.另存为ToolStripMenuItem});
+            this.另存为ToolStripMenuItem,
+            this.toolStripSeparator4,
+            this.toolStripMenuItem1});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(71, 24);
             this.文件ToolStripMenuItem.Text = "文件(F)";
@@ -144,11 +158,40 @@ namespace WinFromUI
             this.另存为ToolStripMenuItem.Size = new System.Drawing.Size(158, 26);
             this.另存为ToolStripMenuItem.Text = "另存为(A)";
             // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(155, 6);
+            // 
+            // toolStripMenuItem1
+            // 
+            this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.TSI_V6});
+            this.toolStripMenuItem1.Name = "toolStripMenuItem1";
+            this.toolStripMenuItem1.Size = new System.Drawing.Size(158, 26);
+            this.toolStripMenuItem1.Text = "已存项目";
+            // 
+            // TSI_V6
+            // 
+            this.TSI_V6.Name = "TSI_V6";
+            this.TSI_V6.Size = new System.Drawing.Size(302, 26);
+            this.TSI_V6.Text = "诗礼黑惠江大桥施工图设计模型";
+            this.TSI_V6.Click += new System.EventHandler(this.TSI_V6_Click);
+            // 
             // 编辑EToolStripMenuItem
             // 
+            this.编辑EToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.截面ToolStripMenuItem});
             this.编辑EToolStripMenuItem.Name = "编辑EToolStripMenuItem";
             this.编辑EToolStripMenuItem.Size = new System.Drawing.Size(71, 24);
             this.编辑EToolStripMenuItem.Text = "编辑(E)";
+            // 
+            // 截面ToolStripMenuItem
+            // 
+            this.截面ToolStripMenuItem.Name = "截面ToolStripMenuItem";
+            this.截面ToolStripMenuItem.Size = new System.Drawing.Size(122, 26);
+            this.截面ToolStripMenuItem.Text = "截面";
+            this.截面ToolStripMenuItem.Click += new System.EventHandler(this.截面ToolStripMenuItem_Click);
             // 
             // 输出ToolStripMenuItem
             // 
@@ -162,29 +205,41 @@ namespace WinFromUI
             // 
             // ansysToolStripMenuItem
             // 
+            this.ansysToolStripMenuItem.Enabled = false;
             this.ansysToolStripMenuItem.Name = "ansysToolStripMenuItem";
-            this.ansysToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.ansysToolStripMenuItem.Size = new System.Drawing.Size(223, 26);
             this.ansysToolStripMenuItem.Text = "Ansys";
             this.ansysToolStripMenuItem.Click += new System.EventHandler(this.ansysToolStripMenuItem_Click);
             // 
             // midasToolStripMenuItem
             // 
+            this.midasToolStripMenuItem.Enabled = false;
             this.midasToolStripMenuItem.Name = "midasToolStripMenuItem";
-            this.midasToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.midasToolStripMenuItem.Size = new System.Drawing.Size(223, 26);
             this.midasToolStripMenuItem.Text = "Midas MCT(*.mct)";
             this.midasToolStripMenuItem.Click += new System.EventHandler(this.midasToolStripMenuItem_Click);
             // 
             // spaceClaimToolStripMenuItem
             // 
+            this.spaceClaimToolStripMenuItem.Enabled = false;
             this.spaceClaimToolStripMenuItem.Name = "spaceClaimToolStripMenuItem";
-            this.spaceClaimToolStripMenuItem.Size = new System.Drawing.Size(224, 26);
+            this.spaceClaimToolStripMenuItem.Size = new System.Drawing.Size(223, 26);
             this.spaceClaimToolStripMenuItem.Text = "SpaceClaim";
             // 
             // 帮助HToolStripMenuItem
             // 
+            this.帮助HToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.关于ToolStripMenuItem});
             this.帮助HToolStripMenuItem.Name = "帮助HToolStripMenuItem";
             this.帮助HToolStripMenuItem.Size = new System.Drawing.Size(75, 24);
             this.帮助HToolStripMenuItem.Text = "帮助(H)";
+            // 
+            // 关于ToolStripMenuItem
+            // 
+            this.关于ToolStripMenuItem.Name = "关于ToolStripMenuItem";
+            this.关于ToolStripMenuItem.Size = new System.Drawing.Size(186, 26);
+            this.关于ToolStripMenuItem.Text = "关于 建模助手";
+            this.关于ToolStripMenuItem.Click += new System.EventHandler(this.TSI_About_Click);
             // 
             // vtkWindow
             // 
@@ -223,6 +278,16 @@ namespace WinFromUI
             this.paraTree.Dock = System.Windows.Forms.DockStyle.Fill;
             this.paraTree.Location = new System.Drawing.Point(0, 0);
             this.paraTree.Name = "paraTree";
+            treeNode1.Name = "ParasNd";
+            treeNode1.Text = "旧参数表";
+            treeNode2.Name = "MaterialNd";
+            treeNode2.Text = "材料";
+            treeNode3.Name = "SectionNd";
+            treeNode3.Text = "截面";
+            treeNode4.Name = "节点0";
+            treeNode4.Text = "工作树";
+            this.paraTree.Nodes.AddRange(new System.Windows.Forms.TreeNode[] {
+            treeNode4});
             this.paraTree.Size = new System.Drawing.Size(366, 786);
             this.paraTree.TabIndex = 6;
             this.paraTree.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.paraTree_AfterSelect);
@@ -265,7 +330,7 @@ namespace WinFromUI
             // btFrontView
             // 
             this.btFrontView.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btFrontView.Image = global::WinFromUI.Properties.Resources.front;
+            this.btFrontView.Image = ((System.Drawing.Image)(resources.GetObject("btFrontView.Image")));
             this.btFrontView.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btFrontView.Name = "btFrontView";
             this.btFrontView.Size = new System.Drawing.Size(29, 24);
@@ -275,7 +340,7 @@ namespace WinFromUI
             // btTopView
             // 
             this.btTopView.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btTopView.Image = global::WinFromUI.Properties.Resources.top;
+            this.btTopView.Image = ((System.Drawing.Image)(resources.GetObject("btTopView.Image")));
             this.btTopView.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btTopView.Name = "btTopView";
             this.btTopView.Size = new System.Drawing.Size(29, 24);
@@ -285,7 +350,7 @@ namespace WinFromUI
             // btLeftView
             // 
             this.btLeftView.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btLeftView.Image = global::WinFromUI.Properties.Resources.left;
+            this.btLeftView.Image = ((System.Drawing.Image)(resources.GetObject("btLeftView.Image")));
             this.btLeftView.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btLeftView.Name = "btLeftView";
             this.btLeftView.Size = new System.Drawing.Size(29, 24);
@@ -295,11 +360,12 @@ namespace WinFromUI
             // btRightView
             // 
             this.btRightView.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
-            this.btRightView.Image = global::WinFromUI.Properties.Resources.front;
+            this.btRightView.Image = ((System.Drawing.Image)(resources.GetObject("btRightView.Image")));
             this.btRightView.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.btRightView.Name = "btRightView";
             this.btRightView.Size = new System.Drawing.Size(29, 24);
             this.btRightView.Text = "右视图";
+            this.btRightView.Click += new System.EventHandler(this.btRightView_Click);
             // 
             // btFit
             // 
@@ -351,10 +417,11 @@ namespace WinFromUI
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.menuStrip1);
             this.Controls.Add(this.statusStrip1);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Form1";
+            this.Text = "钢管混凝土拱桥建模助手";
             this.Load += new System.EventHandler(this.MainWindow_Load);
             this.statusStrip1.ResumeLayout(false);
             this.statusStrip1.PerformLayout();
@@ -397,12 +464,17 @@ namespace WinFromUI
         private System.Windows.Forms.ToolStripButton btLeftView;
         private System.Windows.Forms.ToolStripButton btPerspView;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator3;
-        private System.Windows.Forms.TreeView paraTree;
         private System.Windows.Forms.ToolStripProgressBar pBar1;
         private System.Windows.Forms.ToolStripButton btOrthView;
         private System.Windows.Forms.ToolStripStatusLabel moninter;
         private System.Windows.Forms.ToolStripButton btRightView;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem TSI_V6;
+        private System.Windows.Forms.ToolStripMenuItem 关于ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 截面ToolStripMenuItem;
+        private System.Windows.Forms.TreeView paraTree;
     }
 }
 

@@ -65,6 +65,7 @@
     <Compile Include="InputWindow.xaml.cs">
       <DependentUpon>InputWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Section.cs" />
     <Compile Include="TreeViewModel.cs" />
     <Page Include="InputWindow.xaml">
       <SubType>Designer</SubType>

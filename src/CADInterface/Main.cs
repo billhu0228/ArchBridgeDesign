@@ -62,6 +62,7 @@ namespace CADInterface
             panelDataSource0.Items.Add(RibbonButtons.ColBtn); //添加配置绘制标准按钮 
             panelDataSource0.Items.Add(RibbonButtons.GABtn); //添加配置绘制标准按钮 
             panelDataSource0.Items.Add(RibbonButtons.SegBtn); //添加配置绘制标准按钮 
+            panelDataSource0.Items.Add(RibbonButtons.ListBtn); //添加配置绘制标准按钮 
 
 
             //SysInfo.isCreated = true;

@@ -46,7 +46,7 @@ namespace WinFromUI
             this.tbValue.Name = "tbValue";
             this.tbValue.Size = new System.Drawing.Size(206, 25);
             this.tbValue.TabIndex = 0;
-            this.tbValue.KeyPress+= new System.Windows.Forms.KeyPressEventHandler(CheckEnterKeyPress);
+            this.tbValue.KeyPress += new System.Windows.Forms.KeyPressEventHandler(CheckEnterKeyPress);
             // 
             // lbName
             // 

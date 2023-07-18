@@ -34,17 +34,37 @@ namespace AnsysInterface
             sw.Close();
             Console.WriteLine("MCT写出完成...");
         }
+        public void WriteMidas2021(string filepath)
+        {
+            StreamWriter sw = new StreamWriter(filepath, false, System.Text.Encoding.Default);
+
+            WriteMCTHead(ref sw);
+            WriteMCTMat(ref sw);
+            WriteMCTNode(ref sw);
+            WrietMCTElement(ref sw,false);
+            WrietMCTLoad(ref sw);
+
+            sw.Flush();
+
+            sw.Close();
+            Console.WriteLine("MCT写出完成...");
+        }
 
         private void WrietMCTLoad(ref StreamWriter sw)
         {
             int frameID = theFEMModel.MaxFrameID;
+            var RC1 = (from e in theFEMModel.ElementList where (e.Secn == 71) && (e.Ni <= 112000) select e).ToList();
+            var RC2 = (from e in theFEMModel.ElementList where (e.Secn == 71) && (e.Ni > 112000) select e).ToList();
             sw.WriteLine("*CONSTRAINT  ");
             sw.WriteLine("11000to41000by10000 12000to42000by10000 , 111000, ");
             sw.WriteLine("{0}to{1}by10000 {2}to{3}by10000 , 111000, ",11000+frameID,41000+frameID,12000+frameID,42000+frameID);
             sw.WriteLine("80000to80003 80012to80015, 111000, ");
+            sw.WriteLine("{0} {1} {2} {3}, 111111, ", RC1[RC1.Count - 2].Nj ,RC1[RC1.Count-1].Nj, RC2[RC2.Count - 2].Nj, RC2[RC2.Count - 1].Nj);
             sw.WriteLine("*STLDCASE");
             sw.WriteLine("自重, USER,");
             sw.WriteLine("二期, USER,");
+            sw.WriteLine("摩阻力, USER,");
+            sw.WriteLine("摩阻力(桥面), USER,");
             sw.WriteLine("*USE-STLD, 自重");
             sw.WriteLine("*SELFWEIGHT");
             sw.WriteLine("0, 0, -1,");
@@ -102,23 +122,27 @@ namespace AnsysInterface
             sw.WriteLine("   21, DBUSER    , 腹杆-900*20       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 900, 20, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   22, DBUSER    , 腹杆-800*16       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 800, 16, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   23, DBUSER    , 腹杆-600*12       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 600, 12, 0, 0, 0, 0, 0, 0, 0, 0");
-            sw.WriteLine("   31, DBUSER    , 内隔-800*16       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 800, 16, 0, 0, 0, 0, 0, 0, 0, 0");
-            sw.WriteLine("   32, DBUSER    , 内隔-300*10       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 300, 10, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   31, DBUSER    , 内隔-800*20       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 800, 20, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   32, DBUSER    , 内隔-600*12       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 600, 12, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   33, DBUSER    , 内隔-300*10       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 300, 10, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   41, DBUSER    , 横梁-800*16       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 800, 16, 0, 0, 0, 0, 0, 0, 0, 0");
-            sw.WriteLine("   42, DBUSER    , 横梁-500*10       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 500, 10, 0, 0, 0, 0, 0, 0, 0, 0");
-            sw.WriteLine("   51, DBUSER    , 平联-600*16       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 600, 16, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   42, DBUSER    , 横梁-600*12       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 600, 12, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   43, DBUSER    , 横梁-500*10       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 500, 10, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   51, DBUSER    , 平联-700*16       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 700, 16, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   52, DBUSER    , 平联-600*16       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 600, 16, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   53, DBUSER    , 平联-500*10       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 500, 10, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   61, DBUSER    , 立柱-900*20       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 800, 16, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   62, DBUSER    , 立柱-800*16       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 700, 16, 0, 0, 0, 0, 0, 0, 0, 0");
-            sw.WriteLine("   63, DBUSER    , 立柱-600*12       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 450, 10, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   63, DBUSER    , 立柱-450*10       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 450, 10, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   64, DBUSER    , 立柱-600*12       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 300, 10, 0, 0, 0, 0, 0, 0, 0, 0");
             sw.WriteLine("   65, DBUSER  , 冒梁-2m, CT, 0, 0, 0, 0, 0, 0, YES, NO, BSTF, 2, 1800, 2000, 22, 20, 400, 200, 16, 435, 200, 16, 4, 3");
             sw.WriteLine("   66, DBUSER  , 冒梁-4m, CT, 0, 0, 0, 0, 0, 0, YES, NO, BSTF, 2, 1800, 4000, 22, 20, 400, 200, 16, 435, 200, 16, 7, 3");
             //sw.WriteLine("   21, DBUSER    , 扣索              , CC, 0, 0, 0, 0, 0, 0, YES, NO, SR , 2, 72, 0, 0, 0, 0, 0, 0, 0, 0, 0");
             //sw.WriteLine("   22, DBUSER    , 缆索吊索塔        , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 2000, 40, 0, 0, 0, 0, 0, 0, 0, 0");
             //sw.WriteLine("   23, DBUSER    , 拱上立柱-矮       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 700, 16, 0, 0, 0, 0, 0, 0, 0, 0");
-            //sw.WriteLine("   24, TAPERED   , 墩-变截面         , CC, 0, 0, 0, 0, 0, 0, 0, 0, YES, YES, B  , 1, 1, USER");
-            //sw.WriteLine("       2500, 6000, 700, 700, 0, 0, 0, 0,  5880, 6000, 700, 700, 0, 0, 0, 0");
-            //sw.WriteLine("   25, DBUSER    , 引桥墩承台        , CC, 0, 0, 0, 0, 0, 0, YES, NO, SB , 2, 6400, 10000, 0, 0, 0, 0, 0, 0, 0, 0");
+            sw.WriteLine("   71, TAPERED   , 过渡墩         , CC, 0, 0, 0, 0, 0, 0, 0, 0, YES, YES, B  , 1, 1, USER");
+            sw.WriteLine("       4000, 7000, 500, 500, 0, 0, 0, 0,  6700, 7000, 500, 500, 0, 0, 0, 0");            
+            sw.WriteLine("   72, DBUSER    , 盖梁           , CT, 0, 0, 0, 0, 0, 0, YES, NO, SB , 2, 4000, 5000, 0, 0, 0, 0, 0, 0, 0, 0");
             //sw.WriteLine("   26, DBUSER    , 立柱联系梁        , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 450, 16, 0, 0, 0, 0, 0, 0, 0, 0");
             //sw.WriteLine("   27, DBUSER    , 立柱斜撑          , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 500, 16, 0, 0, 0, 0, 0, 0, 0, 0");
             //sw.WriteLine("   28, DBUSER    , 拱上立柱-高       , CC, 0, 0, 0, 0, 0, 0, YES, NO, P  , 2, 800, 16, 0, 0, 0, 0, 0, 0, 0, 0");
@@ -138,7 +162,12 @@ namespace AnsysInterface
             sw.Flush();
         }
 
-        private void WrietMCTElement(ref StreamWriter sw)
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="sw"></param>
+        /// <param name="includeRigID">是否包含刚彼编号，高版本midas不需要</param>
+        private void WrietMCTElement(ref StreamWriter sw,bool includeRigID=true)
         {
             Dictionary<int, int> SecnID = new Dictionary<int, int>()
             {
@@ -157,15 +186,21 @@ namespace AnsysInterface
                 {23,23 },
                 {31,31 },
                 {32,32 },
+                {33,33 },
                 {41,41 },
                 {42,42 },
+                {43,43 },
                 {51,51 },
+                {52,52 },
+                {53,53 },
                 {61,61 },
                 {62,62 },
                 {63,63 },
                 {64,64 },
                 {65,65 },
                 {66,66 },
+                {71,71 },
+                {72,72 },
                 {99,65 },
             };
             sw.WriteLine("*ELEMENT");
@@ -177,19 +212,40 @@ namespace AnsysInterface
                 //    continue;
                 //}
                 int matid = item.Secn < 20 ? SecnID[item.Secn] : 21;
+                if (item.Secn>=70)
+                {
+                    matid = 35;
+                }
 
                 sw.WriteLine(" {0},BEAM,{4},{3},{1},{2},0,0", elemid, item.Ni, item.Nj, SecnID[item.Secn], matid);
                 item.ID = elemid;
                 elemid++;
             }
+            var RC1=(from e in theFEMModel.ElementList where (e.Secn==71)&&(e.Ni<=112000) select e).ToList();
+            var RC2=(from e in theFEMModel.ElementList where (e.Secn==71)&&(e.Ni>112000) select e).ToList();
 
+            sw.WriteLine("*TS-GROUP");
+            sw.WriteLine("  C1, {0}to{1}by2,  LINEAR, , , ,  LINEAR, , , , 0", RC1[0].ID, RC1[RC1.Count - 2].ID);
+            sw.WriteLine("  C2, {0}to{1}by2,  LINEAR, , , ,  LINEAR, , , , 0", RC1[1].ID, RC1[RC1.Count - 1].ID);
+            sw.WriteLine("  C3, {0}to{1}by2,  LINEAR, , , ,  LINEAR, , , , 0", RC2[0].ID, RC2[RC2.Count - 2].ID);
+            sw.WriteLine("  C4, {0}to{1}by2,  LINEAR, , , ,  LINEAR, , , , 0", RC2[1].ID, RC2[RC2.Count - 1].ID);           
+            
+            
             sw.WriteLine("*RIGIDLINK");
             int rigID = 1;
             foreach (var item in theFEMModel.RigidGroups)
             {
                 foreach (var slv in item.Item2)
                 {
-                    sw.WriteLine("{0},{1},111111,{2},", rigID, item.Item1, slv);
+                    if (includeRigID)
+                    {
+                        sw.WriteLine("{0},{1},111111,{2},", rigID, item.Item1, slv);
+                    }
+                    else
+                    {
+                        sw.WriteLine("{0},111111,{1},",  item.Item1, slv);
+                    }
+
                     rigID++;
                 }
             }
@@ -212,23 +268,50 @@ namespace AnsysInterface
             sw.WriteLine("   W2拱肋横风, USER, ");
             sw.WriteLine("   W2立柱横风, USER, ");
             sw.WriteLine("   W2桥面横风, USER, ");
+            //sw.WriteLine("   W1横风, USER, ");
+            //sw.WriteLine("   W2横风, USER, ");
             sw.WriteLine("   整体升温, USER, ");
             sw.WriteLine("   整体降温, USER, ");
             sw.WriteLine("   梯度升温, USER, ");
             sw.WriteLine("   梯度降温, USER, ");
-            sw.WriteLine("   制动力, USER, ");
+            sw.WriteLine("   制动力L, USER, ");
+            sw.WriteLine("   制动力R, USER, ");
+            sw.WriteLine("   制动力A, USER, ");
+            sw.WriteLine("   摩阻力, USER, ");
+            sw.WriteLine("   摩阻力(桥面), USER, ");
         }
         private void WriteBreaking(ref StreamWriter sw, ref FEMDeck DeckA, ref FEMDeck DeckB)
         {
             sw.WriteLine("*UNIT");
             sw.WriteLine(" N , M, KJ, C");
-            sw.WriteLine("*USE-STLD, 制动力");
+            sw.WriteLine("*USE-STLD, 制动力R");
+            sw.WriteLine("*PRESSURE ");
+            foreach (var item in DeckB.ElementList)
+            {
+                if (item.GetType() == typeof(FEMElement4))
+                {
+                    sw.WriteLine("{0,8}, PRES , PLATE, FACE, GX, 0, 0, 0, NO, 208, 0, 0, 0, 0, ", item.ID);
+                }
+            }
+            sw.Flush();
+            sw.WriteLine("*USE-STLD, 制动力L");
             sw.WriteLine("*PRESSURE ");
             foreach (var item in DeckA.ElementList)
             {
                 if (item.GetType() == typeof(FEMElement4))
                 {
-                    sw.WriteLine("{0,8}, PRES , PLATE, FACE, GX, 0, 0, 0, NO, 208, 0, 0, 0, 0, ", item.ID);
+                    sw.WriteLine("{0,8}, PRES , PLATE, FACE, GX, 0, 0, 0, NO, -208, 0, 0, 0, 0, ", item.ID);
+                }
+            }      
+            sw.Flush();
+
+            sw.WriteLine("*USE-STLD, 制动力A");
+            sw.WriteLine("*PRESSURE ");
+            foreach (var item in DeckA.ElementList)
+            {
+                if (item.GetType() == typeof(FEMElement4))
+                {
+                    sw.WriteLine("{0,8}, PRES , PLATE, FACE, GX, 0, 0, 0, NO, -208, 0, 0, 0, 0, ", item.ID);
                 }
             }
             foreach (var item in DeckB.ElementList)
@@ -327,9 +410,9 @@ namespace AnsysInterface
             sw.WriteLine("*SYSTEMPER");
             sw.WriteLine("-26, ");
             sw.WriteLine("*SM-GROUP    ");
-            sw.WriteLine("   FT1,0.050, 11000to41000by10000 12000to42000by10000 80000to80003");
+            sw.WriteLine("   FT1,0.020, 11000to41000by10000 12000to42000by10000 80000to80003 111057 111058");
             int m = theFEMModel.MaxFrameID;
-            sw.WriteLine("   FT2,0.050, {0}to{1}by10000 {2}to{3}by10000 80012to80015", 11000 + m, 41000 + m, 12000 + m, 42000 + m);
+            sw.WriteLine("   FT2,0.020, {0}to{1}by10000 {2}to{3}by10000 80012to80015 112057 112058", 11000 + m, 41000 + m, 12000 + m, 42000 + m);
             sw.WriteLine("*SMLDCASE ");
             sw.WriteLine("   NAME=沉降, 1, 2, 1, ");
             sw.WriteLine("   FT1, FT2");
@@ -352,6 +435,14 @@ namespace AnsysInterface
             WriteColuWind(ref sw, "W2立柱横风", 412, 366, 137);
             WriteDeckWind(ref sw, "W1桥面横风", 300660, 300769, true, 2729);
             WriteDeckWind(ref sw, "W2桥面横风", 300660, 300769, false, 5048);
+
+            //WriteArchWind(ref sw, "W1横风", 486, 228);
+            //WriteColuWind(ref sw, "W1横风", 234, 208, 78);
+            //WriteDeckWind(ref sw, "W1横风", 300660, 300769, true, 2729);            
+            //WriteArchWind(ref sw, "W2横风", 896, 512);            
+            //WriteColuWind(ref sw, "W2横风", 412, 366, 137);            
+            //WriteDeckWind(ref sw, "W2横风", 300660, 300769, false, 5048);
+
             sw.Flush();
             Console.WriteLine("梯度温度荷载MCT写出完成...");
             WriteTempAndFd(ref sw);
@@ -421,14 +512,63 @@ namespace AnsysInterface
             sw.WriteLine("*VEHICLE    ; Vehicles");
             sw.WriteLine("   NAME=CH-CD, 1, CH-CD, JTGB01-2014");
             sw.WriteLine("*MVLDCASE(CH)   ; Moving Load Cases (china)");
-            sw.WriteLine("   NAME=活载, , NO, 2, 1, 0");
+            sw.WriteLine("   NAME=活载, ,  NO, 2, 0, 1");
             sw.WriteLine("        1, 1, 0.8, 0.67, 0.6, 0.55, 0.55, 0.55");
             sw.WriteLine("        1, 1, 0.78, 0.67, 0.6, 0.55, 0.52, 0.5");
             sw.WriteLine("        1.2, 1, 0.78, 0.67, 0.6, 0.55, 0.52, 0.5");
             sw.WriteLine("        VL, CH-CD, 1.05, 0, 3, L1, L2, L3");
             sw.WriteLine("        VL, CH-CD, 1.05, 0, 3, R1, R2, R3");
+            sw.WriteLine("*MOVE-CTRL(CH)");            
+            sw.WriteLine("   INF, 0, 3, CENTER, NO, NORMAL, YES,  YES, NO, ,   YES, NO, ,   YES, NO, ,   YES, NO,   , NO, 0, 0, YES, 0");
+            sw.WriteLine("   0");
+            sw.Close();
+            Console.WriteLine("MCT写出完成...");
+        }
+
+        public void WriteFTLoad(string filepath, ref FEMDeck leftDeck, ref FEMDeck rightDeck)
+        {
+            StreamWriter sw = new StreamWriter(filepath, false, System.Text.Encoding.Default);
+            sw.WriteLine("*UNIT");
+            sw.WriteLine(" N, mm, KJ, C");
+            sw.WriteLine("*MVLDCODE");
+            sw.WriteLine(" CODE=CHINA");
+            sw.WriteLine("*SURFLANE(CH)");
+            int NN = leftDeck.NodeList[0].ID / 100000 * 100000;
+            int npts = leftDeck.NPTS;
+            WriteLane(ref sw, "L1", NN + npts * 6 + 1, NN + npts * 7, 2050, "BACKWARD");
+            WriteLane(ref sw, "L2", NN + npts * 6 + 1, NN + npts * 7, 5050, "BACKWARD");
+            WriteLane(ref sw, "L3", NN + npts * 6 + 1, NN + npts * 7, 8050, "BACKWARD");
+            NN = rightDeck.NodeList[0].ID / 100000 * 100000;
+            npts = rightDeck.NPTS;
+            WriteLane(ref sw, "R1", NN + npts * 6 + 1, NN + npts * 7, 2050, "FORWARD");
+            WriteLane(ref sw, "R2", NN + npts * 6 + 1, NN + npts * 7, 5050, "FORWARD");
+            WriteLane(ref sw, "R3", NN + npts * 6 + 1, NN + npts * 7, 8050, "FORWARD");
+            sw.Flush();
+            sw.WriteLine("*VEHICLE    ; Vehicles");
+            sw.WriteLine("  NAME=CH-PL1, 1, CH-PL1, JTGB01-2014");
+            sw.WriteLine("  NAME=CH-PL2, 1, CH-PL2, JTGB01-2014, 40000");
+            sw.WriteLine("  NAME=CH-PL3, 1, CH-PL3, JTGB01-2014");
+            sw.WriteLine("*MVLDCASE(CH)   ");
+            sw.WriteLine("   NAME=疲劳-I(FL), , NO, 2, 0, 1");
+            sw.WriteLine("        1, 1, 0.8, 0.67, 0.6, 0.55, 0.55, 0.55");
+            sw.WriteLine("        1, 1, 0.78, 0.67, 0.6, 0.55, 0.52, 0.5");
+            sw.WriteLine("        1.2, 1, 0.78, 0.67, 0.6, 0.55, 0.52, 0.5");
+            sw.WriteLine("        VL, CH-PL1, 1, 0, 3, L1, L2, L3");
+            sw.WriteLine("        VL, CH-PL1, 1, 0, 3, R1, R2, R3");
+            sw.WriteLine("   NAME=疲劳-II(FL), , NO, 2, 0, 1");
+            sw.WriteLine("        1, 1, 0.8, 0.67, 0.6, 0.55, 0.55, 0.55");
+            sw.WriteLine("        1, 1, 0.78, 0.67, 0.6, 0.55, 0.52, 0.5");
+            sw.WriteLine("        1.2, 1, 0.78, 0.67, 0.6, 0.55, 0.52, 0.5");
+            sw.WriteLine("        VL, CH-PL2, 1, 0, 3, L1, L2, L3");
+            sw.WriteLine("        VL, CH-PL2, 1, 0, 3, R1, R2, R3");
+            sw.WriteLine("   NAME=疲劳-III(FL), , NO, 2, 0, 1");
+            sw.WriteLine("        1, 1, 0.8, 0.67, 0.6, 0.55, 0.55, 0.55");
+            sw.WriteLine("        1, 1, 0.78, 0.67, 0.6, 0.55, 0.52, 0.5");
+            sw.WriteLine("        1.2, 1, 0.78, 0.67, 0.6, 0.55, 0.52, 0.5");
+            sw.WriteLine("        VL, CH-PL3, 1, 0, 3, L1, L2, L3");
+            sw.WriteLine("        VL, CH-PL3, 1, 0, 3, R1, R2, R3");
             sw.WriteLine("*MOVE-CTRL(CH)");
-            sw.WriteLine("   INF, 0, 3, CENTER, NO, NORMAL, NO,   YES, NO, ,   YES, NO, ,   YES, NO, ,   YES, NO,   , NO, 0, 0, YES, 0");
+            sw.WriteLine("   INF, 0, 3, CENTER, NO, NORMAL, YES,  YES, NO, ,   YES, NO, ,   YES, NO, ,   YES, NO,   , NO, 0, 0, YES, 0");
             sw.WriteLine("   0");
             sw.Close();
             Console.WriteLine("MCT写出完成...");

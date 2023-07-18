@@ -37,7 +37,7 @@ namespace Model
         public double ElevationOfTop;
         public DataTable ColumnTable;
         double HeightOrder;
-        public double InstallDist;
+        public double InstallDist, MidInstallDist;
         double footLevel;
 
 
@@ -73,6 +73,7 @@ namespace Model
             ElevationOfTop = elevationOfTop;
             footLevel = elevationOfTop - ax.f;
             InstallDist = 1.2;
+            MidInstallDist = 2;
         }
 
 
@@ -151,6 +152,8 @@ namespace Model
             PropertyTable.Add(new MemberPropertyRecord(idx, sect, MT, from, to));
         }
 
+
+
         /// <summary>
         /// 生成通用安装节段
         /// </summary>
@@ -165,7 +168,7 @@ namespace Model
         {
             //首先判断参数合理性
             double La = nexI.Center.X - curI.Center.X;
-            Debug.Assert(Math.Abs(dist.Sum() -La) < 1e-3);
+            Debug.Assert(Math.Abs(dist.Sum() - La) < 1e-3);
             Debug.Assert(dist.Length == ang_degList.Length + 1);
             Debug.Assert(is_dia.Length == dist.Length);
 
@@ -264,6 +267,122 @@ namespace Model
                 {
                     if (is_dia[i])
                     {
+                        var dia = CreatDiagonalDatum(newMainDatum[i - 1], newMainDatum[i], e, DiaDirect);
+                        var a = (newMainDatum[i - 1].Angle0.Degrees + newMainDatum[i].Angle0.Degrees) * 0.5;
+                        SecondaryDatum.Add(new DatumPlane(0, dia.Center, Angle.FromDegrees(a), eDatumType.MiddleDatum));
+                        newDiaDatum.Add(dia);
+                    }
+                }
+            }
+
+            foreach (var item in newMainDatum)
+            {
+                MainDatum.Add(item);
+            }
+            foreach (var item in newDiaDatum)
+            {
+                DiagonalDatum.Add(item);
+            }
+            MainDatum.MySort();
+            DiagonalDatum.MySort();
+            SecondaryDatum.MySort();
+        }
+
+
+
+        /// <summary>
+        /// 生成通用安装节段,新版，支持定义次腹杆方向
+        /// </summary>
+        /// <param name="curI"></param>
+        /// <param name="nexI"></param>
+        /// <param name="vs1"></param>
+        /// <param name="vs2"></param>
+        /// <param name="vs3"></param>
+        public void CreateInstallSegmentNew(DatumPlane curI, DatumPlane nexI,
+            double[] dist, double[] ang_degList,
+            bool[] is_dia, double e,bool[] dia_direct)
+        {
+            //首先判断参数合理性
+            double La = nexI.Center.X - curI.Center.X;
+            Debug.Assert(Math.Abs(dist.Sum() -La) < 1e-3);
+            Debug.Assert(dist.Length == ang_degList.Length + 1);
+            Debug.Assert(is_dia.Length == dist.Length);
+            Debug.Assert(dia_direct.Length == dist.Length);
+
+            List<eDatumType> Dtlist = new List<eDatumType>();
+            //List<double> ang_degList = new List<double>();
+
+
+            for (int i = 0; i < dist.Count() - 1; i++)
+            {
+                if (i == 0)
+                {
+                    if (Math.Abs(dist[i]) <= 2)
+                    {
+                        Dtlist.Add(eDatumType.DoubleDatum);
+                    }
+                    else
+                    {
+                        if (ang_degList[i] == 90)
+                        {
+                            Dtlist.Add(eDatumType.VerticalDatum);
+                        }
+                        else
+                        {
+                            Dtlist.Add(eDatumType.NormalDatum);
+                        }
+                    }
+                }
+                else if (i == ang_degList.Length - 1)
+                {
+                    if (dist.Last() <= 2)
+                    {
+                        Dtlist.Add(eDatumType.DoubleDatum);
+                    }
+                    else
+                    {
+                        if (ang_degList[i] == 90)
+                        {
+                            Dtlist.Add(eDatumType.VerticalDatum);
+                        }
+                        else
+                        {
+                            Dtlist.Add(eDatumType.NormalDatum);
+                        }
+                    }
+                }
+                else
+                {
+                    if (ang_degList[i] == 90)
+                    {
+                        Dtlist.Add(eDatumType.VerticalDatum);
+                    }
+                    else
+                    {
+                        Dtlist.Add(eDatumType.NormalDatum);
+                    }
+                }
+                //double xi = curI.Center.X + dist.ToList().GetRange(0, i + 1).Sum();
+
+            }
+            List<DatumPlane> newMainDatum = new List<DatumPlane>();
+            List<DatumPlane> newDiaDatum = new List<DatumPlane>();
+            // 判断斜腹杆方向
+            bool GreaterThanZero = 0.5 * (curI.Center.X + nexI.Center.X) > 0;
+            bool AnyNorm = curI.Angle0.Degrees != 90.0 || nexI.Angle0.Degrees != 90;
+            bool DiaDirect;
+            // 判断斜腹杆方向
+            for (int i = 0; i < dist.Length - 1; i++)
+            {
+                double xi = curI.Center.X + dist.ToList().GetRange(0, i + 1).Sum();
+                Point2D cc = new Point2D(xi, Axis.GetZ(xi));
+                double ang = ang_degList[i];
+                newMainDatum.Add(new DatumPlane(0, cc, Angle.FromDegrees(ang), Dtlist[i]));
+                if (i != 0)
+                {
+                    if (is_dia[i])
+                    {
+                        DiaDirect = dia_direct[i];
                         var dia = CreatDiagonalDatum(newMainDatum[i - 1], newMainDatum[i], e, DiaDirect);
                         var a = (newMainDatum[i - 1].Angle0.Degrees + newMainDatum[i].Angle0.Degrees) * 0.5;
                         SecondaryDatum.Add(new DatumPlane(0, dia.Center, Angle.FromDegrees(a), eDatumType.MiddleDatum));
@@ -1148,9 +1267,111 @@ namespace Model
 
         }
 
+
+        public DataTable WirteTable()
+        {
+            DataTable dt=new DataTable("Coordinate Table");
+
+            dt.Columns.Add("控制面", typeof(String));
+            dt.Columns.Add("特征点", typeof(String));
+            dt.Columns.Add("A", typeof(Double));
+            dt.Columns.Add("B", typeof(Double));
+            dt.Columns.Add("C", typeof(Double));
+            dt.Columns.Add("D", typeof(Double));
+            dt.Columns.Add("E", typeof(Double));
+            dt.Columns.Add("F", typeof(Double));
+            dt.Columns.Add("G", typeof(Double));
+
+            DataRow dr;           
+
+            string XZ = "XZ";
+            string ABC = "ABCDEFG";
+            foreach (var item in MainDatum)
+            {
+                if (item.RefPoint.X>0)
+                {
+                    continue;
+                }
+                for (int j = 0; j < 2; j++)
+                {
+                    dr = dt.NewRow();
+                    dr["控制面"] = item.ID;
+                    dr["特征点"] = XZ[j].ToString();
+                    var pts = Get7PointReal(item);
+                    for (int i = 0; i < 7; i++)
+                    {
+                        if (j==0)
+                        {
+                            dr[ABC[i].ToString()] = pts[i].X+Axis.L1;
+                        }
+                        else
+                        {
+                            dr[ABC[i].ToString()] = pts[i].Y+Axis.f;
+                        }
+                        
+                    }
+                    dt.Rows.Add(dr);
+                }
+            }
+            foreach (var item in InstallDatum)
+            {
+                if (item.RefPoint.X > 1||item.ID==0)
+                {
+                    continue;
+                }
+                for (int j = 0; j < 2; j++)
+                {
+                    dr = dt.NewRow();
+                    dr["控制面"] = item.ID;
+                    dr["特征点"] = XZ[j].ToString();
+                    var pts = Get7PointReal(item);
+                    for (int i = 0; i < 7; i++)
+                    {
+                        if (j == 0)
+                        {
+                            dr[ABC[i].ToString()] = pts[i].X + Axis.L1;
+                        }
+                        else
+                        {
+                            dr[ABC[i].ToString()] = pts[i].Y + Axis.f;
+                        }
+
+                    }
+                    dt.Rows.Add(dr);
+                }
+            }
+            DatumPlane p0 = MainDatum[1].offset(4.0);
+            var pts1 = Get7PointReal(MainDatum[1]);
+            var pts2 = Get7PointReal(MainDatum[2]);
+            Line2D LA=new Line2D(pts1[0],pts2[0]);
+            Line2D LB=new Line2D(pts1[1],pts2[1]);
+            Line2D LC=new Line2D(pts1[2],pts2[2]);
+            Line2D LD=new Line2D(pts1[3],pts2[3]);
+            Line2D LE=new Line2D(pts1[4],pts2[4]);
+            Line2D LF=new Line2D(pts1[5],pts2[5]);
+            Line2D LG=new Line2D(pts1[6],pts2[6]);
+            dt.Rows[0]["A"] = ((Point2D)LA.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["B"] = ((Point2D)LB.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["C"] = ((Point2D)LC.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["D"] = ((Point2D)LD.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["E"] = ((Point2D)LE.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["F"] = ((Point2D)LF.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[0]["G"] = ((Point2D)LG.IntersectWith(p0.Line)).X + Axis.L1;
+            dt.Rows[1]["A"] = ((Point2D)LA.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["B"] = ((Point2D)LB.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["C"] = ((Point2D)LC.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["D"] = ((Point2D)LD.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["E"] = ((Point2D)LE.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["F"] = ((Point2D)LF.IntersectWith(p0.Line)).Y + Axis.f;
+            dt.Rows[1]["G"] = ((Point2D)LG.IntersectWith(p0.Line)).Y + Axis.f;
+
+            return dt;
+        }
+
         #endregion
 
         #region 私有方法
+        
         public MemberPropertyRecord GetTubeProperty(double x, eMemberType member)
         {
             if (member == eMemberType.Virtual)
@@ -1158,6 +1379,16 @@ namespace Model
 
             }
             var prop = PropertyTable.FindLast((pp) => pp.CheckProperty(x, member));
+            return prop;
+        }
+
+        public List<MemberPropertyRecord> GetTubeProperties(double x, eMemberType member)
+        {
+            if (member == eMemberType.Virtual)
+            {
+
+            }
+            var prop = PropertyTable.FindAll((pp) => pp.CheckProperty(x, member));
             return prop;
         }
 

@@ -11,6 +11,8 @@ using System.Configuration;
 using System.Collections.Specialized;
 using System.Xml;
 using System.Diagnostics;
+using System.Data;
+using ClosedXML.Excel;
 
 namespace Test
 {
@@ -18,8 +20,25 @@ namespace Test
     {
         static void Main(string[] args)
         {
+            ArchAxis ax;
+            Arch theArchModel;
+            theArchModel = NamedArch.PhoenixModelV63(out ax, 2.0, 518 /4.5, 15.5, 7.0);
+
+            StringBuilder fileContent = new StringBuilder();
+            fileContent.AppendLine(string.Format("x0,v0"));
+            for (int i = 0; i < theArchModel.Axis.L1+1; i++)
+            {
+                double x0 = i;
+                double v0 = theArchModel.Axis.GetLength(x0);
+                fileContent.AppendLine(string.Format("{0},{1}", x0, v0));                
+            }
+            File.WriteAllText("曲线点.csv", fileContent.ToString(), Encoding.UTF8);
+            DataTable dt= theArchModel.WirteTable();
+            dt.WriteToCsvFile("拱肋坐标.csv");
+            return;
+
             ArchAxis theArchAxis;
-            var archModel = NamedArch.PhoenixModelV42(out theArchAxis, 2.0, 518 / 4.5, 17.0, 8.5, 0.6);
+            // var archModel = NamedArch.PhoenixModelV63(out theArchAxis, 2.0, 518 / 4.5, 15.5, 7.0);
 
             Console.WriteLine("请输入f，按enter继续...");
             var fstr = Console.ReadLine();
@@ -35,17 +54,13 @@ namespace Test
             Console.WriteLine("\n请输入名称，按enter继续...");
             string name = Console.ReadLine();
 
-            //ArchAxis bx = new ArchAxis(518 / 4.5, 2, 518);
-            //var re= bx.Intersect(new Point2D(55, -10));
-
             double f = double.Parse(fstr);
             double m = double.Parse(mstr);
             double hf = double.Parse(hfstr);
             double ht = double.Parse(htstr);
 
-            ArchAxis ax;
-            Arch theArchModel;
-            theArchModel = NamedArch.PhoenixModelV6(out ax, m, 518 / (f),hf,ht);
+
+            theArchModel = NamedArch.PhoenixModelV63(out ax, m, 518 / (f),hf,ht);
 
             // 写出基准面
             // string name = "PhoenixModel";

@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AnsysDeckExt.cs" />
+    <Compile Include="OPSExt.cs" />
     <Compile Include="SpaceClaimExt.cs" />
     <Compile Include="MidasDeckExt.cs" />
     <Compile Include="MidasExt.cs" />

@@ -535,6 +535,157 @@ namespace CADInterface.API
         }
 
         /// <summary>
+        /// 左半拱圈控制坐标
+        /// </summary>
+        /// <param name="theArch"></param>
+        /// <param name="db"></param>
+        /// <param name="ext"></param>
+        public static void ListLeftElevation(this Arch theArch)
+        {            
+            #region 总体
+            DBObjectCollection obj = new DBObjectCollection();
+            ObjectIdCollection ids = new ObjectIdCollection();
+
+            Point3d ft = new Point3d(-0.5 * theArch.Axis.L, -theArch.Axis.f, 0);
+            Point3d cc = Point3d.Origin;
+            Point2d pref = new Point2d(0, 25);
+            Point3d jjd = new Point3d(theArch.RCColumnList[0].X, theArch.RCColumnList[0].H0, 0);
+            double LengthArch = theArch.Axis.L;
+            double FArch = theArch.Axis.f;
+            #endregion
+
+            #region 轴线
+            List<Point2d> ls = new List<Point2d>();
+            Polyline UpPL = null, LowPL = null, CenterLine = null;
+            double x0 = theArch.MainDatum[0].Center.X;
+            while (x0 < 0)
+            {
+                ls.Add(theArch.Axis.GetCenter(x0).ToAcadPoint2d());
+                x0 += 1;
+            }
+            ls.Add(theArch.Axis.GetCenter(0).ToAcadPoint2d());
+            ls.Sort((x, y) => x.X.CompareTo(y.X));
+
+            Extensions.Add(obj, PLPloter.AddPolylineByPointList(ls, "H中心线", false));
+            obj.Add(new Circle(ft, Vector3d.ZAxis, 2) { Layer = "H中心线" });
+
+            var Dim = DimPloter.DimRot(ft, ft.C3D(0.5 * theArch.Axis.L), ft.C3D(0, -15), 0, 1,
+                string.Format("{0}/2", LengthArch * 100), Unit.Meter, Unit.Centimeter);
+            obj.Add(Dim);
+            Dim = DimPloter.DimRot(cc, ft, cc.C3D(10), 90, 1, "f=<>", Unit.Meter, Unit.Centimeter);
+            obj.Add(Dim);
+            var CL = new Line(cc, cc.C3D(0, -FArch)) { Layer = "H中心线" };
+            obj.Add(CL);
+            obj.Add(TextPloter.AddDBText(cc.C3D(0, -0.5 * FArch), "主拱中心线", 1, 2.5, "H仿宋", Angle.FromDegrees(-90).Radians,
+                TextHorizontalMode.TextCenter, TextVerticalMode.TextTop));
+            #endregion
+
+            #region 拱圈
+            for (int k = 0; k < 2; k++)
+            {
+                eMemberType et = k == 0 ? eMemberType.LowerCoord : eMemberType.UpperCoord;
+                var kk1 = (from item in theArch.MemberTable where item.ElemType == et select item.Line.StartPoint.ToAcadPoint2d()).ToList();
+                var kk2 = (from item in theArch.MemberTable where item.ElemType == et select item.Line.EndPoint.ToAcadPoint2d()).ToList();
+                ls = (kk1.Concat(kk2)).ToList();
+                ls = ls.FindAll(x => x.X <= 2);
+                ls = ls.Distinct().ToList();
+                ls.Sort((x, y) => x.X.CompareTo(y.X));
+
+                var CC = (Polyline)PLPloter.AddPolylineByPointList(ls, "H中心线", false)[0];
+                obj.Add(CC);
+
+                var member = (from item in theArch.MemberTable where item.ElemType == eMemberType.UpperCoord select item).ToList()[0];
+                for (int i = 0; i < 2; i++)
+                {
+                    int dir = i == 0 ? -1 : 1;
+                    var mm = (Polyline)CC.GetOffsetCurves(member.Sect.Diameter * 0.5 * dir)[0];
+                    mm.Layer = "H粗线";
+                    obj.Add(mm);
+                    if (k == 0 && i == 0)
+                    {
+                        LowPL = mm;
+                    }
+                    if (k == 1 && i == 1)
+                    {
+                        UpPL = mm;
+                    }
+                }
+
+                var L1 = (Polyline)obj[obj.Count - 1];
+                var L2 = (Polyline)obj[obj.Count - 2];
+
+
+                var ep1 = L1.GetPoint2dAt(0);
+                var ep2 = L2.GetPoint2dAt(0);
+                obj.Add(new Line(ep1.C3D(), ep2.C3D()) { Layer = "H粗线" });
+
+                ep1 = L1.GetPoint2dAt(L1.NumberOfVertices - 1);
+                ep2 = L2.GetPoint2dAt(L2.NumberOfVertices - 1);
+
+
+                var dims = DimPloter.ArcBottomBreakLine(
+                    new Line(ep1.C3D(), ep2.C3D()).GetMidPoint2d(),
+                    theArch.MainTubeDiameter);
+                foreach (var ob in dims)
+                {
+                    var ent = (Entity)ob;
+                    ent.TransformBy(Matrix3d.Rotation(Angle.FromDegrees(-90).Radians,
+                        Vector3d.ZAxis, CC.EndPoint));
+                    obj.Add(ent);
+                }
+
+            }
+            var pts = theArch.get_3pt_real(-0.5 * LengthArch);
+            obj.Add(DimPloter.DimAli(pts[0].ToAcadPoint(), pts[2].ToAcadPoint(), pts[0].ToAcadPoint().C3D(-10),
+                1, "", Unit.Meter, Unit.Centimeter));
+            pts = theArch.get_3pt_real(0);
+            obj.Add(DimPloter.DimAli(pts[0].ToAcadPoint(), pts[2].ToAcadPoint(), pts[0].ToAcadPoint().C3D(5),
+                1, "", Unit.Meter, Unit.Centimeter));
+
+            foreach (var item in theArch.MemberTable)
+            {
+                if (item.ElemType != eMemberType.UpperCoord && item.ElemType != eMemberType.LowerCoord)
+                {
+                    if (item.Line.MiddlePoint().X > 0)
+                    {
+                        continue;
+                    }
+                    if (item.ElemType == eMemberType.TriWeb)
+                    {
+                        //double xc = item.Line.StartPoint.X;
+                        var cuts = theArch.Get3PointReal(item.StartDatum);
+
+                        Line bd1 = new Line(cuts[0].ToAcadPoint(), cuts[2].ToAcadPoint());
+                        bd1 = (Line)bd1.Offset(item.Sect.Diameter * 0.5)[0];
+
+                        var bd2 = LowPL;
+                        if (item.Line.EndPoint.Y > theArch.Axis.GetZ(item.Line.EndPoint.X))
+                        {
+                            bd2 = UpPL;
+                        }
+
+
+                        var web = MLPloter.AddTube(item.Line.StartPoint.ToAcadPoint2d(), item.Line.EndPoint.ToAcadPoint2d(), item.Sect.Diameter, 0, "H细线", bd1, bd2);
+
+                        Extensions.Add(obj, web);
+                    }
+                    else
+                    {
+                        var web = MLPloter.AddTube(item.Line.StartPoint.ToAcadPoint2d(), item.Line.EndPoint.ToAcadPoint2d(), item.Sect.Diameter, 0, "H细线", LowPL, UpPL);
+
+                        Extensions.Add(obj, web);
+                    }
+
+                }
+            }
+            #endregion
+
+            #region 输出
+            #endregion
+        }
+
+
+        /// <summary>
         /// 绘制拱圈
         /// </summary>
         /// <param name="model"></param>
