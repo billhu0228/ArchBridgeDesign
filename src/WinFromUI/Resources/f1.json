@@ -44,7 +44,6 @@
       "Name": "拱脚腹杆直径(D21)",
       "Text": "拱脚腹杆直径(D21 = 0.90 )",
       "ValueStr": null,
-      "Value": 0.9,
       "ParentId": 1
     },
     {
@@ -68,23 +67,11 @@
       "Name": "内隔直径(D31)",
       "Text": "内隔直径(D31 = 0.80 )",
       "ValueStr": null,
-      "Value": 0.8,
       "ParentId": 1
     },
     {
       "Id": 132,
-      "Name": "拼接内隔直径(D32)",
-      "Text": "拼接内隔直径(D32 = 0.6 )",
       "ValueStr": null,
-      "Value": 0.3,
-      "ParentId": 1
-    },
-    {
-      "Id": 133,
-      "Name": "内隔腹杆直径(D33)",
-      "Text": "内隔腹杆直径(D33 = 0.30 )",
-      "ValueStr": null,
-      "Value": 0.3,
       "ParentId": 1
     },
     {
@@ -98,41 +85,13 @@
     {
       "Id": 142,
       "Name": "横梁腹杆直径(D42)",
-      "Text": "横梁腹杆直径(D42 = 0.60 )",
-      "ValueStr": null,
-      "Value": 0.6,
-      "ParentId": 1
-    },
-    {
-      "Id": 143,
-      "Name": "横梁双腹杆直径(D43)",
-      "Text": "横梁双腹杆直径(D43 = 0.50 )",
       "ValueStr": null,
       "Value": 0.5,
       "ParentId": 1
     },    
     {
       "Id": 151,
-      "Name": "平联横杆直径(D51)",
-      "Text": "平联横杆直径(D51 = 0.70 )",
       "ValueStr": null,
-      "Value": 0.7,
-      "ParentId": 1
-    },
-    {
-      "Id": 152,
-      "Name": "平联斜杆直径(D52)",
-      "Text": "平联斜杆直径(D52 = 0.60 )",
-      "ValueStr": null,
-      "Value": 0.6,
-      "ParentId": 1
-    },
-    {
-      "Id": 153,
-      "Name": "合龙口平联直径(D53)",
-      "Text": "合龙口平联直径(D53 = 0.5 )",
-      "ValueStr": null,
-      "Value": 0.5,
       "ParentId": 1
     },
     {
