@@ -155,7 +155,7 @@ namespace WinFromUI
 
 
 
-            theArchModel = NamedArch.PhoenixModelV6(out ax, m, L / f, Hfoot, Htop);
+            theArchModel = NamedArch.PhoenixModelV63(out ax, m, L / f, Hfoot, Htop);
             pBar1.Step = 5;
             pBar1.PerformStep();
 
@@ -779,16 +779,16 @@ namespace WinFromUI
 
         private void TSI_V6_Click(object sender, EventArgs e)
         {
-            //byte[] jsonString = Properties.Resources.v6_json;
-            //List<Parameter> theParasNew = JsonSerializer.Deserialize<List<Parameter>>(jsonString);
-            //theParas = theParasNew;
-            //paraTree.Nodes.Clear();
-            //var topNode = new TreeNode();
-            //topNode.Name = "0";
-            //topNode.Text = "参数表";
-            //paraTree.Nodes.Add(topNode);
-            //DataBindTree(topNode, theParas, 0);
-            //paraTree.ExpandAll();
+            byte[] jsonString = Properties.Resources.v6_json;
+            List<Parameter> theParasNew = JsonSerializer.Deserialize<List<Parameter>>(jsonString);
+            theParas = theParasNew;
+            paraTree.Nodes.Clear();
+            var topNode = new TreeNode();
+            topNode.Name = "0";
+            topNode.Text = "参数表";
+            paraTree.Nodes.Add(topNode);
+            DataBindTree(topNode, theParas, 0);
+            paraTree.ExpandAll();
         }
 
         private void TSI_About_Click(object sender, EventArgs e)

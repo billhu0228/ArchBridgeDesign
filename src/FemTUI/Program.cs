@@ -15,16 +15,22 @@ namespace AnsysInterface
     {
         static void SpaceClaimProcedure()
         {
+            double Hf, Ht, m, f, ColDist, CrossBeamDist;
+            Hf = 15.5;
+            Ht = 7.0;
+            m = 2.0;
+            f = 4.5;
+            ColDist = 49.5;// 或者49.5；
             List<double> g1 = new List<double>() { 1.275, 5, 5, 1.275 };
             List<double> g2 = new List<double>() { 3.775, 5, 3.775 };
             CrossArrangement ca = new CrossArrangement(g1.Sum(), 0.25, 0.05, 0.3, 0, g1, g2);
             ArchAxis ax;
             Arch theArchModel;
-            theArchModel = NamedArch.PhoenixModelV4(out ax, 2.0, 518 / 4.5, 15.5, 7);
-            FEMModel theFem = new FEMModel(ref theArchModel, ref ca, 0.4);
+            theArchModel = NamedArch.PhoenixModelV63(out ax, m, 518 / f, Hf, Ht);
+            FEMModel theFem = new FEMModel(ref theArchModel, ref ca, 3.9);
             SpaceClaimExt FluExt = new SpaceClaimExt(theFem);
             FluExt.WriteArcRib(Directory.CreateDirectory(
-                Path.Combine("E:\\20210717 黑慧江拱桥两阶段设计\\", "051 CFD计算")).FullName, -259, 0, -259, 0);
+                Path.Combine("G:\\20210717 黑慧江拱桥两阶段设计\\", "051 CFD计算")).FullName, -359, 0, -359, 0);
 
         }
         static void TrussProcedure()
@@ -350,11 +356,11 @@ namespace AnsysInterface
 
         static void Main(string[] args)
         {
-            // SpaceClaimProcedure();
+            SpaceClaimProcedure();
             // AnsysProcedure();
             // MidasProcedure();
             // TrussProcedure();
-            OpenSEESProcedure();
+            // OpenSEESProcedure();
         }
 
 
