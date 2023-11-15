@@ -229,6 +229,12 @@ namespace AnsysInterface
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (450 - 10 * 2), 0.5 * 450);
                 sw.WriteLine("SECTYPE,{0},BEAM,CTUBE,TB600*12,0", 64);
                 sw.WriteLine("SECDATA,{0},{1},24,0,0,0,0,0,0,0,0,0", 0.5 * (300 - 10 * 2), 0.5 * 300);
+                sw.WriteLine("SECTYPE,{0},BEAM, HREC, PP, 0" ,71);
+                sw.WriteLine("SECDATA,7000,4000,500,500,500,500,0,0,0,0,0,0  ");
+                sw.WriteLine("SECTYPE,{0},BEAM,RECT, CB, 0", 72);
+                sw.WriteLine("SECOFFSET, USER, 0, 2000");
+                sw.WriteLine("SECDATA,5000,4000,0,0,0,0,0,0,0,0,0,0");
+
             }
         }
 

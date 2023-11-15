@@ -95,6 +95,87 @@ namespace AnsysInterface
             ansysDeck = new AnsysDeckExt(theFEMDeckA2);
             ansysDeck.WriteAnsys(FullPath, "DeckB.inp");
         }
+
+        static void OSISProcedure()
+        {
+            double ColDist, CrossBeamDist;
+            ColDist = 49.5;// 或者49.5；
+            #region 上部结构
+            CompositeDeck DeckA;
+            CompositeDeck DeckB;
+            List<double> g1 = new List<double>() { 1.275, 5, 5, 1.275 };
+            List<double> g2 = new List<double>() { 3.775, 5, 3.775 };
+            CrossArrangement ca = new CrossArrangement(g1.Sum(), 0.25, 0.05, 0.3, 0, g1, g2);
+            List<double> sps1;
+            double DeckElevation = 9.0;
+            if (ColDist == 42.0)
+            {
+                sps1 = new List<double>() { -273, -231, -189, -147, -105, -63, -21, 21, 63, 105, 147, 189, 231, 273 };
+                DeckA = new CompositeDeck(sps1, ca, new List<int>() { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, -1 }, 6);
+                DeckB = new CompositeDeck(sps1, ca, new List<int>() { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, -1 }, 6);
+                CrossBeamDist = 6.0;
+            }
+            else if (ColDist == 49.5)
+            {
+                sps1 = new List<double>() { -272.25, -222.75, -173.25, -123.75, -74.25, -24.75, 24.75, 74.25, 123.75, 173.25, 222.75, 272.25, };
+                DeckA = new CompositeDeck(sps1, ca, new List<int>() { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1 }, 4.95);
+                DeckB = new CompositeDeck(sps1, ca, new List<int>() { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1 }, 4.95);
+                CrossBeamDist = 4.95;
+            }
+            else
+            {
+                throw new Exception();
+            }
+            var Decks = new List<CompositeDeck>() { DeckA, DeckB };
+            foreach (var item in Decks)
+            {
+                if (ColDist == 42.0)
+                {
+                    item.AddSection("MGider", new HSection(1, 0.6, 0.6, 2.0, 0.060, 0.060, 0.020));
+                    item.AddSection("SGider", new HSection(1, 0.3, 0.3, 0.3, 0.010, 0.010, 0.008));
+                    item.AddSection("EndBeam", new HSection(1, 0.3, 0.3, 0.8, 0.020, 0.020, 0.015));
+                    item.AddSection("UpBeam", new HSection(1, 0.3, 0.3, 0.8, 0.020, 0.020, 0.015));
+                }
+                else
+                {
+                    item.AddSection("MGider", new HSection(1, 0.6, 0.6, 2.5, 0.060, 0.060, 0.020));
+                    item.AddSection("SGider", new HSection(1, 0.3, 0.3, 0.3, 0.010, 0.010, 0.008));
+                    item.AddSection("EndBeam", new HSection(1, 0.4, 0.4, 1.2, 0.020, 0.020, 0.015));
+                    item.AddSection("UpBeam", new HSection(1, 0.4, 0.4, 1.2, 0.020, 0.020, 0.015));
+                }
+
+            }
+            FEMDeck theFEMDeckA1 = new FEMDeck(ref DeckA, 200000, 200000, CrossBeamDist, 2.5, 0, 1.95, DeckElevation);
+            FEMDeck theFEMDeckA2 = new FEMDeck(ref DeckB, 300000, 300000, CrossBeamDist, 2.5, 0, -14.5, DeckElevation);
+            #endregion
+
+            ArchAxis ax;
+            Arch theArchModel;
+            double Hfoot = 15.5;
+            double Htop = 7.0;
+            theArchModel = NamedArch.PhoenixModelV63(out ax, 2.0, 518 / 4.5, Hfoot, Htop);
+            FEMModel theFem = new FEMModel(ref theArchModel, ref ca, 0.4);
+           
+            OsisExt osisExt = new OsisExt(theFem);
+
+
+            string savePath = string.Format("I:\\TMP\\OSISTest");
+            if (Directory.Exists(savePath))
+            {
+                Directory.Delete(savePath, true);
+            }
+            Directory.CreateDirectory(savePath);
+
+            osisExt.WriteSML(Path.Combine(savePath, string.Format("Arch-1400-.sml")));
+
+            //AnsysDeckExt ansysDeck = new AnsysDeckExt(theFEMDeckA1);
+            //ansysDeck.WriteAnsys(FullPath, "DeckA.inp");
+            //ansysDeck = new AnsysDeckExt(theFEMDeckA2);
+            //ansysDeck.WriteAnsys(FullPath, "DeckB.inp");
+            Console.WriteLine("OSIS Procedure Finish!\nPress any key to Exit.");
+            Console.ReadKey();
+        }
+
         static void AnsysProcedure()
         {
             double ColDist, CrossBeamDist;
@@ -356,7 +437,8 @@ namespace AnsysInterface
 
         static void Main(string[] args)
         {
-            SpaceClaimProcedure();
+            OSISProcedure();
+            // SpaceClaimProcedure();
             // AnsysProcedure();
             // MidasProcedure();
             // TrussProcedure();

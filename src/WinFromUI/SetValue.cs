@@ -48,6 +48,13 @@ namespace WinFromUI
             lbName.Text = paraName;
         }
 
+        private void btApply_Click(object sender, EventArgs e)
+        {
+            // btGenerateMd_Click(sender, e);
+            
+            btConfirm_Click(sender,e);
+        }
+
         private void btConfirm_Click(object sender, EventArgs e)
         {
             if (tbValue.Text != "")

@@ -32,12 +32,52 @@
     "ParentId": 0
   },
   {
+    "Id": 11,
+    "Name": "主桁参数",
+    "Text": "主桁参数",
+    "ValueStr": null,
+    "Value": -1,
+    "ParentId": 1
+  },
+  {
+    "Id": 12,
+    "Name": "横梁参数",
+    "Text": "横梁参数",
+    "ValueStr": null,
+    "Value": -1,
+    "ParentId": 1
+  },
+  {
+    "Id": 13,
+    "Name": "内隔参数",
+    "Text": "内隔参数",
+    "ValueStr": null,
+    "Value": -1,
+    "ParentId": 1
+  },
+  {
+    "Id": 14,
+    "Name": "平联参数",
+    "Text": "平联参数",
+    "ValueStr": null,
+    "Value": -1,
+    "ParentId": 1
+  },
+  {
+    "Id": 15,
+    "Name": "立柱参数",
+    "Text": "立柱参数",
+    "ValueStr": null,
+    "Value": -1,
+    "ParentId": 1
+  },
+  {
     "Id": 101,
     "Name": "主管直径(D0)",
     "Text": "主管直径(D0 = 1.40 )",
     "ValueStr": null,
     "Value": 1.4,
-    "ParentId": 1
+    "ParentId": 11
   },
   {
     "Id": 121,
@@ -45,23 +85,23 @@
     "Text": "拱脚腹杆直径(D21 = 0.90 )",
     "ValueStr": null,
     "Value": 0.9,
-    "ParentId": 1
+    "ParentId": 11
   },
   {
     "Id": 122,
     "Name": "普通腹杆直径(D22)",
     "Text": "普通腹杆直径(D22 = 0.80 )",
     "ValueStr": null,
-    "Value": 0.80000000000000004,
-    "ParentId": 1
+    "Value": 0.8,
+    "ParentId": 11
   },
   {
     "Id": 123,
     "Name": "拼装腹杆直径(D23)",
     "Text": "拼装腹杆直径(D23 = 0.60 )",
     "ValueStr": null,
-    "Value": 0.59999999999999998,
-    "ParentId": 1
+    "Value": 0.6,
+    "ParentId": 11
   },
   {
     "Id": 131,
@@ -69,7 +109,7 @@
     "Text": "内隔直径(D31 = 0.80 )",
     "ValueStr": null,
     "Value": 0.8,
-    "ParentId": 1
+    "ParentId": 13
   },
   {
     "Id": 132,
@@ -77,7 +117,7 @@
     "Text": "拼接内隔直径(D32 = 0.6 )",
     "ValueStr": null,
     "Value": 0.3,
-    "ParentId": 1
+    "ParentId": 13
   },
   {
     "Id": 133,
@@ -85,15 +125,15 @@
     "Text": "内隔腹杆直径(D33 = 0.30 )",
     "ValueStr": null,
     "Value": 0.3,
-    "ParentId": 1
+    "ParentId": 13
   },
   {
     "Id": 141,
     "Name": "横梁弦杆直径(D41)",
     "Text": "横梁弦杆直径(D41 = 0.80 )",
     "ValueStr": null,
-    "Value": 0.80000000000000004,
-    "ParentId": 1
+    "Value": 0.8,
+    "ParentId": 12
   },
   {
     "Id": 142,
@@ -101,7 +141,7 @@
     "Text": "横梁腹杆直径(D42 = 0.60 )",
     "ValueStr": null,
     "Value": 0.6,
-    "ParentId": 1
+    "ParentId": 12
   },
   {
     "Id": 143,
@@ -109,7 +149,7 @@
     "Text": "横梁双腹杆直径(D43 = 0.50 )",
     "ValueStr": null,
     "Value": 0.5,
-    "ParentId": 1
+    "ParentId": 12
   },
   {
     "Id": 151,
@@ -117,7 +157,7 @@
     "Text": "平联横杆直径(D51 = 0.70 )",
     "ValueStr": null,
     "Value": 0.7,
-    "ParentId": 1
+    "ParentId": 14
   },
   {
     "Id": 152,
@@ -125,7 +165,7 @@
     "Text": "平联斜杆直径(D52 = 0.60 )",
     "ValueStr": null,
     "Value": 0.6,
-    "ParentId": 1
+    "ParentId": 14
   },
   {
     "Id": 153,
@@ -133,23 +173,23 @@
     "Text": "合龙口平联直径(D53 = 0.5 )",
     "ValueStr": null,
     "Value": 0.5,
-    "ParentId": 1
+    "ParentId": 14
   },
   {
     "Id": 161,
     "Name": "高立柱截面(D61)",
     "Text": "高立柱截面(D61 = 0.80 )",
     "ValueStr": null,
-    "Value": 0.80000000000000004,
-    "ParentId": 1
+    "Value": 0.8,
+    "ParentId": 15
   },
   {
     "Id": 162,
     "Name": "一般立柱截面(D62)",
     "Text": "一般立柱截面(D62 = 0.70 )",
     "ValueStr": null,
-    "Value": 0.69999999999999996,
-    "ParentId": 1
+    "Value": 0.7,
+    "ParentId": 15
   },
   {
     "Id": 163,
@@ -157,7 +197,7 @@
     "Text": "立柱横杆截面(D63 = 0.50 )",
     "ValueStr": null,
     "Value": 0.5,
-    "ParentId": 1
+    "ParentId": 15
   },
   {
     "Id": 21,

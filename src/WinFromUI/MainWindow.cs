@@ -1,34 +1,36 @@
 ﻿using AnsysInterface;
 using Kitware.VTK;
 using MathNet.Spatial.Euclidean;
-using MathNet.Spatial.Units;
 using Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Runtime.InteropServices.ComTypes;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Text.Unicode;
 using System.Windows.Forms;
+using static System.Net.WebRequestMethods;
 
 namespace WinFromUI
 {
     public partial class MainWindow : Form
     {
         FEMModel theFem = null;
+        FEMDeck theFEMDeckA1 = null;
+        FEMDeck theFEMDeckA2 = null;
         ArchAxis ax = null;
         Arch theArchModel = null;
         List<Parameter> theParas;
         // ArchParameters paras;
         vtkBox viewBounding;
-
         ModelStatus status;
-
         PropertyViewWindow PropertyView;
 
         public MainWindow()
@@ -36,19 +38,12 @@ namespace WinFromUI
             InitializeComponent();
             viewBounding = new vtkBox();
             status = new ModelStatus();
-
-
             PropertyView = new PropertyViewWindow();
-
-
             status.SetStatus(false);
         }
 
         private void MainWindow_Load(object sender, EventArgs e)
         {
-
-
-
             theParas = new List<Parameter>()
             {
                 new Parameter() {Id = 1, Name = "截面参数", Value = -1, ParentId = 0},
@@ -68,7 +63,7 @@ namespace WinFromUI
                 new Parameter() {Id = 123, Name = "拼装腹杆直径(D23)", Value = -1, ParentId = 11},
 
                 new Parameter() {Id = 131, Name = "内隔直径(D31)", Value = -1, ParentId = 13}, //
-                new Parameter() {Id = 132, Name = "内隔腹杆直径(D32)", Value = -1, ParentId = 13},
+                new Parameter() {Id = 132, Name = "拼接内隔直径(D32)", Value = -1, ParentId = 13},
                 new Parameter() {Id = 133, Name = "内隔腹杆直径(D33)", Value = -1, ParentId = 13},
 
 
@@ -78,7 +73,7 @@ namespace WinFromUI
 
                 new Parameter() {Id = 151, Name = "平联直径(D51)", Value = -1, ParentId = 14},
                 new Parameter() {Id = 152, Name = "平联斜杆直径(D52)", Value = -1, ParentId = 14},
-                new Parameter() {Id = 153, Name = "平联斜杆直径(D53)", Value = -1, ParentId = 14},
+                new Parameter() {Id = 153, Name = "合龙口平联直径(D53)", Value = -1, ParentId = 14},
 
                 new Parameter() {Id=161,Name="高立柱截面(D61)",Value=-1,ParentId=15 },
                 new Parameter() {Id=162,Name="一般立柱截面(D62)",Value=-1,ParentId=15 },
@@ -92,21 +87,20 @@ namespace WinFromUI
                 new Parameter() {Id = 33, Name = "拱肋宽度(W0)", Value = -1, ParentId = 3},
                 new Parameter() {Id = 34, Name = "拱肋间距(W1)", Value = -1, ParentId = 3},
             };
-            // paraTree.Nodes.Clear();
-            var topNode = paraTree.Nodes.GetNodeByName("ParasNd");
-            //topNode.Name = "0";
-            //topNode.Text = "参数表";
-            // paraTree.Nodes.Add(topNode);
+            var topNode = paraTree.TopNode;
+            topNode.Nodes.Clear();
             DataBindTree(topNode, theParas, 0);
             paraTree.ExpandAll();
+
+            theArchModel = null;
+            vtkRenderer renderer = vtkWindow.RenderWindow.GetRenderers().GetFirstRenderer();
+            renderer.RemoveAllViewProps();
+            btFrontView_Click(sender, e);
+
             status.ChangeStatus += new ModelStatus.StatusHandler(OutputEnable);
-
-
-            // sectTreeInit();
-
         }
 
-       
+
 
         private void OutputEnable()
         {
@@ -118,7 +112,7 @@ namespace WinFromUI
 
         private void btGenerateMd_Click(object sender, EventArgs e)
         {
-            
+
             theArchModel = null;
             vtkRenderer renderer = vtkWindow.RenderWindow.GetRenderers().GetFirstRenderer();
             renderer.RemoveAllViewProps();
@@ -149,7 +143,7 @@ namespace WinFromUI
             List<double> g2 = new List<double>() { 3.775, 5, 3.775 };
             CrossArrangement ca = new CrossArrangement(g1.Sum(), 0.25, 0.05, 0.3, 0, g1, g2);
             List<double> sps1;
-            double DeckElevation = 11.0;
+            double DeckElevation = 1281.3 + L / f + 10;
 
             sps1 = new List<double>() { -272.25, -222.75, -173.25, -123.75, -74.25, -24.75, 24.75, 74.25, 123.75, 173.25, 222.75, 272.25, };
             DeckA = new CompositeDeck(sps1, ca, new List<int>() { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1 }, 4.95);
@@ -164,13 +158,13 @@ namespace WinFromUI
                 item.AddSection("EndBeam", new HSection(1, 0.4, 0.4, 1.2, 0.020, 0.020, 0.015));
                 item.AddSection("UpBeam", new HSection(1, 0.4, 0.4, 1.2, 0.020, 0.020, 0.015));
             }
-            FEMDeck theFEMDeckA1 = new FEMDeck(ref DeckA, 200000, 200000, CrossBeamDist, 2.5, 0, 0.2, DeckElevation);
-            FEMDeck theFEMDeckA2 = new FEMDeck(ref DeckB, 300000, 300000, CrossBeamDist, 2.5, 0, -12.76, DeckElevation);
+            theFEMDeckA1 = new FEMDeck(ref DeckA, 200000, 200000, CrossBeamDist, 2.5, 0, 1.95 + ((W1 + W0) * 0.5 - 9), 11);
+            theFEMDeckA2 = new FEMDeck(ref DeckB, 300000, 300000, CrossBeamDist, 2.5, 0, -14.5 - ((W1 + W0) * 0.5 - 9), 11);
             #endregion
 
 
 
-            theArchModel = NamedArch.PhoenixModelV63(out ax, m, L / f, Hfoot, Htop);
+            theArchModel = NamedArch.PhoenixModelV7(out ax, L, m, L / f, Hfoot, Htop, W0, W1, DeckElevation);
             pBar1.Step = 5;
             pBar1.PerformStep();
 
@@ -222,7 +216,7 @@ namespace WinFromUI
             foreach (var item in theFem.ElementList)
             {
                 double dia;
-                if (item.Secn<=63 && item.Secn>=21)
+                if (item.Secn <= 63 && item.Secn >= 21)
                 {
                     dia = getPara(100 + item.Secn);
                 }
@@ -241,7 +235,7 @@ namespace WinFromUI
             foreach (var item in theFEMDeckA1.ElementList)
             {
                 vtkActor actor;
-                if (item.GetType()!=typeof(FEMElement4))
+                if (item.GetType() != typeof(FEMElement4))
                 {
                     Point3D[] eles = new Point3D[2] { theFEMDeckA1.GetPoint(item.Ni), theFEMDeckA1.GetPoint(item.Nj) };
                     double[] Sectiondata = new double[6] { 0.3, 0.3, 0.7, 0.015, 0.015, 0.015 };
@@ -292,7 +286,11 @@ namespace WinFromUI
             MessageBox.Show("模型生成成功！", "通知", MessageBoxButtons.OK);
             pBar1.Value = 1;
 
-            btFrontView_Click(sender, e);
+            // btFrontView_Click(sender, e);
+
+            btFit_Click(sender, e);
+
+
         }
 
 
@@ -301,16 +299,16 @@ namespace WinFromUI
 
             vtkRenderer renderer = vtkWindow.RenderWindow.GetRenderers().GetFirstRenderer();
             renderer.SetBackground(.2, .3, .4);
-           //  renderer.SetBackground(1,1,1);
+            //  renderer.SetBackground(1,1,1);
         }
         #region 普通方法
 
-        private vtkTransform LocalToWorld(Point3D origin, Vector3D xDir,Vector3D yDir,Vector3D zDir)
+        private vtkTransform LocalToWorld(Point3D origin, Vector3D xDir, Vector3D yDir, Vector3D zDir)
         {
             xDir = xDir.Normalize().ToVector3D();
             yDir = yDir.Normalize().ToVector3D();
             zDir = zDir.Normalize().ToVector3D();
-            double[] A= new double[16] {  
+            double[] A = new double[16] {
                 xDir.X, yDir.X, zDir.X, origin.X,
                 xDir.Y, yDir.Y, zDir.Y, origin.Y,
                 xDir.Z, yDir.Z, zDir.Z, origin.Z,
@@ -338,8 +336,8 @@ namespace WinFromUI
             var ys = (from pt in inp select pt.Z).ToList();
 
             vtkCubeSource cb = new vtkCubeSource();
-            cb.SetXLength( xs.Max() - xs.Min());
-            cb.SetYLength( ys.Max() - ys.Min());
+            cb.SetXLength(xs.Max() - xs.Min());
+            cb.SetYLength(ys.Max() - ys.Min());
             cb.SetZLength(0.30);
 
 
@@ -354,8 +352,8 @@ namespace WinFromUI
 
         private vtkActor Create_HElement(IEnumerable<Point3D> inp, double[] s)
         {
-            Point3D Ni = new Point3D(inp.First().X, inp.First().Z, inp.First().Y) ;
-            Point3D Nj = new Point3D(inp.Last().X, inp.Last().Z, inp.Last().Y) ;
+            Point3D Ni = new Point3D(inp.First().X, inp.First().Z, inp.First().Y);
+            Point3D Nj = new Point3D(inp.Last().X, inp.Last().Z, inp.Last().Y);
             Vector3D xD = Nj - Ni;
             xD = xD.Normalize().ToVector3D();
             Vector3D zD = new Vector3D(0, 0, 1);
@@ -395,7 +393,7 @@ namespace WinFromUI
             cells.InsertNextCell(pl);
             vtkPolyData polyData = vtkPolyData.New();
             polyData.SetPoints(pts_out);
-            polyData.SetLines(cells);           
+            polyData.SetLines(cells);
 
             vtkLinearExtrusionFilter ext = new vtkLinearExtrusionFilter();
             ext.SetInput(polyData);
@@ -585,12 +583,12 @@ namespace WinFromUI
 
         private void paraTree_AfterSelect(object sender, TreeViewEventArgs e)
         {
-            if (e.Node.Level > 1)
+            if (e.Node.Nodes.Count == 0)
             {
                 double val;
                 string newT = GetNodeText(e.Node.Text, out val);
                 SetValue form = new SetValue(newT + ")", val);
-                form.ShowDialog();
+                DialogResult rr = form.ShowDialog();
                 if (!double.IsNaN(form.paraValue))
                 {
                     newT += string.Format(" = {0:F1})", form.paraValue);
@@ -604,6 +602,10 @@ namespace WinFromUI
                 TreeView theTree = sender as TreeView;
                 theTree.SelectedNode = null;
                 Tree2Data();
+                if (rr==DialogResult.Yes)
+                {
+                    btGenerateMd_Click(sender, e);
+                }
             }
 
         }
@@ -653,7 +655,7 @@ namespace WinFromUI
                 byte[] jsonString2 = JsonSerializer.SerializeToUtf8Bytes(theParas);
                 string result = Encoding.UTF8.GetString(jsonString);
                 // var s = jsonString.ToString();
-                File.WriteAllText(fileName, result);
+                System.IO.File.WriteAllText(fileName, result);
             }
 
 
@@ -704,7 +706,7 @@ namespace WinFromUI
             cam.ParallelProjectionOn();
             Point3D Foc = viewBounding.GetCenter();
             cam.SetFocalPoint(Foc.X, Foc.Y, Foc.Z);
-            cam.SetPosition(Foc.X, Foc.Y, Foc.Z+ 1000);
+            cam.SetPosition(Foc.X, Foc.Y, Foc.Z + 1000);
             cam.SetViewUp(0, -1, 0);
             cam.SetClippingRange(1e-3, 1e10);
             btFit_Click(sender, e);
@@ -761,6 +763,7 @@ namespace WinFromUI
 
         private void ansysToolStripMenuItem_Click(object sender, EventArgs e)
         {
+
             AnsysExt ansysExt = new AnsysExt(theFem);
 
             FolderBrowserDialog dia = new FolderBrowserDialog();
@@ -769,6 +772,10 @@ namespace WinFromUI
             {
                 string fileName = dia.SelectedPath;
                 ansysExt.WriteAnsys(fileName);
+                AnsysDeckExt ansysDeck = new AnsysDeckExt(theFEMDeckA1);
+                ansysDeck.WriteAnsys(fileName, "DeckA.inp");
+                ansysDeck = new AnsysDeckExt(theFEMDeckA2);
+                ansysDeck.WriteAnsys(fileName, "DeckB.inp");
                 MessageBox.Show("Ansys命令流生成成功！", "通知", MessageBoxButtons.OK);
             }
         }
@@ -815,6 +822,22 @@ namespace WinFromUI
         private void 截面ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             PropertyView.ShowDialog();
+        }
+
+        private void oSISToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OsisExt osisExt = new OsisExt(theFem);
+            
+            SaveFileDialog dia = new SaveFileDialog();
+            dia.DefaultExt = "sml";
+            dia.Filter = "OSIS命令流文件 (*.sml)|*.sml|All files (*.*)|*.*";
+            dia.OverwritePrompt = true;
+            if (dia.ShowDialog() == DialogResult.OK)
+            {
+                string fileName = dia.FileName;
+                osisExt.WriteSML(fileName);
+                MessageBox.Show("OSIS命令流文件生成！", "通知", MessageBoxButtons.OK);
+            }
         }
     }
 }
