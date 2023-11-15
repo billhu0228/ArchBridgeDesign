@@ -29,6 +29,7 @@ namespace WinFromUI
         /// </summary>
         private void InitializeComponent()
         {
+            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("旧参数表");
             System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("材料");
             System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("截面");
             System.Windows.Forms.TreeNode treeNode4 = new System.Windows.Forms.TreeNode("工作树", new System.Windows.Forms.TreeNode[] {
