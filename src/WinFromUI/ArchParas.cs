@@ -14,7 +14,6 @@ namespace WinFromUI
         public double halfD;
 
         bool isFinish;
-
         public ArchParameters()
         {
             isFinish = false;

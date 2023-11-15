@@ -46,6 +46,9 @@ namespace WinFromUI
 
         private void MainWindow_Load(object sender, EventArgs e)
         {
+
+
+
             theParas = new List<Parameter>()
             {
                 new Parameter() {Id = 1, Name = "截面参数", Value = -1, ParentId = 0},
@@ -53,21 +56,33 @@ namespace WinFromUI
                 new Parameter() {Id = 3, Name = "拱肋参数", Value = -1, ParentId = 0},
                 new Parameter() {Id = 4, Name = "构造参数", Value = -1, ParentId = 0},
 
-                new Parameter() {Id = 101, Name = "主管直径(D0)", Value = -1, ParentId = 1},
-                new Parameter() {Id = 121, Name = "拱脚腹杆直径(D21)", Value = -1, ParentId = 1},
-                new Parameter() {Id = 122, Name = "普通腹杆直径(D22)", Value = -1, ParentId = 1},
-                new Parameter() {Id = 123, Name = "拼装腹杆直径(D23)", Value = -1, ParentId = 1},
+                new Parameter() {Id = 11, Name = "主桁参数", Value = -1, ParentId = 1},
+                new Parameter() {Id = 12, Name = "横梁参数", Value = -1, ParentId = 1},
+                new Parameter() {Id = 13, Name = "内隔参数", Value = -1, ParentId = 1},
+                new Parameter() {Id = 14, Name = "平联参数", Value = -1, ParentId = 1},
+                new Parameter() {Id = 15, Name = "立柱参数", Value = -1, ParentId = 1},
 
-                new Parameter() {Id = 131, Name = "内隔直径(D31)", Value = -1, ParentId = 1}, //
-                new Parameter() {Id = 132, Name = "内隔腹杆直径(D32)", Value = -1, ParentId = 1},
+                new Parameter() {Id = 101, Name = "主管直径(D0)", Value = -1, ParentId = 11},
+                new Parameter() {Id = 121, Name = "拱脚腹杆直径(D21)", Value = -1, ParentId = 11},
+                new Parameter() {Id = 122, Name = "普通腹杆直径(D22)", Value = -1, ParentId = 11},
+                new Parameter() {Id = 123, Name = "拼装腹杆直径(D23)", Value = -1, ParentId = 11},
 
-                new Parameter() {Id = 141, Name = "横梁弦杆直径(D41)", Value = -1, ParentId = 1},
-                new Parameter() {Id = 142, Name = "横梁腹杆直径(D42)", Value = -1, ParentId = 1},
-                new Parameter() {Id = 151, Name = "平联直径(D51)", Value = -1, ParentId = 1},
+                new Parameter() {Id = 131, Name = "内隔直径(D31)", Value = -1, ParentId = 13}, //
+                new Parameter() {Id = 132, Name = "内隔腹杆直径(D32)", Value = -1, ParentId = 13},
+                new Parameter() {Id = 133, Name = "内隔腹杆直径(D33)", Value = -1, ParentId = 13},
 
-                new Parameter() {Id=161,Name="高立柱截面(D61)",Value=-1,ParentId=1 },
-                new Parameter() {Id=162,Name="一般立柱截面(D62)",Value=-1,ParentId=1 },
-                new Parameter() {Id=163,Name="立柱横杆截面(D63)",Value=-1,ParentId=1 },
+
+                new Parameter() {Id = 141, Name = "横梁弦杆直径(D41)", Value = -1, ParentId = 12},
+                new Parameter() {Id = 142, Name = "横梁腹杆直径(D42)", Value = -1, ParentId = 12},
+                new Parameter() {Id = 143, Name = "横梁双腹杆直径(D43)", Value = -1, ParentId = 12},
+
+                new Parameter() {Id = 151, Name = "平联直径(D51)", Value = -1, ParentId = 14},
+                new Parameter() {Id = 152, Name = "平联斜杆直径(D52)", Value = -1, ParentId = 14},
+                new Parameter() {Id = 153, Name = "平联斜杆直径(D53)", Value = -1, ParentId = 14},
+
+                new Parameter() {Id=161,Name="高立柱截面(D61)",Value=-1,ParentId=15 },
+                new Parameter() {Id=162,Name="一般立柱截面(D62)",Value=-1,ParentId=15 },
+                new Parameter() {Id=163,Name="立柱横杆截面(D63)",Value=-1,ParentId=15 },
 
                 new Parameter() {Id = 21, Name = "跨径(L)", Value = -1, ParentId = 2},
                 new Parameter() {Id = 22, Name = "拱轴系数(m)", Value = -1, ParentId = 2},
@@ -286,7 +301,7 @@ namespace WinFromUI
 
             vtkRenderer renderer = vtkWindow.RenderWindow.GetRenderers().GetFirstRenderer();
             renderer.SetBackground(.2, .3, .4);
-
+           //  renderer.SetBackground(1,1,1);
         }
         #region 普通方法
 
@@ -622,24 +637,24 @@ namespace WinFromUI
         }
         private void 保存SToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //SaveFileDialog dia = new SaveFileDialog();
-            //dia.DefaultExt = "json";
-            //dia.Filter = "json files (*.json)|*.json|All files (*.*)|*.*";
-            //dia.OverwritePrompt = true;
-            //if (dia.ShowDialog() == DialogResult.OK)
-            //{
-            //    string fileName = dia.FileName;
-            //    JsonSerializerOptions opt = new JsonSerializerOptions()
-            //    {
-            //        Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
-            //        WriteIndented = true,
-            //    };
-            //    byte[] jsonString = JsonSerializer.SerializeToUtf8Bytes(theParas,opt);
-            //    byte[] jsonString2 = JsonSerializer.SerializeToUtf8Bytes(theParas);
-            //    string result =Encoding.UTF8.GetString(jsonString);
-            //    // var s = jsonString.ToString();
-            //    File.WriteAllText(fileName, result);
-            //}
+            SaveFileDialog dia = new SaveFileDialog();
+            dia.DefaultExt = "json";
+            dia.Filter = "json files (*.json)|*.json|All files (*.*)|*.*";
+            dia.OverwritePrompt = true;
+            if (dia.ShowDialog() == DialogResult.OK)
+            {
+                string fileName = dia.FileName;
+                JsonSerializerOptions opt = new JsonSerializerOptions()
+                {
+                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+                    WriteIndented = true,
+                };
+                byte[] jsonString = JsonSerializer.SerializeToUtf8Bytes(theParas, opt);
+                byte[] jsonString2 = JsonSerializer.SerializeToUtf8Bytes(theParas);
+                string result = Encoding.UTF8.GetString(jsonString);
+                // var s = jsonString.ToString();
+                File.WriteAllText(fileName, result);
+            }
 
 
         }

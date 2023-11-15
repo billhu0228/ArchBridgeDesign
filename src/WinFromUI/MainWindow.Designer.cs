@@ -29,7 +29,6 @@ namespace WinFromUI
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.TreeNode treeNode1 = new System.Windows.Forms.TreeNode("旧参数表");
             System.Windows.Forms.TreeNode treeNode2 = new System.Windows.Forms.TreeNode("材料");
             System.Windows.Forms.TreeNode treeNode3 = new System.Windows.Forms.TreeNode("截面");
             System.Windows.Forms.TreeNode treeNode4 = new System.Windows.Forms.TreeNode("工作树", new System.Windows.Forms.TreeNode[] {
@@ -118,6 +117,7 @@ namespace WinFromUI
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Padding = new System.Windows.Forms.Padding(9, 3, 0, 3);
             this.menuStrip1.Size = new System.Drawing.Size(2025, 44);
+
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             // 
@@ -131,6 +131,7 @@ namespace WinFromUI
             this.toolStripSeparator4,
             this.toolStripMenuItem1});
             this.文件ToolStripMenuItem.Name = "文件ToolStripMenuItem";
+
             this.文件ToolStripMenuItem.Size = new System.Drawing.Size(111, 38);
             this.文件ToolStripMenuItem.Text = "文件(F)";
             // 
@@ -252,6 +253,7 @@ namespace WinFromUI
             this.vtkWindow.BackColor = System.Drawing.Color.CornflowerBlue;
             this.vtkWindow.Dock = System.Windows.Forms.DockStyle.Fill;
             this.vtkWindow.Location = new System.Drawing.Point(0, 0);
+
             this.vtkWindow.Margin = new System.Windows.Forms.Padding(6, 5, 6, 5);
             this.vtkWindow.Name = "vtkWindow";
             this.vtkWindow.Size = new System.Drawing.Size(1470, 1268);
@@ -285,7 +287,6 @@ namespace WinFromUI
             this.paraTree.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.paraTree.Name = "paraTree";
             treeNode1.Name = "ParasNd";
-            treeNode1.Text = "旧参数表";
             treeNode2.Name = "MaterialNd";
             treeNode2.Text = "材料";
             treeNode3.Name = "SectionNd";
