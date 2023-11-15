@@ -797,13 +797,11 @@ namespace WinFromUI
             byte[] jsonString = Properties.Resources.v6_json;
             List<Parameter> theParasNew = JsonSerializer.Deserialize<List<Parameter>>(jsonString);
             theParas = theParasNew;
-            // paraTree.Nodes[0].Nodes[0].Nodes.Clear();
-            var topNode = paraTree.Nodes[0].Nodes[0];
-            //var topNode = new TreeNode();
-            //topNode.Name = "0";
-            //topNode.Text = "参数表";
-            topNode.Nodes.Clear();
-            //paraTree.Nodes.Add(topNode);
+            paraTree.Nodes.Clear();
+            var topNode = new TreeNode();
+            topNode.Name = "0";
+            topNode.Text = "参数表";
+            paraTree.Nodes.Add(topNode);
             DataBindTree(topNode, theParas, 0);
             paraTree.ExpandAll();
         }

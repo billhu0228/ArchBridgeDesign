@@ -23,7 +23,7 @@ namespace AnsysInterface
         public void WriteArcRib(string dirPath,double x_from,double x_end,double r_from,double r_end)
         {
             var cwd = Directory.CreateDirectory(dirPath);
-            WriteElem(Path.Combine(cwd.FullName, "SCScrip.py"),x_from,x_end,r_from,r_end);
+            WriteElem(Path.Combine(cwd.FullName, "Test.py"),x_from,x_end,r_from,r_end);
         }
 
         FEMNode getNode(int nid)
@@ -141,10 +141,10 @@ namespace AnsysInterface
 
                 var secn_list = (from FEMElement e in theFEMModel.ElementList select e.Secn).ToList();
                 secn_list = secn_list.Distinct().ToList();
-                List<int> selectedsec = new List<int>() { 21, 22,23,31,41, 51 };
+                List<int> unselectedsec = new List<int>() { 65,66,71,72 };
                 foreach (var secnn in secn_list)
                 {
-                    if (!selectedsec.Contains(secnn))
+                    if (unselectedsec.Contains(secnn))
                     {
                         continue;
                     }

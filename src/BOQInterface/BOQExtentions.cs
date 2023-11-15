@@ -28,7 +28,7 @@ namespace BOQInterface
             {
                 double len = theFEM.GetElementLength(item);
                 int secn = item.Secn;
-                if (secn == 99)
+                if (secn == 99||secn>=64)
                 {
                     continue;
                 }

@@ -60,10 +60,59 @@ namespace AnsysInterface
             MakeMaterial();
             MakeSection();
             MakeElem();
+            MakeElemPy();
             MakeNode();            
             MakeMass();
             MakeBD();
+            MakeTHAnalysis();
+            MakeStatic();
             CopyFilesRecursively(@"G:\Diss\DynamicShearSpring\C2x\Acc", Path.Combine(WorkDir.FullName, "Acc"));
+        }
+        private void MakeStatic()
+        {
+            StreamWriter sw = new StreamWriter(Path.Combine(WorkDir.FullName, "st.tcl"), false, utf8WithoutBom);
+            WriteHead(ref sw);
+            sw.WriteLine("recorder Element -file Out/force2.out -ele 1 force;");
+            sw.WriteLine("recorder Node -file Out/disp2.out -node 41102 -dof 2 disp;");
+            sw.WriteLine("wipeAnalysis; ");
+            sw.WriteLine("timeSeries Constant 1;");
+            sw.WriteLine("pattern UniformExcitation 1 2 -accel 1 -fact 9806.0;");
+            sw.WriteLine("constraints Penalty 1.0e25 1.0e25;");
+            sw.WriteLine("numberer RCM ;  ");
+            sw.WriteLine("system SparseGeneral ;  ");
+            sw.WriteLine("test EnergyIncr 1e-1 25 3 ;");
+            sw.WriteLine("algorithm ModifiedNewton ;  ");
+            sw.WriteLine("integrator LoadControl 1;");
+            sw.WriteLine("analysis Static;");
+            sw.WriteLine("analyze 1;");
+
+            sw.Flush();
+            sw.Close();
+            Console.WriteLine("总体写出完成...");
+
+        }
+        private void MakeTHAnalysis()
+        {
+            StreamWriter sw = new StreamWriter(Path.Combine(WorkDir.FullName, "TH.tcl"), false, utf8WithoutBom);
+            WriteHead(ref sw);
+            sw.WriteLine("recorder Node -file Out/D1.out -node 31103 -dof 1 disp");
+            sw.WriteLine("set dt 0.01");
+            sw.WriteLine("timeSeries Path 13 -dt $dt -filePath Acc/RSN6e.acc -factor 1;");
+            sw.WriteLine("pattern UniformExcitation 400 1 -accel 13;");
+            sw.WriteLine("wipeAnalysis ;  ");
+            sw.WriteLine("constraints Transformation ;");
+            sw.WriteLine("numberer RCM ;  ");
+            sw.WriteLine("system SparseGeneral ;  ");
+            sw.WriteLine("test EnergyIncr 1e-1 25 3 ;");
+            sw.WriteLine("algorithm ModifiedNewton ;  ");
+            sw.WriteLine("integrator Newmark 0.5 0.25;");
+            sw.WriteLine("analysis Transient;");
+            sw.WriteLine("analyze 10 $dt;");
+
+            sw.Flush();
+            sw.Close();
+            Console.WriteLine("总体写出完成...");
+
         }
 
         private void MakeMass()
@@ -80,6 +129,7 @@ namespace AnsysInterface
         private void MakeBD()
         {
             StreamWriter sw = new StreamWriter(Path.Combine(WorkDir.FullName, "Boundary.tcl"), false, utf8WithoutBom);
+            WriteHead(ref sw);
             sw.WriteLine("fix 11000 1 1 1 0 0 0");
             sw.WriteLine("fix 12000 1 1 1 0 0 0");
             sw.WriteLine("fix 21000 1 1 1 0 0 0");
@@ -106,6 +156,43 @@ namespace AnsysInterface
             sw.WriteLine("fix 80015 1 1 1 0 0 0");
             sw.Flush();
             sw.Close();
+            Console.WriteLine("节点写出完成...");
+        }
+        private void MakeElemPy()
+        {
+
+            int eid = 1;
+            StreamWriter sw = new StreamWriter(Path.Combine(WorkDir.FullName, "elem.py"), false, utf8WithoutBom);
+            var secn_list = (from FEMElement e in theFEMModel.ElementList select e.Secn).ToList();
+            secn_list = secn_list.Distinct().ToList();
+            foreach (var secnn in secn_list)
+            {
+                if (secnn > 60)
+                {
+                    continue;
+                }
+                var eles = (from e in theFEMModel.ElementList where e.Secn == secnn select e).ToList();
+                foreach (var item in eles)
+                {
+                    var mpl = MassPerLeng[secnn];
+                    sw.WriteLine("element.( 'dispBeamColumn', {0:G}, {1:G}, {2:G},10, {3:G},'-cMass', '-mass', {4:E3} )", eid, item.Ni, item.Nj, secnn, mpl);
+                    var LL = theFEMModel.GetElementLength(item) * 1000;
+                    addMass(item.Ni, LL * 0.5 * MassPerLeng[secnn]);
+                    addMass(item.Nj, LL * 0.5 * MassPerLeng[secnn]);
+                    if (!NodeInUse.Contains(item.Ni))
+                    {
+                        NodeInUse.Add(item.Ni);
+                    }
+                    if (!NodeInUse.Contains(item.Nj))
+                    {
+                        NodeInUse.Add(item.Nj);
+                    }
+                    eid++;
+                }
+            }
+            sw.Flush();
+            sw.Close();
+            NodeInUse.Sort();
             Console.WriteLine("节点写出完成...");
         }
         private void MakeElem()
@@ -162,6 +249,7 @@ namespace AnsysInterface
         private void MakeNode()
         {
             StreamWriter sw = new StreamWriter(Path.Combine(WorkDir.FullName, "Node.tcl"), false, utf8WithoutBom);
+            WriteHead(ref sw);
             foreach (var item in theFEMModel.NodeList)
             {
                 if (!NodeInUse.Contains( item.ID))
@@ -179,28 +267,28 @@ namespace AnsysInterface
         {
             StreamWriter sw = new StreamWriter(Path.Combine(WorkDir.FullName, "Section.tcl"), false, utf8WithoutBom);
             WriteHead(ref sw);
-            WriteCFST(ref sw, 1, 1400, 25, 1, 2, 1.9960737875792584e+16);
-            WriteCFST(ref sw, 2, 1400, 28, 1, 2, 2.0935943222151716e+16);
-            WriteCFST(ref sw, 3, 1400, 32, 1, 2, 2.2215431852664988e+16);
-            WriteCFST(ref sw, 4, 1400, 38, 1, 2, 2.409300344463507e+16);
-            WriteCFST(ref sw, 5, 1400, 40, 1, 2, 2.4707637612316348e+16);
+            WriteCFST(ref sw, 1, 1400, 25, 1, 2, 1.0133018868289454e+16);
+            WriteCFST(ref sw, 2, 1400, 28, 1, 2, 1.0637841054192630e+16);
+            WriteCFST(ref sw, 3, 1400, 32, 1, 2, 1.1300177542900596e+16);
+            WriteCFST(ref sw, 4, 1400, 38, 1, 2, 1.2272116459740616e+16);
+            WriteCFST(ref sw, 5, 1400, 40, 1, 2, 1.2590286444313674e+16);
 
-            WriteCFST(ref sw, 21, 900, 20, 1, 3, 2.1344e+15, false);
-            WriteCFST(ref sw, 22, 800, 16, 1, 3, 1.2073e+15, false);
-            WriteCFST(ref sw, 23, 600, 12, 1, 3, 3.8202e+14, false);
-            WriteCFST(ref sw, 31, 800, 16, 1, 3, 1.2073e+15, false);
-            WriteCFST(ref sw, 32, 600, 12, 1, 3, 3.8202e+14, false);
-            WriteCFST(ref sw, 33, 300, 10, 1, 3, 3.8233e+13, false);
-            WriteCFST(ref sw, 41, 800, 16, 1, 3, 1.2073e+15, false);
-            WriteCFST(ref sw, 42, 500, 10, 1, 3, 1.8423e+14, false);
-            WriteCFST(ref sw, 43, 500, 10, 1, 3, 1.8423e+14, false);
-            WriteCFST(ref sw, 51, 600, 16, 1, 3, 4.9921e+14, false);
-            WriteCFST(ref sw, 52, 600, 16, 1, 3, 4.9921e+14, false);
-            WriteCFST(ref sw, 53, 600, 16, 1, 3, 4.9921e+14, false);
-            WriteCFST(ref sw, 61, 900, 20, 1, 3, 2.1344e+15, false);
-            WriteCFST(ref sw, 62, 800, 16, 1, 3, 1.2073e+15, false);
-            WriteCFST(ref sw, 63, 450, 10, 1, 3, 1.3341e+14, false);
-            WriteCFST(ref sw, 64, 600, 12, 1, 3, 3.8202e+14, false);
+            WriteCFST(ref sw, 21, 900, 20, 1, 3, 1.0992e+15, false);
+            WriteCFST(ref sw, 22, 800, 16, 1, 3, 6.2176e+14, false);
+            WriteCFST(ref sw, 23, 600, 12, 1, 3, 1.9674e+14, false);
+            WriteCFST(ref sw, 31, 800, 16, 1, 3, 6.2176e+14, false);
+            WriteCFST(ref sw, 32, 600, 12, 1, 3, 1.9674e+14, false);
+            WriteCFST(ref sw, 33, 300, 10, 1, 3, 1.9690e+13, false);
+            WriteCFST(ref sw, 41, 800, 16, 1, 3, 6.2176e+14, false);
+            WriteCFST(ref sw, 42, 500, 10, 1, 3, 9.4878e+13, false);
+            WriteCFST(ref sw, 43, 500, 10, 1, 3, 9.4878e+13, false);
+            WriteCFST(ref sw, 51, 600, 16, 1, 3, 2.5709e+14, false);
+            WriteCFST(ref sw, 52, 600, 16, 1, 3, 2.5709e+14, false);
+            WriteCFST(ref sw, 53, 600, 16, 1, 3, 2.5709e+14, false);
+            WriteCFST(ref sw, 61, 900, 20, 1, 3, 1.0992e+15, false);
+            WriteCFST(ref sw, 62, 800, 16, 1, 3, 6.2176e+14, false);
+            WriteCFST(ref sw, 63, 450, 10, 1, 3, 6.8705e+13, false);
+            WriteCFST(ref sw, 64, 600, 12, 1, 3, 1.9674e+14, false);
             sw.Flush();
             sw.Close();
             Console.WriteLine("材料写出完成...");
@@ -252,19 +340,6 @@ namespace AnsysInterface
             sw.WriteLine("source Element.tcl");
             sw.WriteLine("# source Mass.tcl");
             sw.WriteLine("source Boundary.tcl");
-            sw.WriteLine("recorder Node -file Out/D1.out -node 31103 -dof 1 disp");
-            sw.WriteLine("set dt 0.01");
-            sw.WriteLine("timeSeries Path 13 -dt $dt -filePath Acc/RSN6e.acc -factor 1;");
-            sw.WriteLine("pattern UniformExcitation 400 1 -accel 13;");
-            sw.WriteLine("wipeAnalysis ;  ");
-            sw.WriteLine("constraints Transformation ;");
-            sw.WriteLine("numberer RCM ;  ");
-            sw.WriteLine("system SparseGeneral ;  ");
-            sw.WriteLine("test EnergyIncr 1e-1 25 3 ;");
-            sw.WriteLine("algorithm ModifiedNewton ;  ");
-            sw.WriteLine("integrator Newmark 0.5 0.25;");
-            sw.WriteLine("analysis Transient;");
-            sw.WriteLine("analyze 10 $dt;");
 
             sw.Flush();
             sw.Close();
