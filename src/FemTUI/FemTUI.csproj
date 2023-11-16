@@ -63,6 +63,10 @@
       <Project>{b45566d1-b232-43f9-8672-c6ddac916009}</Project>
       <Name>AnsysInterface</Name>
     </ProjectReference>
+    <ProjectReference Include="..\BOQInterface\BOQInterface.csproj">
+      <Project>{2B948E2F-648F-4BD2-BAEE-CF981D3D3635}</Project>
+      <Name>BOQInterface</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{a99b69de-7742-4c47-8be3-c01a29d374f5}</Project>
       <Name>Model</Name>

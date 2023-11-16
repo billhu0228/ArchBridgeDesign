@@ -7,7 +7,7 @@
     <ProjectGuid>{79CFFE16-4FD9-4B7C-A12A-7FE2CD524CCF}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>WinFromUI</RootNamespace>
-    <AssemblyName>WinFromUI</AssemblyName>
+    <AssemblyName>ArchBridgeDesigner</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -37,7 +37,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\x64\Debug\</OutputPath>
+    <OutputPath>..\..\bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -46,7 +46,7 @@
     <Prefer32Bit>true</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\x64\Release\</OutputPath>
+    <OutputPath>..\..\bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -72,6 +72,9 @@
     <PlatformTarget>x86</PlatformTarget>
     <LangVersion>7.3</LangVersion>
     <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>discovery-32x32.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Kitware.mummy.Runtime, Version=1.0.2.599, Culture=neutral, PublicKeyToken=995c7fb9db2c1b44, processorArchitecture=AMD64">
@@ -140,6 +143,7 @@
     </Compile>
     <Compile Include="ArchParas.cs" />
     <Compile Include="ModelStatus.cs" />
+    <Compile Include="MruStripMenu.cs" />
     <Compile Include="PropertyViewWindow.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -248,6 +252,10 @@
       <Project>{b45566d1-b232-43f9-8672-c6ddac916009}</Project>
       <Name>AnsysInterface</Name>
     </ProjectReference>
+    <ProjectReference Include="..\BOQInterface\BOQInterface.csproj">
+      <Project>{2B948E2F-648F-4BD2-BAEE-CF981D3D3635}</Project>
+      <Name>BOQInterface</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Model\Model.csproj">
       <Project>{a99b69de-7742-4c47-8be3-c01a29d374f5}</Project>
       <Name>Model</Name>
@@ -289,6 +297,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\right.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="discovery-32x32.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

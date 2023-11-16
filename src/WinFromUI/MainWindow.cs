@@ -1,22 +1,24 @@
 ﻿using AnsysInterface;
+using BOQInterface;
 using Kitware.VTK;
 using MathNet.Spatial.Euclidean;
 using Model;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Runtime.InteropServices.ComTypes;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Text.Unicode;
 using System.Windows.Forms;
-using static System.Net.WebRequestMethods;
 
 namespace WinFromUI
 {
@@ -28,10 +30,16 @@ namespace WinFromUI
         ArchAxis ax = null;
         Arch theArchModel = null;
         List<Parameter> theParas;
-        // ArchParameters paras;
         vtkBox viewBounding;
         ModelStatus status;
         PropertyViewWindow PropertyView;
+
+        protected MruStripMenu mruMenu;
+        static string mruRegKey = "SOFTWARE\\ArchBridgeDesigner\\WinFromUI";
+
+        protected string curFileName;
+
+        private int m_curFileNum = 0;
 
         public MainWindow()
         {
@@ -98,15 +106,42 @@ namespace WinFromUI
             btFrontView_Click(sender, e);
 
             status.ChangeStatus += new ModelStatus.StatusHandler(OutputEnable);
+
+            mruMenu = new MruStripMenuInline(文件ToolStripMenuItem, mrfToolStripMenuItem, new MruStripMenu.ClickedHandler(OnMruFile), mruRegKey + "\\MRU", 16);
+            IncFilename();
+        }
+        private void IncFilename()
+        {
+            m_curFileNum++;
         }
 
-
+        private void OnMruFile(int number, String filename)
+        {
+            string fileName = filename;
+            string jsonString = File.ReadAllText(fileName);
+            JsonSerializerOptions opt = new JsonSerializerOptions()
+            {
+                Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+                WriteIndented = true,
+            };
+            List<Parameter> theParasNew = JsonSerializer.Deserialize<List<Parameter>>(jsonString, opt);
+            theParas = theParasNew;
+            paraTree.Nodes.Clear();
+            var topNode = new TreeNode();
+            topNode.Name = "0";
+            topNode.Text = "参数表";
+            paraTree.Nodes.Add(topNode);
+            DataBindTree(topNode, theParas, 0);
+            paraTree.ExpandAll();
+        }
 
         private void OutputEnable()
         {
             ansysToolStripMenuItem.Enabled = true;
             midasToolStripMenuItem.Enabled = true;
             spaceClaimToolStripMenuItem.Enabled = true;
+            osisToolStripMenuItem.Enabled = true;
+            csvToolStripMenuItem.Enabled = true;
             ;
         }
 
@@ -602,7 +637,7 @@ namespace WinFromUI
                 TreeView theTree = sender as TreeView;
                 theTree.SelectedNode = null;
                 Tree2Data();
-                if (rr==DialogResult.Yes)
+                if (rr == DialogResult.Yes)
                 {
                     btGenerateMd_Click(sender, e);
                 }
@@ -611,33 +646,34 @@ namespace WinFromUI
         }
 
         #region 文件操作
-        private void 打开OToolStripMenuItem_Click(object sender, EventArgs e)
+        private void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //OpenFileDialog dia = new OpenFileDialog();
-            //dia.DefaultExt = "json";
-            //dia.Filter = "json files (*.json)|*.json|All files (*.*)|*.*";
-            //if (dia.ShowDialog() == DialogResult.OK)
-            //{
-            //    string fileName = dia.FileName;
-            //    string jsonString = File.ReadAllText(fileName);
-            //    JsonSerializerOptions opt = new JsonSerializerOptions()
-            //    {
-            //        Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
-            //        WriteIndented = true,
-            //    };
-            //    List<Parameter> theParasNew = JsonSerializer.Deserialize<List<Parameter>>(jsonString,opt);
-            //    theParas = theParasNew;
-            //    paraTree.Nodes.Clear();
-            //    var topNode = new TreeNode();
-            //    topNode.Name = "0";
-            //    topNode.Text = "参数表";
-            //    paraTree.Nodes.Add(topNode);
-            //    DataBindTree(topNode, theParas, 0);
-            //    paraTree.ExpandAll();
-            //}
+            OpenFileDialog dia = new OpenFileDialog();
+            dia.DefaultExt = "json";
+            dia.Filter = "json files (*.json)|*.json|All files (*.*)|*.*";
+            if (dia.ShowDialog() == DialogResult.OK)
+            {
+                string fileName = dia.FileName;
+                string jsonString = File.ReadAllText(fileName);
+                JsonSerializerOptions opt = new JsonSerializerOptions()
+                {
+                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+                    WriteIndented = true,
+                };
+                List<Parameter> theParasNew = JsonSerializer.Deserialize<List<Parameter>>(jsonString, opt);
+                theParas = theParasNew;
+                paraTree.Nodes.Clear();
+                var topNode = new TreeNode();
+                topNode.Name = "0";
+                topNode.Text = "参数表";
+                paraTree.Nodes.Add(topNode);
+                DataBindTree(topNode, theParas, 0);
+                paraTree.ExpandAll();
+                mruMenu.AddFile(fileName);
+            }
 
         }
-        private void 保存SToolStripMenuItem_Click(object sender, EventArgs e)
+        private void saveAsToolStripMenuItem_Click(object sender, EventArgs e)
         {
             SaveFileDialog dia = new SaveFileDialog();
             dia.DefaultExt = "json";
@@ -656,14 +692,65 @@ namespace WinFromUI
                 string result = Encoding.UTF8.GetString(jsonString);
                 // var s = jsonString.ToString();
                 System.IO.File.WriteAllText(fileName, result);
+                MessageBox.Show("文件已保存！", "通知", MessageBoxButtons.OK);
             }
-
-
         }
 
-        private void 新建NToolStripMenuItem_Click(object sender, EventArgs e)
+        private void newToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            MainWindow_Load(sender, e);
+            theParas = new List<Parameter>()
+            {
+                new Parameter() {Id = 1, Name = "截面参数", Value = -1, ParentId = 0},
+                new Parameter() {Id = 2, Name = "拱轴参数", Value = -1, ParentId = 0},
+                new Parameter() {Id = 3, Name = "拱肋参数", Value = -1, ParentId = 0},
+                new Parameter() {Id = 4, Name = "构造参数", Value = -1, ParentId = 0},
+
+                new Parameter() {Id = 11, Name = "主桁参数", Value = -1, ParentId = 1},
+                new Parameter() {Id = 12, Name = "横梁参数", Value = -1, ParentId = 1},
+                new Parameter() {Id = 13, Name = "内隔参数", Value = -1, ParentId = 1},
+                new Parameter() {Id = 14, Name = "平联参数", Value = -1, ParentId = 1},
+                new Parameter() {Id = 15, Name = "立柱参数", Value = -1, ParentId = 1},
+
+                new Parameter() {Id = 101, Name = "主管直径(D0)", Value = -1, ParentId = 11},
+                new Parameter() {Id = 121, Name = "拱脚腹杆直径(D21)", Value = -1, ParentId = 11},
+                new Parameter() {Id = 122, Name = "普通腹杆直径(D22)", Value = -1, ParentId = 11},
+                new Parameter() {Id = 123, Name = "拼装腹杆直径(D23)", Value = -1, ParentId = 11},
+
+                new Parameter() {Id = 131, Name = "内隔直径(D31)", Value = -1, ParentId = 13}, //
+                new Parameter() {Id = 132, Name = "拼接内隔直径(D32)", Value = -1, ParentId = 13},
+                new Parameter() {Id = 133, Name = "内隔腹杆直径(D33)", Value = -1, ParentId = 13},
+
+
+                new Parameter() {Id = 141, Name = "横梁弦杆直径(D41)", Value = -1, ParentId = 12},
+                new Parameter() {Id = 142, Name = "横梁腹杆直径(D42)", Value = -1, ParentId = 12},
+                new Parameter() {Id = 143, Name = "横梁双腹杆直径(D43)", Value = -1, ParentId = 12},
+
+                new Parameter() {Id = 151, Name = "平联直径(D51)", Value = -1, ParentId = 14},
+                new Parameter() {Id = 152, Name = "平联斜杆直径(D52)", Value = -1, ParentId = 14},
+                new Parameter() {Id = 153, Name = "合龙口平联直径(D53)", Value = -1, ParentId = 14},
+
+                new Parameter() {Id=161,Name="高立柱截面(D61)",Value=-1,ParentId=15 },
+                new Parameter() {Id=162,Name="一般立柱截面(D62)",Value=-1,ParentId=15 },
+                new Parameter() {Id=163,Name="立柱横杆截面(D63)",Value=-1,ParentId=15 },
+
+                new Parameter() {Id = 21, Name = "跨径(L)", Value = -1, ParentId = 2},
+                new Parameter() {Id = 22, Name = "拱轴系数(m)", Value = -1, ParentId = 2},
+                new Parameter() {Id = 23, Name = "跨矢比(L/f)", Value = -1, ParentId = 2},
+                new Parameter() {Id = 31, Name = "拱脚高度(H0)", Value = -1, ParentId = 3},
+                new Parameter() {Id = 32, Name = "拱顶高度(H1)", Value = -1, ParentId = 3},
+                new Parameter() {Id = 33, Name = "拱肋宽度(W0)", Value = -1, ParentId = 3},
+                new Parameter() {Id = 34, Name = "拱肋间距(W1)", Value = -1, ParentId = 3},
+            };
+            var topNode = paraTree.TopNode;
+            topNode.Nodes.Clear();
+            DataBindTree(topNode, theParas, 0);
+            paraTree.ExpandAll();
+
+            theArchModel = null;
+            vtkRenderer renderer = vtkWindow.RenderWindow.GetRenderers().GetFirstRenderer();
+            renderer.RemoveAllViewProps();
+            btFrontView_Click(sender, e);
+            status.ChangeStatus += new ModelStatus.StatusHandler(OutputEnable);
         }
         #endregion
 
@@ -761,6 +848,20 @@ namespace WinFromUI
 
         #region 输出      
 
+        private void spaceClaimToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SpaceClaimExt FluExt = new SpaceClaimExt(theFem);
+            SaveFileDialog dia = new SaveFileDialog();
+            dia.DefaultExt = "py";
+            dia.Filter = "SpaceClaim 命令流文件 (*.py)|*.py|All files (*.*)|*.*";
+            dia.OverwritePrompt = true;
+            if (dia.ShowDialog() == DialogResult.OK)
+            {
+                string savePath = Path.GetDirectoryName(dia.FileName);
+                FluExt.WriteElem(dia.FileName, -359, 0, -359, 0);
+                MessageBox.Show("SpaceClaim文件生成成功！", "通知", MessageBoxButtons.OK);
+            }
+        }
         private void ansysToolStripMenuItem_Click(object sender, EventArgs e)
         {
 
@@ -783,17 +884,27 @@ namespace WinFromUI
         private void midasToolStripMenuItem_Click(object sender, EventArgs e)
         {
             MidasExt midasExt = new MidasExt(theFem);
+            MidasDeckExt midasDeckExt1 = new MidasDeckExt(theFEMDeckA1);
+            MidasDeckExt midasDeckExt2 = new MidasDeckExt(theFEMDeckA2);
+            // FolderBrowserDialog dia = new FolderBrowserDialog();
 
-            FolderBrowserDialog dia = new FolderBrowserDialog();
+            SaveFileDialog dia = new SaveFileDialog();
+            dia.DefaultExt = "mct";
+            dia.Filter = "Midas 命令流文件 (*.mct)|*.mct|All files (*.*)|*.*";
+            dia.OverwritePrompt = true;
+
 
             if (dia.ShowDialog() == DialogResult.OK)
             {
-                string savePath = dia.SelectedPath;
-
-                midasExt.WriteMidas(savePath);
+                string savePath = Path.GetDirectoryName(dia.FileName);
+                midasExt.WriteMidas(dia.FileName);
+                midasDeckExt1.WriteMidas(Path.Combine(savePath, "DeckA.mct"));
+                midasDeckExt2.WriteMidas(Path.Combine(savePath, "DeckB.mct"));
+                midasExt.WriteLoads(Path.Combine(savePath, "其他荷载.mct"), ref theFEMDeckA1, ref theFEMDeckA2);
+                midasExt.WriteLiveLoad(Path.Combine(savePath, "移动荷载.mct"), ref theFEMDeckA1, ref theFEMDeckA2);
+                midasExt.WriteFTLoad(Path.Combine(savePath, "疲劳荷载.mct"), ref theFEMDeckA1, ref theFEMDeckA2);
                 midasExt.WriteNodeInfo(Path.Combine(savePath, "NodeInfomation.csv"));
-
-                MessageBox.Show("Ansys命令流生成成功！", "通知", MessageBoxButtons.OK);
+                MessageBox.Show("MCT生成成功！", "通知", MessageBoxButtons.OK);
             }
 
         }
@@ -817,6 +928,7 @@ namespace WinFromUI
         {
             About a = new About();
             a.ShowDialog();
+            a.Dispose();
         }
 
         private void 截面ToolStripMenuItem_Click(object sender, EventArgs e)
@@ -827,7 +939,7 @@ namespace WinFromUI
         private void oSISToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OsisExt osisExt = new OsisExt(theFem);
-            
+
             SaveFileDialog dia = new SaveFileDialog();
             dia.DefaultExt = "sml";
             dia.Filter = "OSIS命令流文件 (*.sml)|*.sml|All files (*.*)|*.*";
@@ -836,8 +948,67 @@ namespace WinFromUI
             {
                 string fileName = dia.FileName;
                 osisExt.WriteSML(fileName);
-                MessageBox.Show("OSIS命令流文件生成！", "通知", MessageBoxButtons.OK);
+                MessageBox.Show("OSIS命令流文件生成成功！", "通知", MessageBoxButtons.OK);
             }
         }
+
+        private void csvToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog dia = new SaveFileDialog();
+            dia.DefaultExt = "csv";
+            dia.Filter = "工程量清单 (*.csv)|*.csv|All files (*.*)|*.*";
+            dia.OverwritePrompt = true;
+            if (dia.ShowDialog() == DialogResult.OK)
+            {
+                BOQTable theTable = new BOQTable();
+                theFem.CastBOQTable(ref theTable);
+                theTable.SaveCSV(dia.FileName);
+                MessageBox.Show("工程量清单生成成功！", "通知", MessageBoxButtons.OK);
+            }
+
+
+        }
+
+        private void 另存为ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            SaveFileDialog dia = new SaveFileDialog();
+            dia.DefaultExt = "json";
+            dia.Filter = "json files (*.json)|*.json|All files (*.*)|*.*";
+            dia.OverwritePrompt = true;
+            if (dia.ShowDialog() == DialogResult.OK)
+            {
+                string fileName = dia.FileName;
+                JsonSerializerOptions opt = new JsonSerializerOptions()
+                {
+                    Encoder = JavaScriptEncoder.Create(UnicodeRanges.All),
+                    WriteIndented = true,
+                };
+                byte[] jsonString = JsonSerializer.SerializeToUtf8Bytes(theParas, opt);
+                byte[] jsonString2 = JsonSerializer.SerializeToUtf8Bytes(theParas);
+                string result = Encoding.UTF8.GetString(jsonString);
+                // var s = jsonString.ToString();
+                System.IO.File.WriteAllText(fileName, result);
+                MessageBox.Show("文件已保存！", "通知", MessageBoxButtons.OK);
+            }
+        }
+
+
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
+        {
+            if (keyData == (Keys.Control | Keys.N))
+            {
+                newToolStripMenuItem_Click(keyData, new EventArgs());
+            }
+            else if (keyData == (Keys.Control | Keys.O))
+            {
+                openToolStripMenuItem_Click((Keys)keyData, new EventArgs());
+            }
+            else if (keyData == (Keys.Control | Keys.S))
+            {
+                saveAsToolStripMenuItem_Click(keyData,new EventArgs()); 
+            }
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
     }
 }

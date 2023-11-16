@@ -23,7 +23,7 @@ namespace AnsysInterface
         public void WriteArcRib(string dirPath,double x_from,double x_end,double r_from,double r_end)
         {
             var cwd = Directory.CreateDirectory(dirPath);
-            WriteElem(Path.Combine(cwd.FullName, "Test.py"),x_from,x_end,r_from,r_end);
+            WriteElem(Path.Combine(cwd.FullName, "Model.py"),x_from,x_end,r_from,r_end);
         }
 
         FEMNode getNode(int nid)
@@ -80,7 +80,7 @@ namespace AnsysInterface
             return ret;
         }
 
-        private void WriteElem(string filepath,double x_from,double x_end,double rib_from,double rib_end)
+        public void WriteElem(string filepath,double x_from,double x_end,double rib_from,double rib_end)
         {
             using (StreamWriter sw = new StreamWriter(filepath, false))
             {

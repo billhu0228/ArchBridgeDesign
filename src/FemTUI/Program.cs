@@ -1,4 +1,5 @@
-﻿using MathNet.Numerics;
+﻿using BOQInterface;
+using MathNet.Numerics;
 using MathNet.Spatial.Euclidean;
 using MathNet.Spatial.Units;
 using Model;
@@ -351,6 +352,23 @@ namespace AnsysInterface
             midasExt.WriteNodeInfo(Path.Combine(savePath, "NodeInfomation.csv"));
             Console.ReadKey();
         }
+
+        static void BOQProcedure()
+        {
+            ArchAxis ax;
+            Arch theArchModel;
+            BOQTable theTable = new BOQTable();
+            theArchModel = NamedArch.PhoenixModelV63(out ax, 2.0, 518 / 4.5, 15.5, 7.0);
+            CompositeDeck DeckA;
+            CompositeDeck DeckB;
+            List<double> g1 = new List<double>() { 1.275, 5, 5, 1.275 };
+            List<double> g2 = new List<double>() { 3.775, 5, 3.775 };
+            CrossArrangement ca = new CrossArrangement(g1.Sum(), 0.25, 0.05, 0.3, 0, g1, g2);
+            FEMModel theFem = new FEMModel(ref theArchModel, ref ca, 3.9);
+            theFem.CastBOQTable(ref theTable);
+            theTable.SaveCSV("H:\\20210717 黑慧江拱桥两阶段设计\\01 总体计算\\Midas\\out_boq_new(20230801).csv");
+            return;
+        }
         private static void OpenSEESProcedure()
         {
             ArchAxis ax;
@@ -437,9 +455,10 @@ namespace AnsysInterface
 
         static void Main(string[] args)
         {
-            OSISProcedure();
-            // SpaceClaimProcedure();
+            // OSISProcedure();
+            SpaceClaimProcedure();
             // AnsysProcedure();
+            // BOQProcedure();
             // MidasProcedure();
             // TrussProcedure();
             // OpenSEESProcedure();
